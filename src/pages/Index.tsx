@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Users, Palette, Calendar, MapPin, Phone, Heart, Music, BookOpen, Users2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,11 @@ const Index = () => {
         }}>
         <div className="absolute inset-0 bg-black/60" />
         <div className="container relative z-10 text-center animate-fade-up">
-          <h1 className="font-display text-5xl md:text-7xl text-white mb-6 tracking-tight">L'Altro Spazio</h1>
+          <img 
+            src="/lovable-uploads/9ed77f9f-124b-4d91-8f31-f24528927836.png"
+            alt="L'Altro Spazio"
+            className="w-64 md:w-96 mx-auto mb-8"
+          />
           <p className="text-xl md:text-2xl text-white/90 mb-8 font-light max-w-3xl mx-auto text-balance">
             Uno spazio culturale dove tutti si sentono sicuri, rispettati e inclusi
           </p>
@@ -154,7 +157,11 @@ const Index = () => {
       {/* Footer */}
       <footer className="bg-secondary text-white py-8">
         <div className="container text-center">
-          <h2 className="font-display text-2xl mb-4">L'Altro Spazio</h2>
+          <img 
+            src="/lovable-uploads/9ed77f9f-124b-4d91-8f31-f24528927836.png"
+            alt="L'Altro Spazio"
+            className="w-40 mx-auto mb-4"
+          />
           <p className="text-white/80 mb-4">
             Un luogo dove la diversità è celebrata e l'inclusione è la normalità
           </p>
