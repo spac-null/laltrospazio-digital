@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Users, Palette, Calendar, MapPin, Phone, Heart } from "lucide-react";
+import { Users, Palette, Calendar, MapPin, Phone, Heart, Music, BookOpen, Users2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -16,8 +16,8 @@ const Index = () => {
         }}>
         <div className="absolute inset-0 bg-black/60" />
         <div className="container relative z-10 text-center animate-fade-up">
-          <h1 className="font-display text-5xl md:text-7xl text-white mb-6">L'Altro Spazio</h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-8 font-light max-w-3xl mx-auto">
+          <h1 className="font-display text-5xl md:text-7xl text-white mb-6 tracking-tight">L'Altro Spazio</h1>
+          <p className="text-xl md:text-2xl text-white/90 mb-8 font-light max-w-3xl mx-auto text-balance">
             Uno spazio culturale dove tutti si sentono sicuri, rispettati e inclusi
           </p>
           <Button 
@@ -34,27 +34,57 @@ const Index = () => {
         <div className="container">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="font-display text-4xl md:text-5xl text-secondary mb-8">La Nostra Missione</h2>
-            <p className="text-lg text-secondary/80 leading-relaxed mb-12">
+            <p className="text-lg text-secondary/80 leading-relaxed mb-12 text-balance">
               L'Altro Spazio è un ambasciatore culturale e una galleria d'arte nei quartieri Belvedere e 
               Parco 11 Settembre a Bologna. Crediamo che ognuno abbia qualcosa da offrire e siamo 
               appassionati nel creare spazi dove tutti possano sentirsi parte di una comunità.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <Card className="p-6 text-center bg-white">
+              <Card className="p-6 text-center bg-white hover:shadow-lg transition-shadow">
                 <Users className="w-10 h-10 mx-auto mb-4 text-primary" />
                 <h3 className="font-display text-xl mb-2">Inclusività</h3>
                 <p className="text-secondary/80">Uno spazio accessibile dove tutti sono benvenuti</p>
               </Card>
-              <Card className="p-6 text-center bg-white">
+              <Card className="p-6 text-center bg-white hover:shadow-lg transition-shadow">
                 <Palette className="w-10 h-10 mx-auto mb-4 text-primary" />
                 <h3 className="font-display text-xl mb-2">Arte e Cultura</h3>
                 <p className="text-secondary/80">Mostre, workshop e eventi culturali</p>
               </Card>
-              <Card className="p-6 text-center bg-white">
+              <Card className="p-6 text-center bg-white hover:shadow-lg transition-shadow">
                 <Heart className="w-10 h-10 mx-auto mb-4 text-primary" />
                 <h3 className="font-display text-xl mb-2">Comunità</h3>
                 <p className="text-secondary/80">Un luogo di incontro e attivismo sociale</p>
               </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Activities Section - New */}
+      <section className="section-padding bg-white">
+        <div className="container">
+          <h2 className="font-display text-4xl md:text-5xl text-secondary text-center mb-12">Le Nostre Attività</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="text-center space-y-4">
+              <Music className="w-12 h-12 mx-auto text-primary" />
+              <h3 className="font-display text-2xl">Eventi Culturali</h3>
+              <p className="text-secondary/80">
+                Concerti, serate di jazz, spettacoli teatrali e performance artistiche inclusive
+              </p>
+            </div>
+            <div className="text-center space-y-4">
+              <BookOpen className="w-12 h-12 mx-auto text-primary" />
+              <h3 className="font-display text-2xl">Workshop</h3>
+              <p className="text-secondary/80">
+                Laboratori creativi, corsi di lingua dei segni (LIS), e attività sensoriali
+              </p>
+            </div>
+            <div className="text-center space-y-4">
+              <Users2 className="w-12 h-12 mx-auto text-primary" />
+              <h3 className="font-display text-2xl">Incontri Sociali</h3>
+              <p className="text-secondary/80">
+                Aperitivi multiculturali, cene al buio, e eventi di sensibilizzazione
+              </p>
             </div>
           </div>
         </div>
@@ -66,26 +96,30 @@ const Index = () => {
           <h2 className="font-display text-4xl md:text-5xl text-center text-white mb-12">La Nostra Atmosfera</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6 text-white/90">
-              <p className="leading-relaxed">
+              <p className="leading-relaxed text-balance">
                 L'Altro Spazio è più di un semplice locale - è un luogo dove si respira aria di normalità. 
                 Il nostro spazio è completamente accessibile, con un'attenzione particolare alle esigenze di tutti.
               </p>
-              <p className="leading-relaxed">
+              <p className="leading-relaxed text-balance">
                 Dal bancone abbassato per accogliere persone in sedia a rotelle, ai menu in braille, 
                 fino al nostro staff multilingue che include la lingua dei segni (LIS), ogni dettaglio 
                 è pensato per creare un ambiente veramente inclusivo.
+              </p>
+              <p className="leading-relaxed text-balance">
+                Il nostro staff è composto al 50% da persone con disabilità, tutti formati per garantire 
+                un'esperienza accogliente per ogni visitatore.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <img 
                 src="/lovable-uploads/6b712eaa-d82a-4ff9-8967-44ea220cc5b8.png"
                 alt="Atmosfera accogliente del locale"
-                className="rounded-lg object-cover w-full h-full"
+                className="rounded-lg object-cover w-full h-full hover:scale-105 transition-transform duration-300"
               />
               <img 
                 src="/lovable-uploads/d6afc5c1-4ee3-4e9a-a069-43e716869757.png"
                 alt="Il nostro bar accessibile"
-                className="rounded-lg object-cover w-full h-full"
+                className="rounded-lg object-cover w-full h-full hover:scale-105 transition-transform duration-300"
               />
             </div>
           </div>

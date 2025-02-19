@@ -15,7 +15,15 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans leading-relaxed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+
+  p {
+    @apply text-base md:text-lg leading-relaxed;
   }
 
   .glass-card {
@@ -33,4 +41,12 @@
 
 .section-padding {
   @apply py-16 md:py-24;
+}
+
+.fade-up {
+  @apply transition-all duration-500 ease-out;
+}
+
+.text-balance {
+  text-wrap: balance;
 }
