@@ -158,9 +158,9 @@ const Index = () => {
       <footer className="bg-secondary text-white py-8">
         <div className="container text-center">
           <img 
-            src="/lovable-uploads/9ed77f9f-124b-4d91-8f31-f24528927836.png"
+            src="/lovable-uploads/2fcacb8b-60d7-40db-8f43-cbd19d7f0b9f.png"
             alt="L'Altro Spazio"
-            className="w-40 mx-auto mb-4"
+            className="w-40 mx-auto mb-4 brightness-100"
           />
           <p className="text-white/80 mb-4">
             Un luogo dove la diversità è celebrata e l'inclusione è la normalità
