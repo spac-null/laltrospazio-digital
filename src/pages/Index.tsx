@@ -11,24 +11,19 @@ const Index = () => {
       {/* Hero Section */}
       <section className="h-screen relative flex items-center justify-center parallax-bg" 
         style={{
-          backgroundImage: "url('/lovable-uploads/1308c64a-950e-4e06-8702-88f8206b6a05.png')",
+          backgroundImage: "url('/lovable-uploads/6z712EAa-982a-4fk9-8943-44ea220cc5b8.jpg')",
         }}>
         <div className="absolute inset-0 bg-black/60" />
         <div className="container relative z-10 text-center animate-fade-up">
-          <img 
-            src="/lovable-uploads/9ed77f9f-124b-4d91-8f31-f24528927836.png"
+        <img 
+            src="/lovable-uploads/2fcacb8b-60d7-40db-8f43-cbd19d7f0b9f.png"
             alt="L'Altro Spazio"
-            className="w-64 md:w-96 mx-auto mb-8"
+            className="w-48 md:w-64 mx-auto mb-8 object-contain object-fit"
           />
           <p className="text-xl md:text-2xl text-white/90 mb-8 font-light max-w-3xl mx-auto text-balance">
             Uno spazio culturale dove tutti si sentono sicuri, rispettati e inclusi
           </p>
-          <Button 
-            className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg"
-            onClick={() => setIsMenuOpen(true)}
-          >
-            Scopri i Nostri Eventi
-          </Button>
+{/* Button removed */}
         </div>
       </section>
 
@@ -93,7 +88,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Atmosphere Section */}
+{/* Atmosphere Section */}
       <section className="section-padding bg-secondary">
         <div className="container">
           <h2 className="font-display text-4xl md:text-5xl text-center text-white mb-12">La Nostra Atmosfera</h2>
@@ -115,12 +110,12 @@ const Index = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <img 
-                src="/lovable-uploads/6b712eaa-d82a-4ff9-8967-44ea220cc5b8.png"
+                src="/lovable-uploads/LAltro_Spazio_PV-20.jpg"
                 alt="Atmosfera accogliente del locale"
                 className="rounded-lg object-cover w-full h-full hover:scale-105 transition-transform duration-300"
               />
               <img 
-                src="/lovable-uploads/d6afc5c1-4ee3-4e9a-a069-43e716869757.png"
+                src="/lovable-uploads/LAltro_Spazio_PV-30.jpg"
                 alt="Il nostro bar accessibile"
                 className="rounded-lg object-cover w-full h-full hover:scale-105 transition-transform duration-300"
               />
@@ -129,26 +124,60 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Contact Section */}
+    {/* Contact Section */}
       <section className="section-padding bg-muted">
         <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="text-center md:text-left">
-              <Calendar className="w-8 h-8 mb-4 text-primary mx-auto md:mx-0" />
-              <h3 className="font-display text-xl mb-2">Eventi e Programmi</h3>
-              <p className="text-secondary/80 mb-6">
-                Mostre d'arte, workshop, concerti e serate danzanti.
-                Ogni evento è pensato per essere accessibile a tutti.
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <Calendar className="w-8 h-8 mb-4 text-primary mx-auto" />
+              <h3 className="font-display text-xl mb-2">Programmi</h3>
+              <p className="text-secondary/80">
+                Mostre d'arte, concerti, presentazioni e incontri.
+                <br />
+                Ogni evento è pensato per accessibile a tutti.
+                <br />
+                <Button 
+                  variant="ghost" 
+                  className="mt-4 text-primary hover:text-accent" 
+                  onClick={() => window.open('https://www.instagram.com/laltrospazio/', '_blank')}
+                >
+                  Esplora su Instagram
+                </Button>
               </p>
             </div>
-            <div className="text-center md:text-left">
-              <MapPin className="w-8 h-8 mb-4 text-primary mx-auto md:mx-0" />
+            <div className="text-center">
+              <Phone className="w-8 h-8 mb-4 text-primary mx-auto" />
+              <h3 className="font-display text-xl mb-2">Contattaci</h3>
+              <p className="text-secondary/80">
+                Email: nazariosauro@altrospazio.org
+                <br />
+                WhatsApp: +39 351 704 8064
+              </p>
+                <Button 
+                variant="ghost" 
+                className="mt-4 text-primary hover:text-accent" 
+                onClick={() => window.open('https://wa.me/message/CJWYXW3ILGFCL1', '_blank')}
+              >
+                  Contatta via WhatsApp
+                </Button>
+            </div>
+            <div className="text-center">
+              <MapPin className="w-8 h-8 mb-4 text-primary mx-auto" />
               <h3 className="font-display text-xl mb-2">Dove Siamo</h3>
               <p className="text-secondary/80">
-                Via Nazario Sauro
+                Via Nazario Sauro 24/F
                 <br />
                 Bologna, Italia
-              </p>
+                <br />
+<em className="text-sm">Durante l'estate, il nostro bar pop-up si trova a Parco 11 Settembre 2001</em>
+              </p>              
+              <Button 
+                  variant="ghost" 
+                  className="mt-4 text-primary hover:text-accent" 
+                  onClick={() => window.open('https://maps.app.goo.gl/xDqtoatfha1PdTtT7', '_blank')}
+                >
+                  Trova la strada con Google Maps
+                </Button>
             </div>
           </div>
         </div>
@@ -166,9 +195,9 @@ const Index = () => {
             Un luogo dove la diversità è celebrata e l'inclusione è la normalità
           </p>
           <div className="flex justify-center space-x-4">
-            <a href="#" className="hover:text-accent transition-colors">Facebook</a>
-            <a href="#" className="hover:text-accent transition-colors">Instagram</a>
-            <a href="#" className="hover:text-accent transition-colors">TripAdvisor</a>
+<a href="https://www.facebook.com/laltrospazio.bologna/" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">Facebook</a>
+<a href="https://www.instagram.com/laltrospazio/" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">Instagram</a>
+<a href="https://www.tripadvisor.it/Restaurant_Review-g187801-d6578619-Reviews-L_Altro_Spazio-Bologna_Province_of_Bologna_Emilia_Romagna.html" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">TripAdvisor</a>
           </div>
         </div>
       </footer>
