@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Wine, Clock, MapPin, Phone } from "lucide-react";
+import { Users, Palette, Calendar, MapPin, Phone, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -12,124 +12,107 @@ const Index = () => {
       {/* Hero Section */}
       <section className="h-screen relative flex items-center justify-center parallax-bg" 
         style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80')",
+          backgroundImage: "url('/lovable-uploads/1308c64a-950e-4e06-8702-88f8206b6a05.png')",
         }}>
-        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-black/60" />
         <div className="container relative z-10 text-center animate-fade-up">
           <h1 className="font-display text-5xl md:text-7xl text-white mb-6">L'Altro Spazio</h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-8 font-light">
-            Un luogo dove cultura e convivialità si incontrano
+          <p className="text-xl md:text-2xl text-white/90 mb-8 font-light max-w-3xl mx-auto">
+            Uno spazio culturale dove tutti si sentono sicuri, rispettati e inclusi
           </p>
           <Button 
             className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg"
             onClick={() => setIsMenuOpen(true)}
           >
-            Scopri il Menu
+            Scopri i Nostri Eventi
           </Button>
         </div>
       </section>
 
-      {/* About Section */}
+      {/* Mission Section */}
       <section className="section-padding bg-muted">
         <div className="container">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="font-display text-4xl md:text-5xl text-secondary mb-8">La Nostra Storia</h2>
-            <p className="text-lg text-secondary/80 leading-relaxed mb-8">
-              Situato nel cuore di Bologna, L'Altro Spazio è più di un semplice bar. 
-              È un luogo di incontro dove arte, cultura e sapori si fondono per creare 
-              un'esperienza unica. Dal 2020, abbiamo creato uno spazio dove la 
-              comunità può riunirsi, condividere idee e godersi momenti speciali.
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="font-display text-4xl md:text-5xl text-secondary mb-8">La Nostra Missione</h2>
+            <p className="text-lg text-secondary/80 leading-relaxed mb-12">
+              L'Altro Spazio è un ambasciatore culturale e una galleria d'arte nei quartieri Belvedere e 
+              Parco 11 Settembre a Bologna. Crediamo che ognuno abbia qualcosa da offrire e siamo 
+              appassionati nel creare spazi dove tutti possano sentirsi parte di una comunità.
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Menu */}
-      <section className="section-padding bg-secondary text-white">
-        <div className="container">
-          <h2 className="font-display text-4xl md:text-5xl text-center mb-12">I Nostri Signature</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Negroni Bolognese",
-                description: "Una twist sul classico, con bitter artigianale",
-                price: "€10",
-              },
-              {
-                name: "Spritz all'Altro",
-                description: "Il nostro spritz speciale con prosecco selezionato",
-                price: "€8",
-              },
-              {
-                name: "Martini Emiliano",
-                description: "Gin locale, vermouth artigianale, olive nostrane",
-                price: "€12",
-              },
-            ].map((drink) => (
-              <Card key={drink.name} className="glass-card p-6 text-center">
-                <Wine className="w-8 h-8 mx-auto mb-4 text-accent" />
-                <h3 className="font-display text-xl mb-2">{drink.name}</h3>
-                <p className="text-white/80 mb-4">{drink.description}</p>
-                <p className="text-accent font-semibold">{drink.price}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Card className="p-6 text-center bg-white">
+                <Users className="w-10 h-10 mx-auto mb-4 text-primary" />
+                <h3 className="font-display text-xl mb-2">Inclusività</h3>
+                <p className="text-secondary/80">Uno spazio accessibile dove tutti sono benvenuti</p>
               </Card>
-            ))}
+              <Card className="p-6 text-center bg-white">
+                <Palette className="w-10 h-10 mx-auto mb-4 text-primary" />
+                <h3 className="font-display text-xl mb-2">Arte e Cultura</h3>
+                <p className="text-secondary/80">Mostre, workshop e eventi culturali</p>
+              </Card>
+              <Card className="p-6 text-center bg-white">
+                <Heart className="w-10 h-10 mx-auto mb-4 text-primary" />
+                <h3 className="font-display text-xl mb-2">Comunità</h3>
+                <p className="text-secondary/80">Un luogo di incontro e attivismo sociale</p>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Info Section */}
-      <section className="section-padding bg-muted">
+      {/* Atmosphere Section */}
+      <section className="section-padding bg-secondary">
         <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <Clock className="w-8 h-8 mx-auto mb-4 text-primary" />
-              <h3 className="font-display text-xl mb-2">Orari</h3>
-              <p className="text-secondary/80">
-                Mar - Dom: 18:00 - 02:00
-                <br />
-                Lunedì: Chiuso
+          <h2 className="font-display text-4xl md:text-5xl text-center text-white mb-12">La Nostra Atmosfera</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6 text-white/90">
+              <p className="leading-relaxed">
+                L'Altro Spazio è più di un semplice locale - è un luogo dove si respira aria di normalità. 
+                Il nostro spazio è completamente accessibile, con un'attenzione particolare alle esigenze di tutti.
+              </p>
+              <p className="leading-relaxed">
+                Dal bancone abbassato per accogliere persone in sedia a rotelle, ai menu in braille, 
+                fino al nostro staff multilingue che include la lingua dei segni (LIS), ogni dettaglio 
+                è pensato per creare un ambiente veramente inclusivo.
               </p>
             </div>
-            <div className="text-center">
-              <MapPin className="w-8 h-8 mx-auto mb-4 text-primary" />
+            <div className="grid grid-cols-2 gap-4">
+              <img 
+                src="/lovable-uploads/6b712eaa-d82a-4ff9-8967-44ea220cc5b8.png"
+                alt="Atmosfera accogliente del locale"
+                className="rounded-lg object-cover w-full h-full"
+              />
+              <img 
+                src="/lovable-uploads/d6afc5c1-4ee3-4e9a-a069-43e716869757.png"
+                alt="Il nostro bar accessibile"
+                className="rounded-lg object-cover w-full h-full"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="section-padding bg-muted">
+        <div className="container">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="text-center md:text-left">
+              <Calendar className="w-8 h-8 mb-4 text-primary mx-auto md:mx-0" />
+              <h3 className="font-display text-xl mb-2">Eventi e Programmi</h3>
+              <p className="text-secondary/80 mb-6">
+                Mostre d'arte, workshop, concerti e serate danzanti.
+                Ogni evento è pensato per essere accessibile a tutti.
+              </p>
+            </div>
+            <div className="text-center md:text-left">
+              <MapPin className="w-8 h-8 mb-4 text-primary mx-auto md:mx-0" />
               <h3 className="font-display text-xl mb-2">Dove Siamo</h3>
               <p className="text-secondary/80">
-                Via dell'Indipendenza, 71
+                Via Nazario Sauro
                 <br />
-                40121 Bologna, Italia
+                Bologna, Italia
               </p>
             </div>
-            <div className="text-center">
-              <Phone className="w-8 h-8 mx-auto mb-4 text-primary" />
-              <h3 className="font-display text-xl mb-2">Prenotazioni</h3>
-              <p className="text-secondary/80">
-                Tel: +39 051 123 4567
-                <br />
-                info@altrospazio.it
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Gallery Section */}
-      <section className="section-padding">
-        <div className="container">
-          <h2 className="font-display text-4xl md:text-5xl text-center mb-12">Atmosfera</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80",
-              "https://images.unsplash.com/photo-1721322800607-8c38375eef04?auto=format&fit=crop&q=80",
-              "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80",
-            ].map((img, index) => (
-              <div key={index} className="aspect-square overflow-hidden rounded-lg">
-                <img 
-                  src={img} 
-                  alt={`L'Altro Spazio atmosphere ${index + 1}`}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -139,7 +122,7 @@ const Index = () => {
         <div className="container text-center">
           <h2 className="font-display text-2xl mb-4">L'Altro Spazio</h2>
           <p className="text-white/80 mb-4">
-            Un posto diverso per persone speciali
+            Un luogo dove la diversità è celebrata e l'inclusione è la normalità
           </p>
           <div className="flex justify-center space-x-4">
             <a href="#" className="hover:text-accent transition-colors">Facebook</a>
