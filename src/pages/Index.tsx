@@ -173,6 +173,10 @@ const Index = () => {
                     "La cena al buio è stata un'esperienza che ha cambiato la mia prospettiva. Consiglio a tutti di partecipare almeno una volta!"
                     <footer className="text-white/70 text-sm mt-2">— Paolo R.</footer>
                   </blockquote>
+                  <blockquote className="italic border-l-2 border-primary pl-4 py-2">
+                    "L'Altro Spazio non è solo un locale, è una comunità che ti fa sentire parte di qualcosa di importante. L'inclusività qui non è solo una parola, è praticata ogni giorno."
+                    <footer className="text-white/70 text-sm mt-2">— Giulia M.</footer>
+                  </blockquote>
                 </div>
               </div>
             </div>
@@ -200,7 +204,7 @@ const Index = () => {
                   </div>
                   <div className="text-center">
                     <span className="block text-4xl font-bold text-primary mb-2">200+</span>
-                    <span className="text-white/80">Partecipanti ai workshop</span>
+                    <span className="text-white/80">Visitatori mensili</span>
                   </div>
                   <div className="text-center">
                     <span className="block text-4xl font-bold text-primary mb-2">15+</span>
