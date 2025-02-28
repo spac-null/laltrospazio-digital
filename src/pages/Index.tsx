@@ -19,75 +19,24 @@ const Index = () => {
           method: 'GET',
         });
         
-        if (!response.ok) {
-          // Fallback to placeholder data if Instagram API doesn't work
-          setInstagramPosts([
-            {
-              id: '1',
-              caption: 'Serata speciale di musica inclusiva con interpreti LIS. Un\'esperienza unica accessibile a tutti! #inclusione #musicapertutti',
-              title: 'Concerto di musica dal vivo',
-              image: 'https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio'
-            },
-            {
-              id: '2',
-              caption: 'Un\'esperienza multisensoriale alla scoperta dei sapori senza l\'ausilio della vista. Guidati da persone non vedenti per una serata indimenticabile. #cenaalbuio #esperienzasensoriale',
-              title: 'Cena al buio',
-              image: 'https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio'
-            },
-            {
-              id: '3',
-              caption: 'La nostra nuova esposizione accessibile che celebra artisti locali. Opere tattili e descrizioni in braille disponibili per tutti i visitatori. #arteinclusive #accessibilità',
-              title: 'Mostra d\'arte inclusiva',
-              image: 'https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio'
-            },
-            {
-              id: '4',
-              caption: 'Un incontro tra culture diverse, uniti dalla convivialità e dal dialogo. Lo staff è pronto ad accogliervi in un ambiente completamente accessibile. #inclusione #multiculturalità',
-              title: 'Aperitivo multiculturale',
-              image: 'https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio'
-            },
-          ]);
-          console.log('Using fallback Instagram data');
-        } else {
+        if (response.ok) {
           const data = await response.json();
-          // Process Instagram data
-          const posts = data.graphql.user.edge_owner_to_timeline_media.edges.slice(0, 4).map(edge => ({
-            id: edge.node.id,
-            caption: edge.node.edge_media_to_caption.edges[0]?.node.text || '',
-            image: edge.node.display_url,
-            title: extractTitle(edge.node.edge_media_to_caption.edges[0]?.node.text || '')
-          }));
-          setInstagramPosts(posts);
+          // Process Instagram data if available
+          if (data && data.posts && data.posts.length > 0) {
+            setInstagramPosts(data.posts);
+          } else {
+            // Empty array if no posts available
+            setInstagramPosts([]);
+          }
+        } else {
+          // No fallback - empty array if API fails
+          setInstagramPosts([]);
+          console.log('Instagram API request failed');
         }
       } catch (error) {
         console.error('Error fetching Instagram posts:', error);
-        // Fallback data in case of error
-        setInstagramPosts([
-          {
-            id: '1',
-            caption: 'Serata speciale di musica inclusiva con interpreti LIS. Un\'esperienza unica accessibile a tutti! #inclusione #musicapertutti',
-            title: 'Concerto di musica dal vivo',
-            image: 'https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio'
-          },
-          {
-            id: '2',
-            caption: 'Un\'esperienza multisensoriale alla scoperta dei sapori senza l\'ausilio della vista. Guidati da persone non vedenti per una serata indimenticabile. #cenaalbuio #esperienzasensoriale',
-            title: 'Cena al buio',
-            image: 'https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio'
-          },
-          {
-            id: '3',
-            caption: 'La nostra nuova esposizione accessibile che celebra artisti locali. Opere tattili e descrizioni in braille disponibili per tutti i visitatori. #arteinclusive #accessibilità',
-            title: 'Mostra d\'arte inclusiva',
-            image: 'https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio'
-          },
-          {
-            id: '4',
-            caption: 'Un incontro tra culture diverse, uniti dalla convivialità e dal dialogo. Lo staff è pronto ad accogliervi in un ambiente completamente accessibile. #inclusione #multiculturalità',
-            title: 'Aperitivo multiculturale',
-            image: 'https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio'
-          },
-        ]);
+        // No fallback - empty array on error
+        setInstagramPosts([]);
       } finally {
         setLoading(false);
       }
@@ -227,47 +176,47 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Instagram Feed - New */}
-          <div className="max-w-4xl mx-auto mt-16 bg-muted p-8 rounded-xl">
-            <h3 className="font-display text-3xl text-secondary text-center mb-8">Le Nostre Ultime Attività</h3>
-            
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {instagramPosts.map((post) => (
-                    <div key={post.id} className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                      <div className="aspect-square rounded-md mb-4 overflow-hidden">
-                        <img 
-                          src={post.image} 
-                          alt={post.title}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                          onError={(e) => {
-                            e.currentTarget.src = "https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio";
-                          }}
-                        />
+          {/* Instagram Feed - Only shown if we have posts */}
+          {instagramPosts.length > 0 && (
+            <div className="max-w-4xl mx-auto mt-16 bg-muted p-8 rounded-xl">
+              <h3 className="font-display text-3xl text-secondary text-center mb-8">Le Nostre Ultime Attività</h3>
+              
+              {loading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {instagramPosts.map((post) => (
+                      <div key={post.id} className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                        <div className="aspect-square rounded-md mb-4 overflow-hidden">
+                          <img 
+                            src={post.image} 
+                            alt={post.title || 'Post Instagram'}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                          />
+                        </div>
+                        <h4 className="font-display text-lg text-secondary mb-2">{post.title || 'Evento L\'Altro Spazio'}</h4>
+                        <p className="text-secondary/80 text-sm line-clamp-3">
+                          {post.caption || ''}
+                        </p>
                       </div>
-                      <h4 className="font-display text-lg text-secondary mb-2">{post.title}</h4>
-                      <p className="text-secondary/80 text-sm line-clamp-3">
-                        {post.caption}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="text-center mt-8">
-                  <Button 
-                    className="bg-primary text-white hover:bg-primary/90"
-                    onClick={() => window.open('https://www.instagram.com/laltrospazio/', '_blank')}
-                  >
-                    Seguici su Instagram
-                  </Button>
-                </div>
-              </>
-            )}
+                    ))}
+                  </div>
+                  
+                  <div className="text-center mt-8">
+                    <Button 
+                      className="bg-primary text-white hover:bg-primary/90"
+                      onClick={() => window.open('https://www.instagram.com/laltrospazio/', '_blank')}
+                    >
+                      Seguici su Instagram
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
           </div>
         </div>
       </section>

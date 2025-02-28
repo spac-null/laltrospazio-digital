@@ -9,44 +9,22 @@ function getInstagramFeed($username) {
     // The Instagram username to fetch
     $instagram_username = $username ? $username : 'laltrospazio';
     
-    // Create placeholder data as fallback
-    $fallback_data = [
-        'posts' => [
-            [
-                'id' => '1',
-                'caption' => 'Serata speciale di musica inclusiva con interpreti LIS. Un\'esperienza unica accessibile a tutti! #inclusione #musicapertutti',
-                'title' => 'Concerto di musica dal vivo',
-                'image' => 'https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio'
-            ],
-            [
-                'id' => '2',
-                'caption' => 'Un\'esperienza multisensoriale alla scoperta dei sapori senza l\'ausilio della vista. Guidati da persone non vedenti per una serata indimenticabile. #cenaalbuio #esperienzasensoriale',
-                'title' => 'Cena al buio',
-                'image' => 'https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio'
-            ],
-            [
-                'id' => '3',
-                'caption' => 'La nostra nuova esposizione accessibile che celebra artisti locali. Opere tattili e descrizioni in braille disponibili per tutti i visitatori. #arteinclusive #accessibilità',
-                'title' => 'Mostra d\'arte inclusiva',
-                'image' => 'https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio'
-            ],
-            [
-                'id' => '4',
-                'caption' => 'Un incontro tra culture diverse, uniti dalla convivialità e dal dialogo. Lo staff è pronto ad accogliervi in un ambiente completamente accessibile. #inclusione #multiculturalità',
-                'title' => 'Aperitivo multiculturale',
-                'image' => 'https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio'
-            ]
-        ]
+    // Create empty response - no fallback data
+    $empty_response = [
+        'posts' => []
     ];
     
     // Attempt to fetch from Instagram
     try {
         // In a real implementation, you would use Instagram Graph API with proper authentication
-        // For demonstration, return fallback data
-        return json_encode($fallback_data);
+        // This would require setting up Meta developer account and creating an app
+        // For details: https://developers.facebook.com/docs/instagram-basic-display-api
+        
+        // For now, return empty response
+        return json_encode($empty_response);
     } catch (Exception $e) {
-        // Return fallback data in case of error
-        return json_encode($fallback_data);
+        // Return empty response in case of error
+        return json_encode($empty_response);
     }
 }
 
