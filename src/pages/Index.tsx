@@ -1,62 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Users, Palette, Calendar, MapPin, Phone, Heart, Music, BookOpen, Users2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [instagramPosts, setInstagramPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchInstagramPosts = async () => {
-      try {
-        setLoading(true);
-        // Instagram profile username
-        const username = 'laltrospazio';
-        // Use PHP endpoint if hosting supports PHP, otherwise use API Routes
-        const apiEndpoint = `/api/instagram-feed.php?username=${username}`;
-        const response = await fetch(apiEndpoint, {
-          method: 'GET',
-          headers: {
-            'Cache-Control': 'no-cache'
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          // Process Instagram data if available
-          if (data && data.posts && data.posts.length > 0) {
-            setInstagramPosts(data.posts);
-          } else {
-            // Empty array if no posts available
-            setInstagramPosts([]);
-          }
-        } else {
-          // No fallback - empty array if API fails
-          setInstagramPosts([]);
-          console.log('Instagram API request failed');
-        }
-      } catch (error) {
-        console.error('Error fetching Instagram posts:', error);
-        // No fallback - empty array on error
-        setInstagramPosts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInstagramPosts();
-  }, []);
-
-  // Helper function to extract title from caption
-  const extractTitle = (caption) => {
-    if (!caption) return 'Evento L\'Altro Spazio';
-    // Try to extract the first sentence or phrase
-    const firstLine = caption.split('\n')[0];
-    if (firstLine.length <= 50) return firstLine;
-    return firstLine.substring(0, 47) + '...';
-  };
 
   return (
     <div className="min-h-screen">
@@ -180,49 +128,15 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Instagram Feed - Only shown if we have posts */}
-          {instagramPosts.length > 0 && (
-            <div className="max-w-4xl mx-auto mt-16 bg-muted p-8 rounded-xl">
-              <h3 className="font-display text-3xl text-secondary text-center mb-8">Le Nostre Ultime Attività</h3>
-              
-              {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {instagramPosts.map((post) => (
-                      <div key={post.id} className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                        <div className="aspect-square rounded-md mb-4 overflow-hidden">
-                          <a href={post.url || `https://www.instagram.com/laltrospazio/`} target="_blank" rel="noopener noreferrer">
-                          <img 
-                            src={post.image} 
-                            alt={post.title || 'Post Instagram'}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                          />
-                        </a>
-                        </div>
-                        <h4 className="font-display text-lg text-secondary mb-2">{post.title || 'Evento L\'Altro Spazio'}</h4>
-                        <p className="text-secondary/80 text-sm line-clamp-3">
-                          {post.caption || ''}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="text-center mt-8">
-                    <Button 
-                      className="bg-primary text-white hover:bg-primary/90"
-                      onClick={() => window.open('https://www.instagram.com/laltrospazio/', '_blank')}
-                    >
-                      Seguici su Instagram
-                    </Button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+          {/* Instagram Call-to-Action */}
+          <div className="max-w-4xl mx-auto mt-16 text-center">
+            <Button 
+              className="bg-primary text-white hover:bg-primary/90"
+              onClick={() => window.open('https://www.instagram.com/laltrospazio/', '_blank')}
+            >
+              Seguici su Instagram per vedere le nostre attività
+            </Button>
+          </div>
           </div>
         </div>
       </section>
