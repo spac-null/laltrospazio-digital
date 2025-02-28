@@ -11,12 +11,12 @@ const Index = () => {
       {/* Hero Section */}
       <section className="h-screen relative flex items-center justify-center parallax-bg" 
         style={{
-          backgroundImage: "url('/lovable-uploads/6z712EAa-982a-4fk9-8943-44ea220cc5b8.jpg')",
+          backgroundImage: "url('/uploads/6z712EAa-982a-4fk9-8943-44ea220cc5b8.jpg')",
         }}>
         <div className="absolute inset-0 bg-black/60" />
         <div className="container relative z-10 text-center animate-fade-up">
         <img 
-            src="/lovable-uploads/2fcacb8b-60d7-40db-8f43-cbd19d7f0b9f.png"
+            src="/uploads/2fcacb8b-60d7-40db-8f43-cbd19d7f0b9f.png"
             alt="L'Altro Spazio"
             className="w-48 md:w-64 mx-auto mb-8 object-contain object-fit"
           />
@@ -110,12 +110,12 @@ const Index = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <img 
-                src="/lovable-uploads/LAltro_Spazio_PV-20.jpg"
+                src="/uploads/LAltro_Spazio_PV-20.jpg"
                 alt="Atmosfera accogliente del locale"
                 className="rounded-lg object-cover w-full h-full hover:scale-105 transition-transform duration-300"
               />
               <img 
-                src="/lovable-uploads/LAltro_Spazio_PV-30.jpg"
+                src="/uploads/LAltro_Spazio_PV-30.jpg"
                 alt="Il nostro bar accessibile"
                 className="rounded-lg object-cover w-full h-full hover:scale-105 transition-transform duration-300"
               />
@@ -187,7 +187,7 @@ const Index = () => {
       <footer className="bg-secondary text-white py-8">
         <div className="container text-center">
           <img 
-            src="/lovable-uploads/2fcacb8b-60d7-40db-8f43-cbd19d7f0b9f.png"
+            src="/uploads/2fcacb8b-60d7-40db-8f43-cbd19d7f0b9f.png"
             alt="L'Altro Spazio"
             className="w-40 mx-auto mb-4 brightness-100"
           />
