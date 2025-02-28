@@ -86,22 +86,22 @@ const Index = () => {
             </div>
             <div className="text-center space-y-4 hover:transform hover:scale-105 transition-all duration-300 p-6 rounded-lg hover:shadow-md">
               <BookOpen className="w-12 h-12 mx-auto text-primary" />
-              <h3 className="font-display text-2xl">Workshop</h3>
+              <h3 className="font-display text-2xl">Mostre d'Arte</h3>
               <p className="text-secondary/80">
-                Laboratori creativi, corsi di lingua dei segni (LIS), e attività sensoriali
+                Esposizioni artistiche accessibili e inclusive che celebrano la diversità e la creatività
               </p>
               <ul className="text-left text-secondary/80 mt-4 space-y-2">
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
-                  <span>Corsi di base di LIS aperti a tutti</span>
+                  <span>Mostre tattili per persone non vedenti</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
-                  <span>Laboratori artistici inclusivi per bambini</span>
+                  <span>Esposizioni di artisti emergenti locali</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-primary mr-2">•</span>
-                  <span>Workshop di cucina multisensoriale</span>
+                  <span>Installazioni artistiche multisensoriali</span>
                 </li>
               </ul>
             </div>
@@ -128,62 +128,81 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Calendar Section - New */}
+          {/* Instagram Feed - New */}
           <div className="max-w-4xl mx-auto mt-16 bg-muted p-8 rounded-xl">
-            <h3 className="font-display text-3xl text-secondary text-center mb-8">Eventi in Programma</h3>
-            <div className="space-y-6">
-              <div className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex flex-col md:flex-row gap-4 items-center">
-                  <div className="bg-primary text-white p-3 rounded-lg text-center min-w-24">
-                    <span className="block text-xl font-bold">15</span>
-                    <span className="text-sm">Marzo</span>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-display text-xl text-secondary mb-1">Concerto Jazz Inclusivo</h4>
-                    <p className="text-secondary/80 mb-2">
-                      Un concerto di jazz con interpretazione LIS e sistema di amplificazione per ipoacusici.
-                    </p>
-                    <div className="flex items-center text-sm text-secondary/70">
-                      <Calendar className="w-4 h-4 mr-1" /> 20:00 - 23:00
-                    </div>
-                  </div>
+            <h3 className="font-display text-3xl text-secondary text-center mb-8">Le Nostre Ultime Attività</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Instagram Post 1 */}
+              <div className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                <div className="aspect-square rounded-md mb-4 overflow-hidden">
+                  <img 
+                    src="/uploads/instagram-post-1.jpg" 
+                    alt="Evento recente all'Altro Spazio"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio";
+                    }}
+                  />
                 </div>
+                <h4 className="font-display text-lg text-secondary mb-2">Concerto di musica dal vivo</h4>
+                <p className="text-secondary/80 text-sm line-clamp-3">
+                  Serata speciale di musica inclusiva con interpreti LIS. Un'esperienza unica accessibile a tutti! #inclusione #musicapertutti
+                </p>
               </div>
               
-              <div className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex flex-col md:flex-row gap-4 items-center">
-                  <div className="bg-primary text-white p-3 rounded-lg text-center min-w-24">
-                    <span className="block text-xl font-bold">22</span>
-                    <span className="text-sm">Marzo</span>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-display text-xl text-secondary mb-1">Workshop di Lingua dei Segni</h4>
-                    <p className="text-secondary/80 mb-2">
-                      Lezione di base di LIS aperta a tutti, con esperti del settore.
-                    </p>
-                    <div className="flex items-center text-sm text-secondary/70">
-                      <Calendar className="w-4 h-4 mr-1" /> 18:00 - 20:00
-                    </div>
-                  </div>
+              {/* Instagram Post 2 */}
+              <div className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                <div className="aspect-square rounded-md mb-4 overflow-hidden">
+                  <img 
+                    src="/uploads/instagram-post-2.jpg" 
+                    alt="Cena al buio presso L'Altro Spazio"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio";
+                    }}
+                  />
                 </div>
+                <h4 className="font-display text-lg text-secondary mb-2">Cena al buio</h4>
+                <p className="text-secondary/80 text-sm line-clamp-3">
+                  Un'esperienza multisensoriale alla scoperta dei sapori senza l'ausilio della vista. Guidati da persone non vedenti per una serata indimenticabile. #cenaalbuio #esperienzasensoriale
+                </p>
               </div>
               
-              <div className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex flex-col md:flex-row gap-4 items-center">
-                  <div className="bg-primary text-white p-3 rounded-lg text-center min-w-24">
-                    <span className="block text-xl font-bold">30</span>
-                    <span className="text-sm">Marzo</span>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-display text-xl text-secondary mb-1">Cena al Buio</h4>
-                    <p className="text-secondary/80 mb-2">
-                      Un'esperienza sensoriale unica, guidata da persone non vedenti per scoprire nuovi modi di percepire il cibo.
-                    </p>
-                    <div className="flex items-center text-sm text-secondary/70">
-                      <Calendar className="w-4 h-4 mr-1" /> 19:30 - 22:30
-                    </div>
-                  </div>
+              {/* Instagram Post 3 */}
+              <div className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                <div className="aspect-square rounded-md mb-4 overflow-hidden">
+                  <img 
+                    src="/uploads/instagram-post-3.jpg" 
+                    alt="Mostra d'arte tattile"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio";
+                    }}
+                  />
                 </div>
+                <h4 className="font-display text-lg text-secondary mb-2">Mostra d'arte inclusiva</h4>
+                <p className="text-secondary/80 text-sm line-clamp-3">
+                  La nostra nuova esposizione accessibile che celebra artisti locali. Opere tattili e descrizioni in braille disponibili per tutti i visitatori. #arteinclusive #accessibilità
+                </p>
+              </div>
+              
+              {/* Instagram Post 4 */}
+              <div className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                <div className="aspect-square rounded-md mb-4 overflow-hidden">
+                  <img 
+                    src="/uploads/instagram-post-4.jpg" 
+                    alt="Incontro sociale all'Altro Spazio"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://placehold.co/600x600/e2e8f0/64748b?text=@laltrospazio";
+                    }}
+                  />
+                </div>
+                <h4 className="font-display text-lg text-secondary mb-2">Aperitivo multiculturale</h4>
+                <p className="text-secondary/80 text-sm line-clamp-3">
+                  Un incontro tra culture diverse, uniti dalla convivialità e dal dialogo. Lo staff è pronto ad accogliervi in un ambiente completamente accessibile. #inclusione #multiculturalità
+                </p>
               </div>
             </div>
             
@@ -192,7 +211,7 @@ const Index = () => {
                 className="bg-primary text-white hover:bg-primary/90"
                 onClick={() => window.open('https://www.instagram.com/laltrospazio/', '_blank')}
               >
-                Vedi Tutti gli Eventi
+                Seguici su Instagram
               </Button>
             </div>
           </div>
