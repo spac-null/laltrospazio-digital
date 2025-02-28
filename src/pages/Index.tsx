@@ -14,9 +14,13 @@ const Index = () => {
         setLoading(true);
         // Instagram profile username
         const username = 'laltrospazio';
-        // Use server-side API endpoint or public Instagram oEmbed API
-        const response = await fetch(`/api/instagram-feed.php?username=${username}`, {
+        // Use PHP endpoint if hosting supports PHP, otherwise use API Routes
+        const apiEndpoint = `/api/instagram-feed.php?username=${username}`;
+        const response = await fetch(apiEndpoint, {
           method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
         });
         
         if (response.ok) {
@@ -191,11 +195,13 @@ const Index = () => {
                     {instagramPosts.map((post) => (
                       <div key={post.id} className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                         <div className="aspect-square rounded-md mb-4 overflow-hidden">
+                          <a href={post.url || `https://www.instagram.com/laltrospazio/`} target="_blank" rel="noopener noreferrer">
                           <img 
                             src={post.image} 
                             alt={post.title || 'Post Instagram'}
                             className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                           />
+                        </a>
                         </div>
                         <h4 className="font-display text-lg text-secondary mb-2">{post.title || 'Evento L\'Altro Spazio'}</h4>
                         <p className="text-secondary/80 text-sm line-clamp-3">
