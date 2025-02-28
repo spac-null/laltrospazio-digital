@@ -158,7 +158,8 @@ const Index = () => {
               </p>
               <p className="leading-relaxed text-balance">
                 Il nostro staff è composto al 50% da persone con disabilità, tutti formati per garantire 
-                un'esperienza accogliente per ogni visitatore.
+                un'esperienza accogliente per ogni visitatore. Siamo orgogliosi di aver integrato con successo
+                oltre 20 persone senza precedente esperienza lavorativa nel mercato del lavoro.
               </p>
               
               {/* Testimonials - New */}
@@ -203,16 +204,16 @@ const Index = () => {
                     <span className="text-white/80">Eventi inclusivi all'anno</span>
                   </div>
                   <div className="text-center">
-                    <span className="block text-4xl font-bold text-primary mb-2">200+</span>
-                    <span className="text-white/80">Visitatori mensili</span>
+                    <span className="block text-4xl font-bold text-primary mb-2">15+</span>
+                    <span className="text-white/80">Tirocinanti distanti dal mercato del lavoro</span>
                   </div>
                   <div className="text-center">
                     <span className="block text-4xl font-bold text-primary mb-2">15+</span>
                     <span className="text-white/80">Collaborazioni con associazioni</span>
                   </div>
                   <div className="text-center">
-                    <span className="block text-4xl font-bold text-primary mb-2">1000+</span>
-                    <span className="text-white/80">Persone raggiunte</span>
+                    <span className="block text-4xl font-bold text-primary mb-2">20+</span>
+                    <span className="text-white/80">Persone integrate nel mercato del lavoro</span>
                   </div>
                 </div>
               </div>
