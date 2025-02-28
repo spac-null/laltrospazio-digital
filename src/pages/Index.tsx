@@ -58,31 +58,142 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Activities Section - New */}
+      {/* Activities Section - Enhanced */}
       <section className="section-padding bg-white">
         <div className="container">
           <h2 className="font-display text-4xl md:text-5xl text-secondary text-center mb-12">Le Nostre Attività</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="text-center space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-16">
+            <div className="text-center space-y-4 hover:transform hover:scale-105 transition-all duration-300 p-6 rounded-lg hover:shadow-md">
               <Music className="w-12 h-12 mx-auto text-primary" />
               <h3 className="font-display text-2xl">Eventi Culturali</h3>
               <p className="text-secondary/80">
                 Concerti, serate di jazz, spettacoli teatrali e performance artistiche inclusive
               </p>
+              <ul className="text-left text-secondary/80 mt-4 space-y-2">
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Esibizioni di musica dal vivo con interpreti LIS</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Spettacoli teatrali con audiodescrizione</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Letture poetiche multilingue</span>
+                </li>
+              </ul>
             </div>
-            <div className="text-center space-y-4">
+            <div className="text-center space-y-4 hover:transform hover:scale-105 transition-all duration-300 p-6 rounded-lg hover:shadow-md">
               <BookOpen className="w-12 h-12 mx-auto text-primary" />
               <h3 className="font-display text-2xl">Workshop</h3>
               <p className="text-secondary/80">
                 Laboratori creativi, corsi di lingua dei segni (LIS), e attività sensoriali
               </p>
+              <ul className="text-left text-secondary/80 mt-4 space-y-2">
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Corsi di base di LIS aperti a tutti</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Laboratori artistici inclusivi per bambini</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Workshop di cucina multisensoriale</span>
+                </li>
+              </ul>
             </div>
-            <div className="text-center space-y-4">
+            <div className="text-center space-y-4 hover:transform hover:scale-105 transition-all duration-300 p-6 rounded-lg hover:shadow-md">
               <Users2 className="w-12 h-12 mx-auto text-primary" />
               <h3 className="font-display text-2xl">Incontri Sociali</h3>
               <p className="text-secondary/80">
                 Aperitivi multiculturali, cene al buio, e eventi di sensibilizzazione
               </p>
+              <ul className="text-left text-secondary/80 mt-4 space-y-2">
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Cene al buio con guide non vedenti</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Aperitivi sociali con traduzione LIS</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Incontri di sensibilizzazione sull'inclusione</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          {/* Calendar Section - New */}
+          <div className="max-w-4xl mx-auto mt-16 bg-muted p-8 rounded-xl">
+            <h3 className="font-display text-3xl text-secondary text-center mb-8">Eventi in Programma</h3>
+            <div className="space-y-6">
+              <div className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex flex-col md:flex-row gap-4 items-center">
+                  <div className="bg-primary text-white p-3 rounded-lg text-center min-w-24">
+                    <span className="block text-xl font-bold">15</span>
+                    <span className="text-sm">Marzo</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-display text-xl text-secondary mb-1">Concerto Jazz Inclusivo</h4>
+                    <p className="text-secondary/80 mb-2">
+                      Un concerto di jazz con interpretazione LIS e sistema di amplificazione per ipoacusici.
+                    </p>
+                    <div className="flex items-center text-sm text-secondary/70">
+                      <Calendar className="w-4 h-4 mr-1" /> 20:00 - 23:00
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex flex-col md:flex-row gap-4 items-center">
+                  <div className="bg-primary text-white p-3 rounded-lg text-center min-w-24">
+                    <span className="block text-xl font-bold">22</span>
+                    <span className="text-sm">Marzo</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-display text-xl text-secondary mb-1">Workshop di Lingua dei Segni</h4>
+                    <p className="text-secondary/80 mb-2">
+                      Lezione di base di LIS aperta a tutti, con esperti del settore.
+                    </p>
+                    <div className="flex items-center text-sm text-secondary/70">
+                      <Calendar className="w-4 h-4 mr-1" /> 18:00 - 20:00
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex flex-col md:flex-row gap-4 items-center">
+                  <div className="bg-primary text-white p-3 rounded-lg text-center min-w-24">
+                    <span className="block text-xl font-bold">30</span>
+                    <span className="text-sm">Marzo</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-display text-xl text-secondary mb-1">Cena al Buio</h4>
+                    <p className="text-secondary/80 mb-2">
+                      Un'esperienza sensoriale unica, guidata da persone non vedenti per scoprire nuovi modi di percepire il cibo.
+                    </p>
+                    <div className="flex items-center text-sm text-secondary/70">
+                      <Calendar className="w-4 h-4 mr-1" /> 19:30 - 22:30
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center mt-8">
+              <Button 
+                className="bg-primary text-white hover:bg-primary/90"
+                onClick={() => window.open('https://www.instagram.com/laltrospazio/', '_blank')}
+              >
+                Vedi Tutti gli Eventi
+              </Button>
             </div>
           </div>
         </div>
@@ -107,18 +218,58 @@ const Index = () => {
                 Il nostro staff è composto al 50% da persone con disabilità, tutti formati per garantire 
                 un'esperienza accogliente per ogni visitatore.
               </p>
+              
+              {/* Testimonials - New */}
+              <div className="mt-8 bg-white/10 p-6 rounded-lg">
+                <h3 className="font-display text-2xl text-white mb-4">Cosa Dicono i Nostri Ospiti</h3>
+                <div className="space-y-4">
+                  <blockquote className="italic border-l-2 border-primary pl-4 py-2">
+                    "Finalmente un posto dove mia sorella sorda può partecipare pienamente agli eventi culturali senza sentirsi esclusa."
+                    <footer className="text-white/70 text-sm mt-2">— Maria C.</footer>
+                  </blockquote>
+                  <blockquote className="italic border-l-2 border-primary pl-4 py-2">
+                    "La cena al buio è stata un'esperienza che ha cambiato la mia prospettiva. Consiglio a tutti di partecipare almeno una volta!"
+                    <footer className="text-white/70 text-sm mt-2">— Paolo R.</footer>
+                  </blockquote>
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <img 
-                src="/uploads/LAltro_Spazio_PV-20.jpg"
-                alt="Atmosfera accogliente del locale"
-                className="rounded-lg object-cover w-full h-full hover:scale-105 transition-transform duration-300"
-              />
-              <img 
-                src="/uploads/LAltro_Spazio_PV-30.jpg"
-                alt="Il nostro bar accessibile"
-                className="rounded-lg object-cover w-full h-full hover:scale-105 transition-transform duration-300"
-              />
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <img 
+                  src="/uploads/LAltro_Spazio_PV-20.jpg"
+                  alt="Atmosfera accogliente del locale"
+                  className="rounded-lg object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+                />
+                <img 
+                  src="/uploads/LAltro_Spazio_PV-30.jpg"
+                  alt="Il nostro bar accessibile"
+                  className="rounded-lg object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              
+              {/* Impact Stats - New */}
+              <div className="bg-white/10 p-6 rounded-lg mt-6">
+                <h3 className="font-display text-2xl text-white mb-6 text-center">Il Nostro Impatto</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <span className="block text-4xl font-bold text-primary mb-2">50+</span>
+                    <span className="text-white/80">Eventi inclusivi all'anno</span>
+                  </div>
+                  <div className="text-center">
+                    <span className="block text-4xl font-bold text-primary mb-2">200+</span>
+                    <span className="text-white/80">Partecipanti ai workshop</span>
+                  </div>
+                  <div className="text-center">
+                    <span className="block text-4xl font-bold text-primary mb-2">15+</span>
+                    <span className="text-white/80">Collaborazioni con associazioni</span>
+                  </div>
+                  <div className="text-center">
+                    <span className="block text-4xl font-bold text-primary mb-2">1000+</span>
+                    <span className="text-white/80">Persone raggiunte</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
