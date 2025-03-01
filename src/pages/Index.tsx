@@ -137,7 +137,6 @@ const Index = () => {
               Seguici su Instagram per vedere le nostre attività
             </Button>
           </div>
-          </div>
         </div>
       </section>
 
