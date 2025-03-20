@@ -1,30 +1,15 @@
 {
-  "routes": [
+  "redirects": [
     {
-      "src": "/",
-      "headers": {
-        "host": "qr.altrospazio.org"
-      },
-      "dest": "/menu-gruppo-nazario.pdf",
-      "continue": true
-    },
-    {
-      "handle": "filesystem"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/menu-gruppo-nazario.pdf",
-      "headers": [
+      "source": "/(.*)",
+      "has": [
         {
-          "key": "Content-Type",
-          "value": "application/pdf"
-        },
-        {
-          "key": "Content-Disposition",
-          "value": "inline"
+          "type": "host",
+          "value": "qr.altrospazio.org"
         }
-      ]
+      ],
+      "destination": "https://altrospazio.org/menu-gruppo-nazario.pdf",
+      "permanent": true
     }
   ]
 }
