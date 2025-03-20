@@ -1,15 +1,16 @@
 {
-  "redirects": [
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
     {
       "source": "/(.*)",
       "has": [
         {
           "type": "host",
-          "value": "qr.altrospazio.org"
+          "value": "festa.altrospazio.org"
         }
       ],
-      "destination": "https://altrospazio.org/menu-gruppo-nazario.pdf",
-      "permanent": true
+      "destination": "/index.html"
     }
   ]
 }
