@@ -25,8 +25,8 @@ Last updated: 2026-08-13
 | Component | Access status | Intended data/use | Auth needed | Public/private | Refresh/cadence | Technical approach | Blocker |
 |---|---|---|---|---|---|---|---|
 | Workers Static Assets | local configuration prepared; not deployed | serve Vite `dist/` | Cloudflare account/repository authorization | public runtime | per deploy | Workers Builds + Wrangler configuration | account and preview not verified |
-| Workers Builds | not configured | GitHub build/deploy and preview versions | Cloudflare/GitHub authorization | deployment control plane | push/PR by branch policy | direct Git integration | account connection not verified |
-| DNS/custom domain | zone onboarding/propagation pending; custom domain not attached | DNS and future `www` Worker hostname | Cloudflare zone access | public infrastructure | persistent | account audit, then custom domain | zone not Active; no production cutover |
+| Workers Builds | safe branch/build plan prepared; not connected | GitHub build/deploy and preview versions | Cloudflare/GitHub authorization | deployment control plane | push/PR by branch policy | direct Git integration with pinned Wrangler commands | account connection not verified |
+| DNS/custom domain | zone Active; custom domain not attached | DNS and future `www` Worker hostname | Cloudflare zone access | public infrastructure | persistent | account audit, then custom domain | production hosting unchanged |
 | Cron Triggers | not configured | future scheduled ingestion | Worker deployment and source credentials | private job control | scheduled UTC cadence | `scheduled()` handler only when needed | no canonical live source yet |
 | Workers Secrets | not configured | future server-side Google/Meta credentials | account authorization | private | on job execution | secret bindings, never frontend | no authorized API integration |
 | KV | not configured | possible small public feed snapshots | account/resource authorization | public snapshot data only | refresh-driven | add only if static snapshots are insufficient | no demonstrated need |
@@ -41,19 +41,30 @@ are recorded.
 
 ## Confirmed Cloudflare DNS state
 
-- Zone: `altrospazio.org`, Free plan, onboarding in progress.
+- Zone: `altrospazio.org`, Free plan, Active.
 - Assigned nameservers: `cris.ns.cloudflare.com`, `lady.ns.cloudflare.com`.
-- Registrar nameservers were changed from one.com; Cloudflare is waiting for
-  propagation.
-- DNSSEC was disabled at one.com before delegation and must not be enabled in
-  Cloudflare yet.
+- Cloudflare is now authoritative DNS for the domain.
+- DNSSEC remains disabled and must not be enabled in Cloudflare until final DNS
+  verification is complete.
 - Vercel-oriented production records remain DNS-only.
 - Proton Mail records migrated: MX, SPF, Proton verification, DMARC, and three
   DKIM CNAME records.
+- Proton Mail MX, SPF, DMARC, and all three DKIM records were independently
+  verified through public DNS.
 - Redirect-only hosts being replaced: `menu.altrospazio.org` to
   `https://leggimenu.it/menu/laltrospazio`; `gruppo.altrospazio.org` to
   `https://altrospazio.org/menu.html`.
 - No `www` cutover or Worker custom domain exists yet.
+- `festa.altrospazio.org` did not resolve publicly from this environment on
+  2026-08-12 even though Vercel config still contains a host rewrite for it.
+
+## Vercel Git integration
+
+- Vercel project `landing-laltrospazio` is linked to GitHub repository
+  `spac-null/landing-space-generator`, production branch `main`.
+- The new canonical repository is `spac-null/laltrospazio-digital`.
+- Current Vercel production is therefore independent of pushes to the new
+  repository.
 
 ## GPT Engineer script finding
 
@@ -70,4 +81,6 @@ Current local evidence:
 Current assessment:
 - functional dependency for ordinary site rendering appears unlikely
 - privacy/performance cost exists because it adds a third-party script request and possible editor messaging logic
-- removal should be tested in local preview or a non-production preview before deletion
+- removal should be tested only in a non-production Worker preview before deletion
+- the repo now has a preview-only build switch, `STRIP_GPTENGINEER_SCRIPT=1`,
+  for that test

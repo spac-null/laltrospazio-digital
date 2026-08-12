@@ -7,7 +7,9 @@ Last updated: 2026-08-13
 - Vite SPA
 - React client renders the public website
 - Static assets live in `public/`
-- Vercel currently serves production, based on the previous public-header audit
+- Vercel currently serves production from the separate
+  `spac-null/landing-space-generator` repository, verified through the Vercel
+  project API on 2026-08-13
 - No visible backend or CMS in this repo
 
 ## Vercel dependencies retained during migration
@@ -39,6 +41,8 @@ GitHub repository
 ```
 
 This is a hosting evaluation and migration plan, not a production cutover.
+The new repository's `main` is canonical source, while Vercel production is
+still linked to the old repository.
 DNS, custom domains, Vercel, and traffic remain unchanged until a parallel
 deployment passes functional, accessibility, performance, and SEO checks.
 
@@ -79,28 +83,30 @@ requirement exists.
 2. Add and validate a Workers configuration on the feature branch using the
    existing build and `dist/` output, with SPA fallback and all public assets.
 3. Connect the repository to Workers Builds with the production branch excluded
-   from automatic production promotion during the trial; use preview versions
-   for pull requests or non-production branches.
+   from trial deployments; use preview versions for pull requests or
+   non-production branches.
 4. Test routes, assets, PDF access, mobile behavior, keyboard/screen-reader
    behavior, robots/sitemap, canonical metadata, and external links.
-5. Reconcile the Vercel-only `festa.altrospazio.org` host rewrite before any
+5. Test `gptengineer.js` removal only in preview by setting
+   `STRIP_GPTENGINEER_SCRIPT=1` for the non-production build and comparing the
+   rendered output against Vercel production.
+6. Reconcile the Vercel-only `festa.altrospazio.org` host rewrite before any
    cutover; preserve, separately map, or retire it only by owner-approved
    decision.
-6. Audit the live Cloudflare DNS zone and record apex, `www`, email, and
+7. Audit the live Cloudflare DNS zone and record apex, `www`, email, and
    seasonal-host records before proposing changes.
-7. Only after approval, attach `www.altrospazio.org` as a Worker Custom Domain,
+8. Only after approval, attach `www.altrospazio.org` as a Worker Custom Domain,
    establish apex redirect behavior, and execute a reversible cutover with
    Vercel retained for rollback.
 
 ### Current DNS/account evidence
 
-- Cloudflare onboarding is in progress for the `altrospazio.org` zone on the
-  Free plan.
+- Cloudflare is the active authoritative DNS provider for the
+  `altrospazio.org` zone on the Free plan.
 - Assigned authoritative nameservers are `cris.ns.cloudflare.com` and
-  `lady.ns.cloudflare.com`; registrar nameservers have been changed from one.com
-  and propagation is pending at Cloudflare.
-- DNSSEC was disabled at one.com before the nameserver change. Cloudflare DNSSEC
-  must remain disabled until the zone is Active and the migration is verified.
+  `lady.ns.cloudflare.com`.
+- DNSSEC was disabled before the nameserver change. Cloudflare DNSSEC must
+  remain disabled until final DNS verification is complete.
 - Existing Vercel-oriented apex, `www`, wildcard, `program`, and `qr` records
   remain DNS-only during Phase 1.
 - Proton Mail MX/SPF/verification/DMARC and three DKIM CNAME records have been
@@ -109,6 +115,23 @@ requirement exists.
   Cloudflare Single Redirects backed by explicit proxied `192.0.2.1` A records.
 - No production traffic has been moved from Vercel and no Worker custom domain
   has been attached.
+- `festa.altrospazio.org` remains present in `vercel.js`, but the hostname did
+  not publicly resolve from this environment on 2026-08-12.
+
+### Safest initial Workers Builds settings
+
+- Production branch: `main`
+- Enable non-production branch builds: yes
+- First triggered build: `laltrospazio-phase0-audit` preview only
+- Root directory: `/`
+- Build command: `npm run build`
+- Production deploy command: `npx wrangler@4.122.0 deploy`
+- Non-production deploy command: `npx wrangler@4.122.0 versions upload`
+- Build variable for preview validation only: `STRIP_GPTENGINEER_SCRIPT=1`
+
+This keeps the first Worker artifact on a preview URL, avoids attaching `www`,
+and pins Wrangler in dashboard commands because this repo does not currently
+declare a local Wrangler dependency.
 
 ## Recommended data/runtime direction
 
@@ -156,4 +179,5 @@ Private operational/growth data:
 - verify Workers Builds can connect to the `spac-null/laltrospazio-digital`
   repository under the intended Cloudflare account
 - create a non-production Worker preview and compare it to current Vercel
+- verify preview-only `gptengineer.js` removal with `STRIP_GPTENGINEER_SCRIPT=1`
 - verify `festa.altrospazio.org` behavior before any custom-domain change

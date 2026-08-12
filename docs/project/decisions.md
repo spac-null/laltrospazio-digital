@@ -3,7 +3,8 @@
 Last updated: 2026-08-13
 
 - Treat repo documentation as the project memory, not chat history.
-- Treat `main` as production-backed unless proven otherwise.
+- Treat production linkage as an account-level fact; do not infer it from
+  branch names or matching historical deployment content.
 - Do not deploy exploratory work directly to production.
 - Preserve pre-existing dirty worktree changes and record them.
 - Prefer static frontend + scheduled ingestion + cached normalized data.
@@ -26,7 +27,12 @@ Last updated: 2026-08-13
 - Treat Cloudflare migration as separate phases: DNS delegation with Vercel
   still serving production, a parallel Worker preview, then an approved hosting
   cutover.
-- Keep Cloudflare DNSSEC disabled until the zone reports Active and migrated DNS
-  records have been verified.
+- Keep Cloudflare DNSSEC disabled until final DNS verification is complete, then
+  re-enable it separately.
 - Keep `vercel.js` and Vercel Speed Insights during the parallel phase; remove
   or replace them only after preview behavior and measurement have been tested.
+- Merge `laltrospazio-phase0-audit` into the new repository's `main` after the
+  phase commit audit. Vercel remains unchanged because it is linked to the
+  separate `landing-space-generator` repository.
+- Test `gptengineer.js` removal only in a non-production Worker preview using a
+  build-time flag, not by changing the default build output.
