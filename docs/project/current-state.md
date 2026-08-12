@@ -22,6 +22,9 @@ Last updated: 2026-08-13
   `altrospazio.org`; this does not make Cloudflare the production web host.
 - The Cloudflare Worker is a preview candidate only. No Worker deployment or
   custom domain has been attached.
+- Dedicated preview branch: `preview/gptengineer-removal`, created from
+  canonical `main` and pushed to the new repository for the preview-only
+  script-removal test.
 
 ## Production relationship
 
