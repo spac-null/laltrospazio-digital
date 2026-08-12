@@ -7,7 +7,8 @@ Last updated: 2026-08-13
 - Frontend: Vite 5 + React 18 + TypeScript + Tailwind + shadcn/ui
 - Hosting target observed in production: Vercel (Cloudflare preview work in preparation)
 - Public site pattern today: single-page static venue site rendered from `src/pages/Index.tsx`
-- Current branch for audit work: `laltrospazio-phase0-audit`
+- Canonical branch: `main`, with phase-0 foundation merged and pushed at
+  `0f8a5f4` on 2026-08-13
 - Canonical GitHub repository: `git@github.com:spac-null/laltrospazio-digital.git`
 
 ## Source and hosting boundaries
@@ -116,6 +117,9 @@ Last updated: 2026-08-13
   included in this work.
 - Local `wrangler` is not installed in PATH in this workdir. The prior recorded
   dry run remains historical evidence, not a current-session recheck.
+- `npm run build`: passed on canonical `main` after the merge on 2026-08-13.
+- `package-lock.json` remains the only dirty worktree file and is uncommitted;
+  its content hash was unchanged across the merge.
 
 ## Vercel dependency inventory
 
@@ -157,8 +161,6 @@ Last updated: 2026-08-13
 
 ## Next action
 
-- Merge `laltrospazio-phase0-audit` into the new repository's `main`; Vercel is
-  connected to the separate old repository and remains unchanged.
 - Connect `spac-null/laltrospazio-digital` to Cloudflare Workers Builds with
   `main` retained as the production branch, enable non-production branch builds,
   and trigger the first deployment from `laltrospazio-phase0-audit`.
