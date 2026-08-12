@@ -1,0 +1,392 @@
+{
+  "generated_on": "2026-08-12",
+  "sources_reviewed": [
+    {
+      "id": "repo_index",
+      "type": "repo_file",
+      "path": "index.html"
+    },
+    {
+      "id": "repo_homepage",
+      "type": "repo_file",
+      "path": "src/pages/Index.tsx"
+    },
+    {
+      "id": "live_site",
+      "type": "public_website",
+      "url": "https://www.altrospazio.org/"
+    },
+    {
+      "id": "tripadvisor",
+      "type": "public_listing",
+      "url": "https://www.tripadvisor.it/Restaurant_Review-g187801-d6578619-Reviews-L_Altro_Spazio-Bologna_Province_of_Bologna_Emilia_Romagna.html"
+    },
+    {
+      "id": "culturabologna",
+      "type": "public_listing",
+      "url": "https://www.culturabologna.it/lang/it/events/mappe-del-possibile-collage-come-ponte-da-se-al-collettivo"
+    },
+    {
+      "id": "oggibo_parco",
+      "type": "public_listing",
+      "url": "https://www.oggibo.it/Locali/Bologna/L-Altro-Spazio-Parco-Parco-11-/b0e638d2-59d9-4be2-94f9-ddc348a589e4"
+    },
+    {
+      "id": "gptengineer_search",
+      "type": "public_search_evidence",
+      "note": "Indexed code snippet evidence for the embedded editor bridge script"
+    }
+  ],
+  "claims": [
+    {
+      "id": "venue_name",
+      "category": "identity",
+      "claim": "Official venue name is L'Altro Spazio",
+      "current_public_value": "L'Altro Spazio",
+      "status": "externally_supported",
+      "repo_evidence": ["index.html", "src/pages/Index.tsx"],
+      "external_evidence": ["live_site", "tripadvisor", "culturabologna"],
+      "notes": "Strongly supported publicly but not yet tied to an internal canonical source file."
+    },
+    {
+      "id": "primary_domain",
+      "category": "identity",
+      "claim": "Primary public website is https://www.altrospazio.org/",
+      "current_public_value": "https://www.altrospazio.org/",
+      "status": "verified",
+      "repo_evidence": ["index.html"],
+      "external_evidence": ["live_site"],
+      "notes": "Apex redirect to www observed on 2026-08-12."
+    },
+    {
+      "id": "nazario_address",
+      "category": "location",
+      "claim": "L'Altro Spazio is at Via Nazario Sauro 24/F, Bologna",
+      "current_public_value": "Via Nazario Sauro 24/F, Bologna, Italia",
+      "status": "externally_supported",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": ["tripadvisor", "culturabologna"],
+      "notes": "Publicly consistent across current site and external venue/event listings."
+    },
+    {
+      "id": "seasonal_parco_presence",
+      "category": "location",
+      "claim": "During summer, the venue has a pop-up bar at Parco 11 Settembre 2001",
+      "current_public_value": "Durante l'estate, il nostro bar pop-up si trova a Parco 11 Settembre 2001",
+      "status": "externally_supported",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": ["oggibo_parco"],
+      "notes": "Seasonal presence appears plausible and publicly supported, but dates, exact format, and current-year recurrence are not yet owner-confirmed."
+    },
+    {
+      "id": "nazariosauro_email",
+      "category": "contact",
+      "claim": "Public contact email is nazariosauro@altrospazio.org",
+      "current_public_value": "nazariosauro@altrospazio.org",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Present in current site code but not independently supported in reviewed public sources."
+    },
+    {
+      "id": "whatsapp_number",
+      "category": "contact",
+      "claim": "Public WhatsApp / phone number is +39 351 704 8064",
+      "current_public_value": "+39 351 704 8064",
+      "status": "externally_supported",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": ["tripadvisor"],
+      "notes": "Also appears on some aggregator surfaces. Controlled canonical owner source still needed."
+    },
+    {
+      "id": "whatsapp_link",
+      "category": "contact",
+      "claim": "WhatsApp contact link is https://wa.me/message/CJWYXW3ILGFCL1",
+      "current_public_value": "https://wa.me/message/CJWYXW3ILGFCL1",
+      "status": "verified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Verified as current site link target; ownership of underlying WhatsApp business endpoint not yet confirmed."
+    },
+    {
+      "id": "google_maps_link",
+      "category": "contact",
+      "claim": "Public Maps link target is https://maps.app.goo.gl/xDqtoatfha1PdTtT7",
+      "current_public_value": "https://maps.app.goo.gl/xDqtoatfha1PdTtT7",
+      "status": "verified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Verified as current site link target; destination business listing ownership still unknown."
+    },
+    {
+      "id": "instagram_profile",
+      "category": "social",
+      "claim": "Official Instagram profile is https://www.instagram.com/laltrospazio/",
+      "current_public_value": "https://www.instagram.com/laltrospazio/",
+      "status": "externally_supported",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": ["live_site"],
+      "notes": "Linked from current site; ownership/API status still unknown."
+    },
+    {
+      "id": "facebook_page",
+      "category": "social",
+      "claim": "Official Facebook page is https://www.facebook.com/laltrospazio.bologna/",
+      "current_public_value": "https://www.facebook.com/laltrospazio.bologna/",
+      "status": "externally_supported",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": ["live_site"],
+      "notes": "Linked from current site; ownership/API status still unknown."
+    },
+    {
+      "id": "tripadvisor_profile",
+      "category": "social",
+      "claim": "Relevant TripAdvisor venue profile is the currently linked Bologna listing",
+      "current_public_value": "https://www.tripadvisor.it/Restaurant_Review-g187801-d6578619-Reviews-L_Altro_Spazio-Bologna_Province_of_Bologna_Emilia_Romagna.html",
+      "status": "externally_supported",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": ["tripadvisor"],
+      "notes": "Linked from site and publicly present."
+    },
+    {
+      "id": "opening_hours_current_site",
+      "category": "hours",
+      "claim": "Current public site provides opening hours",
+      "current_public_value": null,
+      "status": "remove",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "No opening hours are actually published on the current site. Hours should not be introduced until a canonical source is identified."
+    },
+    {
+      "id": "opening_hours_external",
+      "category": "hours",
+      "claim": "Public external sources agree on current opening hours",
+      "current_public_value": null,
+      "status": "conflicting",
+      "repo_evidence": [],
+      "external_evidence": ["tripadvisor", "oggibo_parco"],
+      "notes": "Reviewed public ecosystem shows varying or venue-specific hours; no canonical source established."
+    },
+    {
+      "id": "safe_respected_inclusive_space",
+      "category": "editorial_fact_like",
+      "claim": "The venue is a place where everyone feels safe, respected, and included",
+      "current_public_value": "Uno spazio culturale dove tutti si sentono sicuri, rispettati e inclusi",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx", "index.html"],
+      "external_evidence": [],
+      "notes": "Editorial positioning, not a factual claim that should anchor provenance."
+    },
+    {
+      "id": "cultural_ambassador_gallery_neighborhoods",
+      "category": "identity",
+      "claim": "L'Altro Spazio is a cultural ambassador and art gallery in the Belvedere and Parco 11 Settembre neighborhoods",
+      "current_public_value": "L'Altro Spazio è un ambasciatore culturale e una galleria d'arte nei quartieri Belvedere e Parco 11 Settembre a Bologna",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Unsupported framing and neighborhood formulation."
+    },
+    {
+      "id": "fully_accessible_space",
+      "category": "accessibility",
+      "claim": "The venue is completely accessible",
+      "current_public_value": "Il nostro spazio è completamente accessibile",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Too broad to publish without a concrete access checklist."
+    },
+    {
+      "id": "lowered_bar_counter",
+      "category": "accessibility",
+      "claim": "There is a lowered counter accessible to wheelchair users",
+      "current_public_value": "bancone abbassato per accogliere persone in sedia a rotelle",
+      "status": "externally_supported",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": ["tripadvisor"],
+      "notes": "TripAdvisor listing text references this feature, but owner/system confirmation is still preferable."
+    },
+    {
+      "id": "braille_menu",
+      "category": "accessibility",
+      "claim": "Menus are available in braille",
+      "current_public_value": "menu in braille",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Not independently supported in reviewed sources."
+    },
+    {
+      "id": "staff_knows_lis",
+      "category": "accessibility",
+      "claim": "Staff includes Italian Sign Language (LIS)",
+      "current_public_value": "staff multilingue che include la lingua dei segni (LIS)",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Needs exact scope and current availability before public reuse."
+    },
+    {
+      "id": "live_music_with_lis_interpreters",
+      "category": "events_accessibility",
+      "claim": "Live music performances include LIS interpreters",
+      "current_public_value": "Esibizioni di musica dal vivo con interpreti LIS",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Do not present as routine fact without event-level evidence."
+    },
+    {
+      "id": "theater_with_audio_description",
+      "category": "events_accessibility",
+      "claim": "Theatrical performances include audio description",
+      "current_public_value": "Spettacoli teatrali con audiodescrizione",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Needs event-level verification."
+    },
+    {
+      "id": "tactile_exhibitions_for_blind_visitors",
+      "category": "accessibility",
+      "claim": "The venue hosts tactile exhibitions for blind visitors",
+      "current_public_value": "Mostre tattili per persone non vedenti",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Needs exhibit-level verification."
+    },
+    {
+      "id": "multisensory_installations",
+      "category": "accessibility",
+      "claim": "The venue hosts multisensory art installations",
+      "current_public_value": "Installazioni artistiche multisensoriali",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Unsupported as a standing claim."
+    },
+    {
+      "id": "social_aperitifs_with_lis_translation",
+      "category": "accessibility",
+      "claim": "Social aperitifs include LIS translation",
+      "current_public_value": "Aperitivi sociali con traduzione LIS",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Needs event/process verification."
+    },
+    {
+      "id": "events_accessible_to_all",
+      "category": "accessibility",
+      "claim": "Every event is designed to be accessible to everyone",
+      "current_public_value": "Ogni evento è pensato per accessibile a tutti",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Absolute accessibility claim; too broad without event-specific data."
+    },
+    {
+      "id": "staff_50_percent_disabled",
+      "category": "employment_statistics",
+      "claim": "50% of staff are people with disabilities",
+      "current_public_value": "Il nostro staff è composto al 50% da persone con disabilità",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Quantitative current-stat claim with no reviewed support."
+    },
+    {
+      "id": "20_people_integrated_into_job_market",
+      "category": "employment_statistics",
+      "claim": "More than 20 people have been integrated into the labor market",
+      "current_public_value": "oltre 20 persone ... integrate nel mercato del lavoro",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Quantitative historical impact claim with no reviewed support."
+    },
+    {
+      "id": "50_plus_inclusive_events_per_year",
+      "category": "event_statistics",
+      "claim": "The venue hosts more than 50 inclusive events per year",
+      "current_public_value": "50+ Eventi inclusivi all'anno",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Unsupported annual count."
+    },
+    {
+      "id": "15_plus_trainees_far_from_job_market",
+      "category": "employment_statistics",
+      "claim": "There are more than 15 trainees distant from the job market",
+      "current_public_value": "15+ Tirocinanti distanti dal mercato del lavoro",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Current wording is awkward and unsupported."
+    },
+    {
+      "id": "15_plus_partnerships",
+      "category": "partnership_statistics",
+      "claim": "The venue has more than 15 collaborations with associations",
+      "current_public_value": "15+ Collaborazioni con associazioni",
+      "status": "unverified",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "Unsupported count and partner class."
+    },
+    {
+      "id": "testimonial_maria_c",
+      "category": "testimonial",
+      "claim": "A guest testimonial attributed to Maria C. is authentic and publishable",
+      "current_public_value": "Finalmente un posto dove mia sorella sorda può partecipare pienamente agli eventi culturali senza sentirsi esclusa.",
+      "status": "remove",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "No provenance. Should not remain public without explicit source and permission."
+    },
+    {
+      "id": "testimonial_paolo_r",
+      "category": "testimonial",
+      "claim": "A guest testimonial attributed to Paolo R. is authentic and publishable",
+      "current_public_value": "La cena al buio è stata un'esperienza che ha cambiato la mia prospettiva.",
+      "status": "remove",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "No provenance. Should not remain public without explicit source and permission."
+    },
+    {
+      "id": "testimonial_giulia_m",
+      "category": "testimonial",
+      "claim": "A guest testimonial attributed to Giulia M. is authentic and publishable",
+      "current_public_value": "L'Altro Spazio non è solo un locale, è una comunità...",
+      "status": "remove",
+      "repo_evidence": ["src/pages/Index.tsx"],
+      "external_evidence": [],
+      "notes": "No provenance. Should not remain public without explicit source and permission."
+    },
+    {
+      "id": "tripadvisor_claimed_profile",
+      "category": "external_presence",
+      "claim": "TripAdvisor profile appears claimed/managed",
+      "current_public_value": "Profilo richiesto / Un rappresentante della struttura gestisce questo profilo",
+      "status": "externally_supported",
+      "repo_evidence": [],
+      "external_evidence": ["tripadvisor"],
+      "notes": "Public listing text suggests profile control on TripAdvisor."
+    },
+    {
+      "id": "gptengineer_script_required_for_site",
+      "category": "technical",
+      "claim": "The site requires gptengineer.js for visitor-facing functionality",
+      "current_public_value": "script tag present in index.html",
+      "status": "unverified",
+      "repo_evidence": ["index.html"],
+      "external_evidence": ["gptengineer_search"],
+      "notes": "Evidence points to an editor bridge script, not a user-facing dependency. Runtime removal test still pending."
+    }
+  ]
+}
