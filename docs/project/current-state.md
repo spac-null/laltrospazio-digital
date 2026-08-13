@@ -339,14 +339,14 @@ content must never publish automatically.
   `docs/project/google-business-profile.md`,
   `docs/project/field-authority.md`, and
   `docs/project/google-places-watchdog.md`.
-- No authenticated fetcher, Cron, KV, D1, dashboard, or Meta connector has
+- No authenticated GBP probe, Cron, KV, D1, dashboard, or Meta connector has
   been added. The next concrete step is a read-only authenticated GBP proof
-  after owner authorization.
+  after Basic API Access approval.
 - A one-account local OAuth bootstrap and read-only GBP probe are now
   implemented as `npm run gbp:authorize` and `npm run gbp:probe`. The flow uses
   the full `business.manage` scope as required by Google, offline access,
-  state, PKCE, ignored local token storage, and GET-only API methods. No real
-  token or GBP response is present.
+  state, PKCE, ignored local token storage, and GET-only API methods. OAuth
+  authorization has completed, but no GBP response has been retrieved.
 - GBP access bootstrap is now submitted for Google Cloud project `Trident`
   (`gen-lang-client-0047032066`, number `283285520695`) under support case
   `3-0370000040820`. Approval is pending; the selected profile is only Via
@@ -356,9 +356,14 @@ content must never publish automatically.
   loopback redirect `http://127.0.0.1:8787/oauth2callback`, and the full
   `business.manage` scope. Testing refresh tokens expire after 7 days; no
   unattended synchronization is enabled.
-- No local GBP client configuration or refresh token is present. Credentials
-  belong in the ignored repository-root `.env.gbp.local`; the authorization
-  command stores the refresh token only in ignored `.local/gbp-refresh-token.json`.
+- Local OAuth bootstrap has completed successfully using the rotated secret.
+  `.env.gbp.local` and `.local/gbp-refresh-token.json` exist with mode 600;
+  both are Git-ignored and no contents are recorded or committed. The local
+  callback completed at `http://127.0.0.1:8787/oauth2callback` for the owner
+  account using `business.manage`.
+- The External/Testing refresh token may expire after 7 days and is not a
+  production credential. Do not repeatedly reauthorize while approval is
+  pending.
 - Do not run the GBP probe until Google approves Basic API Access. Do not add
   Worker secrets or deploy connector behavior in this pending state.
 

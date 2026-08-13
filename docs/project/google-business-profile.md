@@ -14,12 +14,18 @@
 - OAuth web client: `L'Altro Spazio GBP Local Connector`
 - Redirect URI: `http://127.0.0.1:8787/oauth2callback`
 - Scope: `https://www.googleapis.com/auth/business.manage`
+- Local OAuth bootstrap: completed successfully on 2026-08-13
+- Local client configuration: `/Users/stargatesgx/code/laltrospazio-digital/.env.gbp.local`
+- Local refresh-token storage: `/Users/stargatesgx/code/laltrospazio-digital/.local/gbp-refresh-token.json`
+- Both paths are Git-ignored and have mode `600`; secret contents are not
+  recorded here.
 
 Google estimates 7–10 business days for review. Do not run `npm run gbp:probe`
 until Basic API Access is approved; before approval it is expected to fail with
 quota or permission errors and cannot produce real data. External/Testing OAuth
 refresh tokens currently expire after 7 days, so unattended synchronization will
-require a production OAuth consent state before automation is enabled.
+require a production OAuth consent state before automation is enabled. Do not
+repeatedly reauthorize while approval is pending.
 
 The connector boundary is implemented at
 `feeders/google-business-profile/normalize.mjs`. It accepts a Business
