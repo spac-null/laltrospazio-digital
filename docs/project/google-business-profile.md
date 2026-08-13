@@ -1,5 +1,26 @@
 # Google Business Profile Connector
 
+## Current access state (2026-08-13)
+
+- Google Cloud project: `Trident`
+- Project ID: `gen-lang-client-0047032066`
+- Project number: `283285520695`
+- Basic API Access: submitted and pending Google review
+- GBP support case: `3-0370000040820`
+- Selected profile: `L'Altro Spazio`, Via Nazario Sauro 24/F, Bologna, Italy
+- Excluded profile: Via del Pratello 29/A
+- OAuth app: `L'Altro Spazio GBP Sync`
+- OAuth audience: External / Testing
+- OAuth web client: `L'Altro Spazio GBP Local Connector`
+- Redirect URI: `http://127.0.0.1:8787/oauth2callback`
+- Scope: `https://www.googleapis.com/auth/business.manage`
+
+Google estimates 7–10 business days for review. Do not run `npm run gbp:probe`
+until Basic API Access is approved; before approval it is expected to fail with
+quota or permission errors and cannot produce real data. External/Testing OAuth
+refresh tokens currently expire after 7 days, so unattended synchronization will
+require a production OAuth consent state before automation is enabled.
+
 The connector boundary is implemented at
 `feeders/google-business-profile/normalize.mjs`. It accepts a Business
 Information API-shaped location object and emits normalized facts with field-

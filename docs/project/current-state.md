@@ -347,6 +347,20 @@ content must never publish automatically.
   the full `business.manage` scope as required by Google, offline access,
   state, PKCE, ignored local token storage, and GET-only API methods. No real
   token or GBP response is present.
+- GBP access bootstrap is now submitted for Google Cloud project `Trident`
+  (`gen-lang-client-0047032066`, number `283285520695`) under support case
+  `3-0370000040820`. Approval is pending; the selected profile is only Via
+  Nazario Sauro 24/F, not Via del Pratello 29/A.
+- OAuth is configured as External/Testing in the same project with app
+  `L'Altro Spazio GBP Sync`, web client `L'Altro Spazio GBP Local Connector`,
+  loopback redirect `http://127.0.0.1:8787/oauth2callback`, and the full
+  `business.manage` scope. Testing refresh tokens expire after 7 days; no
+  unattended synchronization is enabled.
+- No local GBP client configuration or refresh token is present. Credentials
+  belong in the ignored repository-root `.env.gbp.local`; the authorization
+  command stores the refresh token only in ignored `.local/gbp-refresh-token.json`.
+- Do not run the GBP probe until Google approves Basic API Access. Do not add
+  Worker secrets or deploy connector behavior in this pending state.
 
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event
