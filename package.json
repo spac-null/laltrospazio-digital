@@ -13,6 +13,8 @@
     "gbp:probe": "node scripts/gbp-probe.mjs",
     "gsc:authorize": "node scripts/gsc-oauth.mjs",
     "gsc:probe": "node scripts/gsc-probe.mjs",
+    "meta:store-token": "node scripts/meta-store-token.mjs",
+    "meta:probe": "node scripts/meta-probe.mjs",
     "test": "node --test tests/*.test.mjs",
     "lint": "eslint .",
     "preview": "vite preview"

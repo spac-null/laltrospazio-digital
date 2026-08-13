@@ -1,10 +1,15 @@
 export const META_API_VERSION = "v26.0";
 export const META_GRAPH_BASE = `https://graph.facebook.com/${META_API_VERSION}`;
-export const META_READ_PERMISSIONS = Object.freeze([
+export const HUMAN_PROOF_PERMISSIONS = Object.freeze([
   "public_profile",
   "pages_show_list",
   "pages_read_engagement",
   "instagram_basic",
+]);
+export const META_READ_PERMISSIONS = HUMAN_PROOF_PERMISSIONS;
+export const SYSTEM_USER_REQUIRED_CAPABILITIES = Object.freeze([
+  "facebook_page_own_post_read",
+  "instagram_professional_own_media_read",
 ]);
 export const META_ASSETS = Object.freeze({
   businessPortfolioId: "1760245797391981",
@@ -16,11 +21,12 @@ const MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const SENSITIVE_QUERY_KEYS = new Set(["access_token", "appsecret_proof", "client_secret"]);
 
 export class MetaError extends Error {
-  constructor(message, { status = null, code = null, cause = null } = {}) {
+  constructor(message, { status = null, code = null, graphCode = null, cause = null } = {}) {
     super(message, { cause });
     this.name = "MetaError";
     this.status = status;
     this.code = code;
+    this.graph_code = graphCode;
   }
 }
 
@@ -31,11 +37,17 @@ export function redactMetaUrl(value) {
 }
 
 function classifyHttp(status, body) {
-  if (status === 401) return new MetaError("Meta access token is expired, revoked, or invalid; reauthorize through the approved owner flow.", { status, code: "invalid_token" });
-  if (status === 403) return new MetaError("Meta denied the requested read permission or asset access.", { status, code: "permission_denied" });
-  if (status === 429) return new MetaError("Meta rate limit reached; retry later and retain the last valid snapshot.", { status, code: "rate_limited" });
-  if (status >= 500) return new MetaError("Meta is temporarily unavailable; retry later.", { status, code: "api_unavailable" });
-  return new MetaError(`Meta Graph API request failed with HTTP ${status}: ${body?.error?.message ?? "unknown error"}`, { status, code: "api_error" });
+  const graphCode = Number(body?.error?.code ?? NaN);
+  if (status === 401 || graphCode === 190) return new MetaError("Meta access token is expired, revoked, or invalid; reauthorize through the approved owner flow.", { status, code: "invalid_token", graphCode });
+  if (status === 403 || graphCode === 10) return new MetaError("Meta denied the requested read permission or asset access.", { status, code: "permission_denied", graphCode });
+  if (status === 429 || [4, 17, 32, 613].includes(graphCode)) return new MetaError("Meta rate limit reached; retry later and retain the last valid snapshot.", { status, code: "rate_limited", graphCode });
+  if (status >= 500) return new MetaError("Meta is temporarily unavailable; retry later.", { status, code: "api_unavailable", graphCode });
+  return new MetaError(`Meta Graph API request failed with HTTP ${status}; no raw Graph error was retained.`, { status, code: "api_error", graphCode });
+}
+
+export function classifyMetaError(error) {
+  if (error instanceof MetaError) return error.code;
+  return "unknown_error";
 }
 
 export async function metaRequest(pathOrUrl, { accessToken, method = "GET", params = {}, fetchImpl = fetch } = {}) {
@@ -49,7 +61,7 @@ export async function metaRequest(pathOrUrl, { accessToken, method = "GET", para
   target.searchParams.delete("client_secret");
   const response = await fetchImpl(target, { method: "GET", headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" } });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw classifyHttp(response.status, body);
+  if (!response.ok || body?.error) throw classifyHttp(response.status, body);
   return body;
 }
 

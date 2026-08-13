@@ -1,11 +1,22 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { listInstagramMedia, listPagePosts, metaRequest, redactMetaUrl, verifyAssetIdentity } from "../feeders/meta/client.mjs";
+import { HUMAN_PROOF_PERMISSIONS, listInstagramMedia, listPagePosts, metaRequest, redactMetaUrl, SYSTEM_USER_REQUIRED_CAPABILITIES, verifyAssetIdentity } from "../feeders/meta/client.mjs";
 
 const token = "synthetic-token-never-real";
 
 test("Meta client rejects mutation methods", async () => {
   for (const method of ["POST", "PUT", "PATCH", "DELETE"]) await assert.rejects(() => metaRequest("123", { accessToken: token, method }), /mutation method/);
+});
+
+test("Graph error codes classify invalid tokens and permission failures", async () => {
+  const response = (code) => async () => new Response(JSON.stringify({ error: { code, message: "redacted synthetic error" } }), { status: 200 });
+  await assert.rejects(() => metaRequest("123", { accessToken: token, fetchImpl: response(10) }), (error) => error.code === "permission_denied" && error.graph_code === 10);
+  await assert.rejects(() => metaRequest("123", { accessToken: token, fetchImpl: response(190) }), (error) => error.code === "invalid_token" && error.graph_code === 190);
+});
+
+test("system-user capabilities are separate from human discovery permissions", () => {
+  assert.deepEqual(HUMAN_PROOF_PERMISSIONS, ["public_profile", "pages_show_list", "pages_read_engagement", "instagram_basic"]);
+  assert.deepEqual(SYSTEM_USER_REQUIRED_CAPABILITIES, ["facebook_page_own_post_read", "instagram_professional_own_media_read"]);
 });
 
 test("Meta URLs redact access credentials before logging or persistence", () => {

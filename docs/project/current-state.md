@@ -443,6 +443,12 @@ never publish automatically.
   Portfolio system-user token assigned only to the Page/Instagram assets; the
   proven user-token/Page-token chain remains a controlled fallback. No token
   model has been created or configured.
+- Owner-facing Meta token installation and probing are implemented as
+  `npm run meta:store-token` and `npm run meta:probe`. Installation reads stdin
+  only and writes mode-600 `.local/meta-access-token.json`; probing uses fixed
+  owner-confirmed IDs and persists only redacted health/report data. Graph
+  error codes 10 and 190 are classified explicitly. No real Meta credential was
+  requested or installed.
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event
   data, and public information architecture.

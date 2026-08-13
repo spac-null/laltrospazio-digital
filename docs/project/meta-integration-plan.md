@@ -211,10 +211,35 @@ v26.0. It:
 - rejects POST, PUT, PATCH, and DELETE before network access; and
 - returns sanitized pagination metadata suitable for feeder health.
 
-Future local configuration is ignored `.env.meta.local` plus
-`.local/meta-access-token.json`. Neither is populated by this phase. No raw
-authenticated response, media CDN URL, token, cursor payload, or report has
-been committed.
+The owner-facing bootstrap is now `npm run meta:store-token`. It reads stdin,
+never accepts a token as an argument, writes only ignored
+`.local/meta-access-token.json`, and sets mode `0600`. The schema is:
+
+```json
+{
+  "access_token": "<owner-installed secret>",
+  "token_type": "system_user",
+  "source": "owner_local_install",
+  "installed_at": "<timestamp>"
+}
+```
+
+The token value is never printed. The safe macOS workflow is:
+
+```sh
+pbpaste | npm run meta:store-token
+pbcopy < /dev/null
+```
+
+The real read-only probe is `npm run meta:probe`. It reads that ignored file,
+queries only the fixed owner-confirmed Page and Instagram IDs, verifies the
+Page/linkage, reads one bounded page of Page posts and Instagram media, and
+writes only the redacted summary `.local/meta-probe-report.json`. It never
+prints media URLs, paging URLs, cursors, raw responses, or tokens.
+
+No raw authenticated response, media CDN URL, token, cursor payload, or report
+has been committed. `.env.meta.local` is reserved for future non-token
+configuration; the access token is not placed there.
 
 The existing normalizer remains the boundary:
 
@@ -222,6 +247,24 @@ The existing normalizer remains the boundary:
 
 The deterministic signals are triage hints only. They are not event extraction,
 and a missing Page message remains a valid source record with null text.
+
+## Error and capability model
+
+Graph error codes are classified independently of HTTP status: code `190` is an
+invalid/revoked token, code `10` is permission/asset denial, common rate-limit
+codes are rate-limited, and 5xx responses are temporary API failures. Reports
+retain only the safe error class.
+
+The successful human proof permissions remain separate from machine-token
+capabilities. `pages_show_list` and `public_profile` are not required merely to
+read known fixed assets. The system-user probe tests only:
+
+- Facebook Page own-post read.
+- Instagram professional-account own-media read.
+
+If Page reads succeed but Instagram media fails with permission denial, the
+probe reports `SYSTEM_USER_INSTAGRAM_UNSUPPORTED_OR_UNAUTHORIZED`; it does not
+request broader permissions.
 
 ## Capability boundary
 
