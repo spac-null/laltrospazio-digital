@@ -17,6 +17,25 @@ become canonical events without deterministic validation and owner approval.
 No Meta request, token, webhook, publication call, or profile write has been
 implemented.
 
+## Verified first-party assets
+
+Owner/API proof confirmed the following assets. These are configuration
+identifiers, not credentials:
+
+- Business Portfolio `1760245797391981`, L'Altro Spazio, business verified.
+- Facebook Page `264601140373284`, L'Altro Spazio.
+- Instagram professional account `17841402902868891`, `@laltrospazio`.
+- The Page's `instagram_business_account` points to that exact Instagram ID.
+
+The read-only proof succeeded with `pages_show_list`,
+`pages_read_engagement`, `instagram_basic`, and `public_profile`. No broader
+permission is part of the connector.
+
+An exposed temporary Page token from copied Graph API Explorer output is
+compromised. It must not be stored, inspected, reused, or requested. The owner
+is revoking that development authorization. No token from chat, Explorer
+output, URLs, logs, or reports is valid project configuration.
+
 ## Required account and app prerequisites
 
 - Instagram must be a Professional account (Business or Creator) and be linked
@@ -106,6 +125,39 @@ is relevant if the app serves assets outside the app owner's control or the
 dashboard requires review for the selected permission. Confirm the actual
 status per permission in App Dashboard before production use.
 
+## Unattended token model decision
+
+### A. System-user access token
+
+For a single verified Business Portfolio that owns both target assets, a
+Business Settings system user is the preferred unattended model to validate
+first. The owner would create a least-privilege system user, assign the
+dedicated app to it, assign only the Page and Instagram assets with read tasks,
+and generate a token with only the already-proven read permissions. The token
+belongs to the business integration rather than Jascha's browser session, is
+server-side only, and can be revoked by removing the asset assignment or
+revoking the token.
+
+The exact compatibility of a system-user token with the current Instagram
+media edge and `instagram_basic` must be proven with a fresh token. Meta's
+current documentation and dashboard are authoritative here; do not assume a
+system-user token is valid merely because the business owns the assets.
+
+### B. Long-lived user token plus Page token
+
+This is the already-proven development path: an authorized user token discovers
+the Page and linked Instagram account, then a Page token reads Page posts and
+Instagram media. It is simple and has clear owner consent, but it couples
+unattended access to a human authorization and token lifecycle. It is the
+fallback if Meta does not permit the required read edges with the system-user
+configuration.
+
+Recommendation: attempt A after owner setup, with only the four proven read
+permissions and exact asset assignments. Retain B as a controlled fallback,
+not as a browser-persisted credential. In either model, use a single server-side
+secret, monitor expiry/revocation, and fail closed while retaining the last
+valid normalized candidate snapshot.
+
 ## App strategy
 
 No suitable existing project-owned Meta app has been identified. If the owner
@@ -146,6 +198,31 @@ The first output is a source inventory. It must not classify every post as an
 event, and no record can become a published notice/event without the existing
 candidate validation and owner-approval workflow.
 
+## Implementation preparation
+
+The credential-free client at `feeders/meta/client.mjs` is prepared for API
+v26.0. It:
+
+- verifies the owner-confirmed Page ID/name and Instagram linkage;
+- reads Page posts and Instagram media with fixed field selections;
+- follows `paging.next` without trusting its embedded credentials;
+- sends tokens only in the `Authorization: Bearer` header;
+- strips `access_token`, `appsecret_proof`, and `client_secret` from URLs;
+- rejects POST, PUT, PATCH, and DELETE before network access; and
+- returns sanitized pagination metadata suitable for feeder health.
+
+Future local configuration is ignored `.env.meta.local` plus
+`.local/meta-access-token.json`. Neither is populated by this phase. No raw
+authenticated response, media CDN URL, token, cursor payload, or report has
+been committed.
+
+The existing normalizer remains the boundary:
+
+`raw Meta record -> normalized source record -> candidate signals -> deterministic validation -> owner approval -> canonical content`
+
+The deterministic signals are triage hints only. They are not event extraction,
+and a missing Page message remains a valid source record with null text.
+
 ## Capability boundary
 
 Reading the venue's own Instagram media is feasible through the Instagram
@@ -180,3 +257,4 @@ References: [Instagram Graph API](https://developers.facebook.com/docs/instagram
 [Instagram content publishing](https://developers.facebook.com/docs/instagram-api/guides/content-publishing),
 [Facebook Graph API](https://developers.facebook.com/docs/graph-api), and
 [Graph API access tokens](https://developers.facebook.com/docs/facebook-login/guides/access-tokens/).
+For current account-linking requirements, see [Meta's Instagram/Page help](https://www.facebook.com/help/1148909221857370). Meta's current API material also distinguishes the Facebook Login path from [Instagram Login](https://www.postman.com/meta/instagram/documentation/6yqw8pt/instagram-api?entity=request-23987686-26e7999c-fc7e-44c8-8f71-ab2de8d35c32); recheck permission and review status in the dashboard before authorization.

@@ -428,6 +428,21 @@ never publish automatically.
   display a concise no-confirmed-event message and link to `/eventi`, without
   inventing programming. The current verified operational-status block and
   visit/contact facts remain the primary current-state content.
+- Meta read-only API proof is complete for the owner-confirmed Page and linked
+  Instagram professional account. The four permissions are proven:
+  `pages_show_list`, `pages_read_engagement`, `instagram_basic`, and
+  `public_profile`. No broader permission is approved.
+- A temporary Page access token was exposed in copied Graph API Explorer output
+  and is treated as compromised. It must not be inspected, reused, requested,
+  logged, or committed. The owner is revoking that development authorization.
+- `feeders/meta/client.mjs` now provides credential-free read-only preparation:
+  fixed asset identity checks, Page/Instagram pagination, Bearer-header token
+  use, URL credential redaction, mutation rejection, and sanitized pagination
+  metadata. No real token or raw response is stored.
+- The preferred unattended model to validate is a least-privilege Business
+  Portfolio system-user token assigned only to the Page/Instagram assets; the
+  proven user-token/Page-token chain remains a controlled fallback. No token
+  model has been created or configured.
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event
   data, and public information architecture.
