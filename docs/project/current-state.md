@@ -20,8 +20,11 @@ Last updated: 2026-08-13
   project API on 2026-08-13.
 - Cloudflare DNS is production/authoritative infrastructure for
   `altrospazio.org`; this does not make Cloudflare the production web host.
-- The Cloudflare Worker is a preview candidate only. No Worker deployment or
-  custom domain has been attached.
+- The Cloudflare Worker is a preview candidate only. A version has been
+  uploaded, but no production promotion or custom domain has been attached.
+- First Worker Static Assets version uploaded without production promotion:
+  `00e07aba-5bab-4992-a9f4-f334d78d3f97`. A preview URL is still required for
+  parity testing.
 
 ## Production relationship
 
@@ -33,7 +36,8 @@ Last updated: 2026-08-13
 - No GitHub Pages configuration found in repo
 - No GitHub Actions deployment workflow found in repo
 - A minimal `wrangler.jsonc` now defines Worker Static Assets from `dist/` with
-  SPA fallback; no account deployment has been performed.
+  SPA fallback; the first version was uploaded through Workers Builds without
+  production promotion.
 
 ## Current repo findings
 
@@ -88,16 +92,16 @@ Last updated: 2026-08-13
   independently verified through public DNS. Menu and group redirect hosts are
   being replaced with Cloudflare Single Redirects using proxied `192.0.2.1`
   records.
-- No DNS, custom domain, production traffic, or Worker deployment has been
-  changed by this workspace.
+- No DNS, custom domain, or production traffic has been changed by this
+  workspace. The Worker version upload remains non-production.
 
 ## Latest validation
 
 - `pwd`: confirmed the canonical local workdir is
   `/Users/stargatesgx/code/laltrospazio-digital` on 2026-08-12.
-- `git status --short --branch`: branch remains
-  `laltrospazio-phase0-audit` tracking `origin/laltrospazio-phase0-audit`; the
-  only pre-existing dirty file is `package-lock.json`.
+- `git status --short --branch`: the working branch is
+  `preview/gptengineer-removal` tracking its origin branch; the only
+  pre-existing dirty file is `package-lock.json`.
 - `git remote -v`: fetch and push both point to
   `git@github.com:spac-null/laltrospazio-digital.git`.
 - `curl -I https://www.altrospazio.org`: returned `server: Vercel` and `200 OK`
@@ -125,6 +129,10 @@ Last updated: 2026-08-13
 - `bun.lockb` was tracked legacy residue and caused Workers Builds to select
   `bun install --frozen-lockfile`; it is removed in the package-manager cleanup
   commit. npm is the canonical package manager.
+- A clean committed-`HEAD` audit reproduced 20 npm findings: 2 low, 4
+  moderate, and 14 high. No `npm audit fix` was run. Detailed runtime versus
+  build-only classification and remediation order are in
+  `docs/project/dependency-audit-2026-08-13.md`.
 
 ## Vercel dependency inventory
 
@@ -166,11 +174,15 @@ Last updated: 2026-08-13
 
 ## Next action
 
-- Connect `spac-null/laltrospazio-digital` to Cloudflare Workers Builds with
-  `main` retained as the production branch, enable non-production branch builds,
-  and trigger the first deployment from `preview/gptengineer-removal`.
+- With Workers Builds connected, compare the uploaded
+  `preview/gptengineer-removal` version against Vercel when its preview URL is
+  provided. Keep `main` as the production branch and non-production branch
+  builds enabled.
 - Use `/` as the root directory, set `SKIP_DEPENDENCY_INSTALL=1`, and use
   `npm ci && npm run build` as the build command,
   `npx wrangler@4.122.0 deploy` as the production deploy command, and
   `npx wrangler@4.122.0 versions upload` as the non-production deploy command.
 - Do not attach `www`; the preview branch automatically strips the script.
+- When the preview URL is available, run the full production/Worker parity
+  checklist before any hosting decision. Do not promote the Worker version or
+  change production DNS during that comparison.
