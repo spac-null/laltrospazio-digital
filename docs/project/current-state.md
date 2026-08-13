@@ -392,6 +392,16 @@ never publish automatically.
 - The venue-first IA plan is recorded in
   `docs/project/public-information-architecture.md`; no visual redesign or
   analytics deployment was performed.
+- A real read-only Search Console OAuth/probe path is implemented as
+  `npm run gsc:authorize` and `npm run gsc:probe`. It uses a separate client
+  namespace/file/token path, PKCE, state validation, offline access, the
+  `webmasters.readonly` scope only, and mode-600 ignored local outputs. The
+  probe prefers `sc-domain:altrospazio.org`, falls back to the canonical
+  URL-prefix property, and generates a private normalized snapshot/report.
+- Recommended GSC client: create `L'Altro Spazio GSC Local Connector` in the
+  existing Trident project with loopback redirect
+  `http://127.0.0.1:8788/oauth2callback`. No Google credentials are recorded in
+  project files.
 
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event

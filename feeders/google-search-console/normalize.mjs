@@ -12,8 +12,15 @@ const DIMENSION_FIELDS = new Set(["query", "page", "date", "device", "country"])
 export function findCanonicalProperty(properties = []) {
   const matches = properties.filter((property) => CANONICAL_PROPERTIES.includes(property.siteUrl));
   if (matches.length === 0) throw new Error("no canonical Search Console property was found");
-  if (matches.length > 1) throw new Error("multiple canonical Search Console properties were found");
-  return matches[0];
+  return selectCanonicalProperty(matches);
+}
+
+export function selectCanonicalProperty(properties = []) {
+  const domain = properties.find((property) => property.siteUrl === "sc-domain:altrospazio.org");
+  if (domain) return domain;
+  const urlPrefix = properties.find((property) => property.siteUrl === "https://www.altrospazio.org/");
+  if (urlPrefix) return urlPrefix;
+  throw new Error("no canonical Search Console property was found");
 }
 
 export function normalizeProperties(response, { fetchedAt } = {}) {

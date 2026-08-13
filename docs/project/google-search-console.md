@@ -19,6 +19,15 @@ The minimum OAuth scope is
 GBP's `business.manage` scope. A future authorization command must request
 only the Search Console scope and store its refresh token separately.
 
+## Trident OAuth client strategy
+
+Use the existing Trident project (`gen-lang-client-0047032066`) but create a
+separate Web application client named `L'Altro Spazio GSC Local Connector`.
+This keeps client configuration and token rotation operationally separate from
+the GBP connector while retaining the same Google Cloud project. The client
+must use the loopback redirect
+`http://127.0.0.1:8788/oauth2callback`.
+
 The normalized property must match either the URL-prefix property
 `https://www.altrospazio.org/` or the domain property
 `sc-domain:altrospazio.org`. Search data is private operational intelligence:
@@ -43,15 +52,49 @@ Owner actions:
 
 Engineering actions:
 
-1. Enable the Search Console API in the Trident Google Cloud project, or in a
-   separately approved integration project if Google requires separation.
-2. Configure the OAuth consent screen and a local OAuth client for this scope.
-   If the app remains External/Testing, add the managing account as a test
-   user and treat the refresh token as temporary.
-3. Store client configuration and the refresh token only in ignored local
+1. In Google Cloud Console, select project `Trident`, then APIs & Services >
+   Library > enable the Google Search Console API.
+2. In Google Auth Platform > Branding, keep the existing external consent
+   configuration and verify the app name/support information.
+3. In Google Auth Platform > Audience, add the managing Google account as a
+   test user if the app is still External/Testing. Testing-mode refresh tokens
+   are temporary and are not unattended production credentials.
+4. In Google Auth Platform > Clients, create a Web application client named
+   `L'Altro Spazio GSC Local Connector` and add exactly
+   `http://127.0.0.1:8788/oauth2callback` as an authorized redirect URI.
+5. Put the new client values in the ignored local file described below, then
+   run `npm run gsc:authorize`. The authorization URL must show only
+   `https://www.googleapis.com/auth/webmasters.readonly`.
+6. Store the client configuration and the refresh token only in ignored local
    files. Never commit or print credentials.
-4. Run property discovery, select the canonical property, then query a bounded
+7. Run property discovery, select the canonical property, then query a bounded
    date range and save only normalized private snapshots.
+
+The owner should not paste client secrets, access tokens, or refresh tokens
+into chat or repository files.
+
+## Local files and commands
+
+Create `.env.gsc.local` with mode `600` containing only:
+
+```text
+GSC_GOOGLE_CLIENT_ID=...
+GSC_GOOGLE_CLIENT_SECRET=...
+```
+
+The commands use `.local/gsc-refresh-token.json`, `.local/gsc-snapshot.json`,
+and `.local/gsc-report.md`; all are ignored and the latter two are private
+analytics output. Run:
+
+```sh
+npm run gsc:authorize
+npm run gsc:probe
+```
+
+The probe performs GET requests for properties/sitemaps and the official POST
+Search Analytics query endpoint. It has no mutation methods. It prefers
+`sc-domain:altrospazio.org` and falls back to
+`https://www.altrospazio.org/`.
 
 ## Normalized output
 

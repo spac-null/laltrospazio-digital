@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { findCanonicalProperty, normalizeProperties, normalizeSearchAnalytics, normalizeSitemaps, GSC_SCOPE } from "../feeders/google-search-console/normalize.mjs";
+import { findCanonicalProperty, normalizeProperties, normalizeSearchAnalytics, normalizeSitemaps, selectCanonicalProperty, GSC_SCOPE } from "../feeders/google-search-console/normalize.mjs";
 import { gscRequest } from "../feeders/google-search-console/client.mjs";
 
 const fetchedAt = "2026-08-13T12:00:00Z";
@@ -11,9 +11,9 @@ test("finds the canonical URL-prefix Search Console property", () => {
   assert.equal(GSC_SCOPE, "https://www.googleapis.com/auth/webmasters.readonly");
 });
 
-test("rejects missing and ambiguous canonical properties", () => {
+test("rejects missing canonical properties and prefers the domain property", () => {
   assert.throws(() => findCanonicalProperty([]), /no canonical/);
-  assert.throws(() => findCanonicalProperty([{ siteUrl: "https://www.altrospazio.org/" }, { siteUrl: "sc-domain:altrospazio.org" }]), /multiple canonical/);
+  assert.equal(selectCanonicalProperty([{ siteUrl: "https://www.altrospazio.org/" }, { siteUrl: "sc-domain:altrospazio.org" }]).siteUrl, "sc-domain:altrospazio.org");
 });
 
 test("normalizes private site, analytics, and sitemap snapshots", () => {

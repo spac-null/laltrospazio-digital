@@ -32,4 +32,14 @@ important, add a small documented first-party event vocabulary and a consent
 review rather than installing GTM by default. Analytics remains private and is
 never serialized into the public content layer.
 
+## Production verification after enablement
+
+After enabling Web Analytics for the proxied `www.altrospazio.org` hostname in
+Cloudflare Dashboard > Web Analytics, verify the hostname is listed and that
+new pageview data appears after a controlled visit. Also inspect the production
+HTML and browser network log: automatic setup may use Cloudflare's managed
+injection/beacon path, so do not add a duplicate script to the app. Verify the
+Cloudflare-managed beacon or `/cdn-cgi/rum` request, confirm it is not a
+first-party GSC request, and keep GSC data in the private report path only.
+
 References: [Cloudflare Web Analytics FAQ](https://developers.cloudflare.com/web-analytics/), [data collection](https://developers.cloudflare.com/web-analytics/data-collection/), and [setup](https://developers.cloudflare.com/web-analytics/get-started/).
