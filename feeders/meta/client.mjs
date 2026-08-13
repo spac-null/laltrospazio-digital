@@ -18,7 +18,7 @@ export const META_ASSETS = Object.freeze({
 });
 
 const MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
-const SENSITIVE_QUERY_KEYS = new Set(["access_token", "appsecret_proof", "client_secret"]);
+const SENSITIVE_QUERY_KEYS = new Set(["access_token", "appsecret_proof", "client_secret", "code"]);
 
 export class MetaError extends Error {
   constructor(message, { status = null, code = null, graphCode = null, cause = null } = {}) {
@@ -32,6 +32,7 @@ export class MetaError extends Error {
 
 export function redactMetaUrl(value) {
   const url = new URL(value);
+  if (url.hostname !== "graph.facebook.com") throw new MetaError("Meta pagination URL has an unexpected host", { code: "unsafe_pagination_url" });
   for (const key of SENSITIVE_QUERY_KEYS) url.searchParams.delete(key);
   return url.toString();
 }
@@ -75,6 +76,20 @@ export function verifyAssetIdentity({ page, instagram }) {
 export async function verifyPageIdentity(accessToken, { fetchImpl = fetch } = {}) {
   const page = await metaRequest(META_ASSETS.pageId, { accessToken, params: { fields: "id,name,instagram_business_account" }, fetchImpl });
   return verifyAssetIdentity({ page });
+}
+
+export async function listManagedPages(userAccessToken, { fetchImpl = fetch } = {}) {
+  return metaRequest("me/accounts", { accessToken: userAccessToken, params: { fields: "id,name,access_token,tasks,instagram_business_account" }, fetchImpl });
+}
+
+export function selectOwnerPage(response) {
+  const matches = (response?.data ?? []).filter((page) => page.id === META_ASSETS.pageId);
+  if (matches.length === 0) throw new MetaError("Owner-confirmed L'Altro Spazio Page was not returned by /me/accounts", { code: "page_not_found" });
+  if (matches.length > 1) throw new MetaError("Multiple owner-confirmed Page records were returned", { code: "page_ambiguous" });
+  const page = matches[0];
+  if (page.name !== "L'Altro Spazio") throw new MetaError("Owner-confirmed Page name does not match L'Altro Spazio", { code: "page_identity_mismatch" });
+  if (!page.access_token) throw new MetaError("Owner-confirmed Page did not return a Page access token", { code: "page_token_missing" });
+  return page;
 }
 
 export async function paginateMeta(pathOrUrl, { accessToken, params = {}, maxPages = 100, fetchImpl = fetch } = {}) {

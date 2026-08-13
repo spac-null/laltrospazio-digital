@@ -8,11 +8,11 @@ function safeError(error, surface) {
   return code;
 }
 
-export async function runMetaProbe({ accessToken, fetchImpl = fetch, checkedAt = new Date().toISOString() }) {
+export async function runMetaProbe({ systemUserToken, pageToken, fetchImpl = fetch, checkedAt = new Date().toISOString() }) {
   const report = {
     source: "meta",
     visibility: "public_candidate",
-    token_type: "system_user",
+    token_types: { system_user: Boolean(systemUserToken), page: Boolean(pageToken) },
     page_identity_verified: false,
     instagram_linkage_verified: false,
     page_read: { ok: false, records: 0 },
@@ -23,7 +23,7 @@ export async function runMetaProbe({ accessToken, fetchImpl = fetch, checkedAt =
     checked_at: checkedAt,
   };
   try {
-    await verifyPageIdentity(accessToken, { fetchImpl });
+    await verifyPageIdentity(pageToken, { fetchImpl });
     report.page_identity_verified = true;
     report.instagram_linkage_verified = true;
   } catch (error) {
@@ -31,14 +31,14 @@ export async function runMetaProbe({ accessToken, fetchImpl = fetch, checkedAt =
   }
   if (report.page_identity_verified) {
     try {
-      const result = await listPagePosts(accessToken, { fetchImpl, maxPages: 1 });
+      const result = await listPagePosts(pageToken, { fetchImpl, maxPages: 1 });
       normalizeFacebookPosts(result.records, { fetchedAt: checkedAt });
       report.page_read = { ok: true, records: result.records.length };
     } catch (error) {
       report.errors.push({ surface: "page", error_class: safeError(error, "page") });
     }
     try {
-      const result = await listInstagramMedia(accessToken, { fetchImpl, maxPages: 1 });
+      const result = await listInstagramMedia(systemUserToken, { fetchImpl, maxPages: 1 });
       normalizeInstagramMedia(result.records, { fetchedAt: checkedAt });
       report.instagram_read = { ok: true, records: result.records.length };
     } catch (error) {
@@ -51,7 +51,7 @@ export async function runMetaProbe({ accessToken, fetchImpl = fetch, checkedAt =
     if (pageError?.error_class === "invalid_token") pageError.error_class = "SYSTEM_USER_PAGE_READ_TOKEN_CONTEXT_UNSUPPORTED_OR_UNAUTHORIZED";
   }
   report.feeder_health = makeFeederHealth({ source: "meta", visibility: "public_candidate", authenticationStatus: "authenticated", lastAttempt: checkedAt, lastSuccess: report.page_read.ok || report.instagram_read.ok ? checkedAt : null, freshness: report.page_read.ok || report.instagram_read.ok ? "fresh" : "failed", lastError: report.errors[0]?.error_class ?? null, recordsReceived: totalRecords, conflictsFound: [] });
-  if (report.page_read.ok && report.instagram_read.ok) report.system_user_viability = "YES";
+  if (report.page_read.ok && report.instagram_read.ok) report.system_user_viability = "YES - dual credential";
   else if (report.page_read.ok && report.errors.some((error) => error.error_class === "SYSTEM_USER_INSTAGRAM_UNSUPPORTED_OR_UNAUTHORIZED")) report.system_user_viability = "NO: Instagram capability unavailable for this system-user token";
   else if (!report.page_read.ok && report.instagram_read.ok && report.errors.some((error) => error.error_class === "SYSTEM_USER_PAGE_READ_TOKEN_CONTEXT_UNSUPPORTED_OR_UNAUTHORIZED")) report.system_user_viability = "PARTIAL: Instagram works; Page own-post read requires a compatible Page-token context or authorization";
   return report;

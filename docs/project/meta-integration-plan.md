@@ -232,10 +232,63 @@ pbcopy < /dev/null
 ```
 
 The real read-only probe is `npm run meta:probe`. It reads that ignored file,
-queries only the fixed owner-confirmed Page and Instagram IDs, verifies the
-Page/linkage, reads one bounded page of Page posts and Instagram media, and
-writes only the redacted summary `.local/meta-probe-report.json`. It never
+reads the separate ignored Page-token file for Facebook, reads the system-user
+file for Instagram, queries only the fixed owner-confirmed Page and Instagram
+IDs, verifies the Page/linkage, reads one bounded page of Page posts and
+Instagram media, and writes only the redacted summary
+`.local/meta-probe-report.json`. It never
 prints media URLs, paging URLs, cursors, raw responses, or tokens.
+
+## Dual-token owner authorization
+
+The Page authorization command is `npm run meta:authorize-page`. It uses the
+existing app `L'Altro Spazio Digital System`, the loopback callback
+`http://127.0.0.1:8789/oauth2callback`, state validation, PKCE, and only
+`pages_show_list,pages_read_engagement`.
+
+Owner/engineering local setup:
+
+1. In the ignored mode-600 `.env.meta.local`, set `META_APP_ID` and
+   `META_APP_SECRET`. Do not put either value in Git or chat. No
+   `META_CONFIG_ID` is needed for the current standard loopback flow unless
+   Meta's app dashboard explicitly requires a Facebook Login for Business
+   configuration ID; if it does, add that value to the same ignored file and
+   document the dashboard configuration before authorizing.
+2. In the Meta app dashboard, confirm `http://127.0.0.1:8789/oauth2callback` is
+   an allowed redirect URI for the existing app.
+3. Run `npm run meta:authorize-page`, sign in as the authorized owner, and
+   approve only the two requested read permissions.
+4. The flow calls `/me/accounts` with the temporary user token, selects only
+   Page `264601140373284`, verifies the Page name and linked Instagram ID using
+   the returned Page token, then stores only the final Page token at
+   `.local/meta-page-access-token.json` mode `0600`.
+
+The intermediate user token and authorization code exist only in process
+memory. The Page token schema is:
+
+```json
+{
+  "access_token": "<secret>",
+  "token_type": "page",
+  "page_id": "264601140373284",
+  "source": "owner_oauth",
+  "installed_at": "<timestamp>",
+  "expires_at": null
+}
+```
+
+`expires_at: null` means Meta did not provide a verified expiry in this flow;
+it is not a claim that the token is permanent. Expiry/revocation remains a
+health condition. Token-debug inspection is intentionally not automated here
+because it would require handling the App Secret and token as diagnostic
+inputs; no token is printed or persisted in reports.
+
+The final routing is explicit:
+
+- Instagram media: `.local/meta-access-token.json`, system-user token.
+- Facebook Page posts: `.local/meta-page-access-token.json`, Page token.
+
+There is no fallback between these token types.
 
 No raw authenticated response, media CDN URL, token, cursor payload, or report
 has been committed. `.env.meta.local` is reserved for future non-token

@@ -455,6 +455,13 @@ never publish automatically.
   `SYSTEM_USER_PAGE_READ_TOKEN_CONTEXT_UNSUPPORTED_OR_UNAUTHORIZED`, not a
   globally invalid token. System-user viability is partial pending a Meta
   decision about compatible Page-token context/asset authorization.
+- Meta authentication is now intentionally dual-credential: the existing
+  system-user token is used only for Instagram media, while
+  `npm run meta:authorize-page` obtains and validates a separate Page token
+  for Page own-post reads. The final Page token is stored only at ignored
+  mode-600 `.local/meta-page-access-token.json`; the intermediate user token is
+  not persisted. `npm run meta:probe` routes each endpoint to its required
+  token type and reports dual-model viability without exposing credentials.
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event
   data, and public information architecture.
