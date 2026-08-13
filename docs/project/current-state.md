@@ -25,6 +25,10 @@ Last updated: 2026-08-13
 - First Worker Static Assets version uploaded without production promotion:
   `00e07aba-5bab-4992-a9f4-f334d78d3f97`. A preview URL is still required for
   parity testing.
+- Preview URL now available and audited:
+  `https://preview-gptengineer-removal-laltrospazio-digital.dev-c05.workers.dev/`.
+  The audit found matching desktop/mobile geometry and no script-removal
+  regression, but a preview-only Playfair font 404 causes two console errors.
 
 ## Production relationship
 
@@ -133,6 +137,9 @@ Last updated: 2026-08-13
   moderate, and 14 high. No `npm audit fix` was run. Detailed runtime versus
   build-only classification and remediation order are in
   `docs/project/dependency-audit-2026-08-13.md`.
+- Full Vercel/Worker parity results are recorded in
+  `docs/project/parity-audit-2026-08-13.md`. The Worker remains unpromoted and
+  no production DNS or custom domain was changed.
 
 ## Vercel dependency inventory
 
@@ -183,6 +190,6 @@ Last updated: 2026-08-13
   `npx wrangler@4.122.0 deploy` as the production deploy command, and
   `npx wrangler@4.122.0 versions upload` as the non-production deploy command.
 - Do not attach `www`; the preview branch automatically strips the script.
-- When the preview URL is available, run the full production/Worker parity
-  checklist before any hosting decision. Do not promote the Worker version or
-  change production DNS during that comparison.
+- Resolve the preview-only Playfair font 404 and repeat the parity audit before
+  considering any Worker promotion. Do not promote the Worker version or
+  change production DNS during that work.
