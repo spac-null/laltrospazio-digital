@@ -301,6 +301,29 @@ content must never publish automatically.
 
 ## Next action
 
+## Post-notice production verification
+
+- The owner-confirmed temporary closure notice from commit `396aac0` is live
+  at `https://www.altrospazio.org/` as of 2026-08-13. Production returned
+  HTTP 200 with `server: cloudflare`; the browser check confirmed the
+  `Stato attuale` band and readable reopening message at desktop and 390px
+  mobile widths.
+- The production browser check reported zero console errors/warnings and no
+  failed first-party requests. Homepage, JS, CSS, images, and fonts loaded
+  successfully.
+- The notice remains date-aware and expires at `2026-08-27 00:00 Europe/Rome`.
+
+## Local worktree state
+
+- The primary local worktree is now on `main`, tracking `origin/main` at
+  `396aac0`.
+- The pre-existing dependency-resolution change to `package-lock.json` was
+  preserved without commit. It is still the only dirty tracked file. A
+  reversible patch backup is at
+  `/private/tmp/laltrospazio-primary-package-lock-20260813.patch`.
+- `preview/gptengineer-removal` has no commits absent from `main`; its remote
+  branch was not deleted. Deletion remains a separate explicit action.
+
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event
   data, and public information architecture.
