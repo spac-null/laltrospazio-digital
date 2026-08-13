@@ -324,6 +324,25 @@ content must never publish automatically.
 - `preview/gptengineer-removal` has no commits absent from `main`; its remote
   branch was not deleted. Deletion remains a separate explicit action.
 
+## External-owned data architecture
+
+- A per-field authority model is implemented in
+  `scripts/field-authority.mjs`. It preserves source, authority level,
+  fetched/owner/external timestamps, publication eligibility, and conflict
+  state without replacing the existing provenance statuses.
+- The Google Business Profile adapter boundary is implemented at
+  `feeders/google-business-profile/normalize.mjs`. It is credential-free and
+  tested only with synthetic API-shaped fixtures; no real GBP response or
+  secret is stored.
+- GBP setup, OAuth, account/location discovery, owner actions, field policy,
+  feeder health, and Places comparison rules are documented in
+  `docs/project/google-business-profile.md`,
+  `docs/project/field-authority.md`, and
+  `docs/project/google-places-watchdog.md`.
+- No authenticated fetcher, Cron, KV, D1, dashboard, or Meta connector has
+  been added. The next concrete step is a read-only authenticated GBP proof
+  after owner authorization.
+
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event
   data, and public information architecture.
