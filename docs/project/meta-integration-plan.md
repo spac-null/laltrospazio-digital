@@ -4,6 +4,18 @@ This is an implementation plan, not an authorization or an active integration.
 The official Meta Graph API documentation should be rechecked when credentials
 are provisioned because permissions and review rules change.
 
+## Adapter status
+
+The credential-free adapter at `feeders/meta/normalize.mjs` accepts synthetic
+Instagram media and Facebook Page post records and emits `public_candidate`
+source records. It preserves network, source ID, permalink, timestamp,
+caption/text, media metadata, deterministic event/notice signals, provenance,
+and fetch time. Candidate records cannot cross the public-data boundary or
+become canonical events without deterministic validation and owner approval.
+
+No Meta request, token, webhook, publication call, or profile write has been
+implemented.
+
 ## Required account and app prerequisites
 
 - Instagram must be a Professional account (Business or Creator) and be linked
@@ -14,22 +26,23 @@ are provisioned because permissions and review rules change.
   storage are required. No token belongs in the repository, browser bundle, or
   chat.
 - Reading Instagram media, reading Page content, and publishing to either
-  surface are separate capabilities. Request the minimum current permissions
-  shown by Meta for the selected endpoints, commonly including
-  `instagram_basic`, `pages_show_list`, `pages_read_engagement`, and, only if
-  publishing is approved, `instagram_content_publish` and
-  `pages_manage_posts`.
+  surface are separate capabilities. Request the minimum permissions shown by
+  Meta for the selected API version and endpoints. The commonly encountered
+  read permissions include `instagram_basic`, `pages_show_list`, and
+  `pages_read_engagement`; confirm in the current app dashboard whether Page
+  post reads require an additional Page-content permission. Do not request
+  `instagram_content_publish` or `pages_manage_posts` for this read-only
+  phase.
 
 ## Capability boundary
 
 Reading the venue's own Instagram media is feasible through the Instagram
 Graph API after the professional-account and Page-link prerequisites are met.
 Reading the Page's own posts is feasible through the Pages Graph API with a
-Page access token and the current Page read permissions. Publishing Instagram
-media requires a media-container workflow and `instagram_content_publish`;
-publishing Page posts requires the Page publishing permission and a Page token.
-These are independent approval decisions and must not be enabled merely to
-read candidate events.
+Page access token and the current Page read permissions. The exact permission
+set and review requirement are version- and endpoint-dependent and must be
+confirmed in Meta's current dashboard before authorization. Publishing is out
+of scope and must not be enabled merely to read candidate events.
 
 Long-lived user/Page tokens require secure storage, expiry monitoring, and
 rotation or reauthorization. The future scheduled job should fail closed when

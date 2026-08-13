@@ -294,10 +294,10 @@ boundary, not a claim about which setting overrides the file.
   `docs/project/event-source-inventory-2026-08-13.md`.
 - The minimal event model is recorded in `docs/project/event-schema.md`.
 
-Recommended source of truth: one owner-controlled versioned
-`content/events.json` registry. Social channels publish from or point to it;
-optional API imports may create drafts, but unreviewed social or aggregator
-content must never publish automatically.
+Recommended source of truth: owner-controlled versioned records under
+`content/events/`. Social channels publish from or point to them; optional API
+imports may create drafts, but unreviewed social or aggregator content must
+never publish automatically.
 
 ## Next action
 
@@ -366,6 +366,32 @@ content must never publish automatically.
   pending.
 - Do not run the GBP probe until Google approves Basic API Access. Do not add
   Worker secrets or deploy connector behavior in this pending state.
+
+## Independent feeder foundations (2026-08-13)
+
+- Google Business Profile remains blocked on Basic API Access approval. No
+  GBP probe or connector change was made in this workstream.
+- A read-only Google Search Console adapter is implemented at
+  `feeders/google-search-console/`. It normalizes canonical property discovery,
+  Search Analytics dimensions/metrics, and sitemap status using synthetic
+  fixtures only. Its required scope is
+  `https://www.googleapis.com/auth/webmasters.readonly`; all output is marked
+  `visibility: private`.
+- A Meta adapter foundation is implemented at `feeders/meta/`. It normalizes
+  synthetic Instagram media and Facebook Page post records into candidate
+  records only. It performs no Meta requests, writes, publication, or token
+  handling.
+- Shared feeder health and privacy enforcement are implemented in
+  `scripts/feeder-health.mjs`. Private Search Console data and unapproved Meta
+  candidates are rejected by the public-output boundary.
+- Production was audited for analytics bootstrap code: no GA4, GTM, Vercel
+  Speed Insights, or other analytics script was detected. The recommendation is
+  Cloudflare Web Analytics as the first low-maintenance private baseline,
+  subject to owner/privacy approval; defer GA4/GTM until a concrete click-
+  measurement question exists.
+- The venue-first IA plan is recorded in
+  `docs/project/public-information-architecture.md`; no visual redesign or
+  analytics deployment was performed.
 
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event
