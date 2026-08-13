@@ -1,15 +1,14 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
-import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { META_API_VERSION, META_GRAPH_BASE, listManagedPages, selectOwnerPage, verifyPageIdentity } from "../feeders/meta/client.mjs";
 import { loadLocalMetaEnv, META_PAGE_TOKEN_FILE, requireMetaAppCredentials } from "./meta-env.mjs";
-import { validateOAuthCallback } from "./meta-page-oauth-lib.mjs";
+import { createLocalHttpsServer, META_PAGE_OAUTH_PORT, META_PAGE_REDIRECT_URI, validateOAuthCallback } from "./meta-page-oauth-lib.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const port = Number(process.env.META_PAGE_OAUTH_PORT ?? 8789);
-const redirectUri = `http://127.0.0.1:${port}/oauth2callback`;
+const port = META_PAGE_OAUTH_PORT;
+const redirectUri = META_PAGE_REDIRECT_URI;
 loadLocalMetaEnv(root);
 let credentials;
 try { credentials = requireMetaAppCredentials(); } catch (error) { console.error(`META PAGE AUTHORIZATION BLOCKED\n${error.message}`); process.exit(1); }
@@ -22,7 +21,9 @@ authorization.search = new URLSearchParams({ client_id: credentials.appId, redir
 console.log(`Open this URL in the owner Facebook account for L'Altro Spazio:\n\n${authorization}\n`);
 console.log(`Waiting for OAuth callback on ${redirectUri} ...`);
 
-const server = http.createServer(async (request, response) => {
+let server;
+try {
+  server = createLocalHttpsServer(root, async (request, response) => {
   const url = new URL(request.url, redirectUri);
   if (url.pathname !== "/oauth2callback") { response.writeHead(404); response.end("Not found"); return; }
   try {
@@ -41,5 +42,9 @@ const server = http.createServer(async (request, response) => {
     console.log(`Validated Page access token stored at ${META_PAGE_TOKEN_FILE}. Token values were not printed.`);
     server.close();
   } catch (error) { response.writeHead(error.message.includes("OAuth state") || error.message.includes("authorization was denied") || error.message.includes("Missing authorization") ? 400 : 500); response.end("Meta Page authorization failed"); console.error(`Meta Page authorization failed: ${error.message}`); server.close(); process.exitCode = 1; }
-});
+  });
+} catch (error) {
+  console.error(`META PAGE AUTHORIZATION BLOCKED\n${error.message}`);
+  process.exit(1);
+}
 server.listen(port, "127.0.0.1");

@@ -242,8 +242,8 @@ prints media URLs, paging URLs, cursors, raw responses, or tokens.
 ## Dual-token owner authorization
 
 The Page authorization command is `npm run meta:authorize-page`. It uses the
-existing app `L'Altro Spazio Digital System`, the loopback callback
-`http://127.0.0.1:8789/oauth2callback`, state validation, PKCE, and only
+existing app `L'Altro Spazio Digital System`, the exact HTTPS loopback callback
+`https://127.0.0.1:8789/oauth2callback`, state validation, PKCE, and only
 `pages_show_list,pages_read_engagement`.
 
 Owner/engineering local setup:
@@ -254,14 +254,31 @@ Owner/engineering local setup:
    Meta's app dashboard explicitly requires a Facebook Login for Business
    configuration ID; if it does, add that value to the same ignored file and
    document the dashboard configuration before authorizing.
-2. In the Meta app dashboard, confirm `http://127.0.0.1:8789/oauth2callback` is
-   an allowed redirect URI for the existing app.
-3. Run `npm run meta:authorize-page`, sign in as the authorized owner, and
+2. In the Meta app dashboard, confirm exactly
+   `https://127.0.0.1:8789/oauth2callback` is an allowed redirect URI for the
+   existing app. HTTP is not supported by the current Facebook Login for
+   Business configuration.
+3. Install locally trusted TLS with mkcert if it is not already installed:
+
+   ```sh
+   brew install mkcert
+   mkcert -install
+   mkdir -p .local
+   mkcert -cert-file .local/meta-oauth-cert.pem -key-file .local/meta-oauth-key.pem 127.0.0.1
+   chmod 600 .local/meta-oauth-key.pem
+   ```
+
+   The certificate and private key remain under ignored `.local/`. The command
+   also bootstraps them automatically when `mkcert` is available; otherwise it
+   fails closed with these exact setup commands.
+4. Run `npm run meta:authorize-page`, sign in as the authorized owner, and
    approve only the two requested read permissions.
-4. The flow calls `/me/accounts` with the temporary user token, selects only
+5. The flow calls `/me/accounts` with the temporary user token, selects only
    Page `264601140373284`, verifies the Page name and linked Instagram ID using
    the returned Page token, then stores only the final Page token at
-   `.local/meta-page-access-token.json` mode `0600`.
+  `.local/meta-page-access-token.json` mode `0600`. The exact HTTPS redirect URI
+  is sent byte-for-byte both to Meta's authorization endpoint and token
+  exchange.
 
 The intermediate user token and authorization code exist only in process
 memory. The Page token schema is:

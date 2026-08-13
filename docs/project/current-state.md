@@ -462,6 +462,11 @@ never publish automatically.
   mode-600 `.local/meta-page-access-token.json`; the intermediate user token is
   not persisted. `npm run meta:probe` routes each endpoint to its required
   token type and reports dual-model viability without exposing credentials.
+- Meta's owner-confirmed redirect URI is HTTPS-only:
+  `https://127.0.0.1:8789/oauth2callback`. The Page OAuth callback now uses an
+  actual local HTTPS server with mkcert certificate/key files under ignored
+  `.local/`; it fails closed rather than weakening TLS. The exact redirect URI
+  is reused for authorization and token exchange.
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event
   data, and public information architecture.
