@@ -82,5 +82,6 @@ Current assessment:
 - functional dependency for ordinary site rendering appears unlikely
 - privacy/performance cost exists because it adds a third-party script request and possible editor messaging logic
 - removal should be tested only in a non-production Worker preview before deletion
-- the repo now has a preview-only build switch, `STRIP_GPTENGINEER_SCRIPT=1`,
-  for that test
+- the repo now strips the script automatically when Workers Builds reports
+  `WORKERS_CI_BRANCH=preview/gptengineer-removal`; an explicit local
+  `STRIP_GPTENGINEER_SCRIPT=1` override remains available

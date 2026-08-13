@@ -20,11 +20,22 @@ Last updated: 2026-08-13
   project API on 2026-08-13.
 - Cloudflare DNS is production/authoritative infrastructure for
   `altrospazio.org`; this does not make Cloudflare the production web host.
-- The Cloudflare Worker is a preview candidate only. No Worker deployment or
-  custom domain has been attached.
-- Dedicated preview branch: `preview/gptengineer-removal`, created from
-  canonical `main` and pushed to the new repository for the preview-only
-  script-removal test.
+- The Cloudflare Worker is a preview candidate only. A version has been
+  uploaded, but no production promotion or custom domain has been attached.
+- First Worker Static Assets version uploaded without production promotion:
+  `00e07aba-5bab-4992-a9f4-f334d78d3f97`. A preview URL is still required for
+  parity testing.
+- Preview URL now available and audited:
+  `https://preview-gptengineer-removal-laltrospazio-digital.dev-c05.workers.dev/`.
+  The focused preview audit found matching desktop/mobile geometry and no
+  script-removal regression. Playfair is externally loaded from Google Fonts
+  and returned HTTP 200.
+- Recheck on 2026-08-13 against the same stable preview alias did not reproduce
+  the prior Playfair 404 in headless Chrome. The live preview loaded
+  `fonts.gstatic.com` Playfair and Inter assets with HTTP 200 on desktop and
+  mobile, but it did reproduce a Cloudflare-only console error from the
+  Vercel-specific `/_vercel/speed-insights/script.js` request being served the
+  SPA HTML shell as `text/html`.
 
 ## Production relationship
 
@@ -36,7 +47,8 @@ Last updated: 2026-08-13
 - No GitHub Pages configuration found in repo
 - No GitHub Actions deployment workflow found in repo
 - A minimal `wrangler.jsonc` now defines Worker Static Assets from `dist/` with
-  SPA fallback; no account deployment has been performed.
+  SPA fallback; the first version was uploaded through Workers Builds without
+  production promotion.
 
 ## Current repo findings
 
@@ -91,16 +103,16 @@ Last updated: 2026-08-13
   independently verified through public DNS. Menu and group redirect hosts are
   being replaced with Cloudflare Single Redirects using proxied `192.0.2.1`
   records.
-- No DNS, custom domain, production traffic, or Worker deployment has been
-  changed by this workspace.
+- No DNS, custom domain, or production traffic has been changed by this
+  workspace. The Worker version upload remains non-production.
 
 ## Latest validation
 
 - `pwd`: confirmed the canonical local workdir is
   `/Users/stargatesgx/code/laltrospazio-digital` on 2026-08-12.
-- `git status --short --branch`: branch remains
-  `laltrospazio-phase0-audit` tracking `origin/laltrospazio-phase0-audit`; the
-  only pre-existing dirty file is `package-lock.json`.
+- `git status --short --branch`: the working branch is
+  `preview/gptengineer-removal` tracking its origin branch; the only
+  pre-existing dirty file is `package-lock.json`.
 - `git remote -v`: fetch and push both point to
   `git@github.com:spac-null/laltrospazio-digital.git`.
 - `curl -I https://www.altrospazio.org`: returned `server: Vercel` and `200 OK`
@@ -112,8 +124,8 @@ Last updated: 2026-08-13
   errors on 2026-08-12, so the seasonal hostname is not currently reachable via
   public DNS from this environment.
 - `npm run build`: passed on 2026-08-12; Vite emitted `dist/` with the expected
-  SPA assets and public files, including the new preview-only GPT Engineer
-  removal path guarded by `STRIP_GPTENGINEER_SCRIPT=1`.
+  SPA assets and public files, including the preview-only GPT Engineer removal
+  path guarded by the dedicated Workers CI branch.
 - `npm run lint`: existing baseline failure remains, unrelated to this hosting
   review. No lint fix was made in this pass.
 - `package-lock.json`: pre-existing dirty change; not modified, staged, or
@@ -123,6 +135,18 @@ Last updated: 2026-08-13
 - `npm run build`: passed on canonical `main` after the merge on 2026-08-13.
 - `package-lock.json` remains the only dirty worktree file and is uncommitted;
   its content hash was unchanged across the merge.
+- A clean worktree from committed `HEAD` passed `npm ci` and `npm run build` on
+  2026-08-13 without modifying the committed npm lockfile.
+- `bun.lockb` was tracked legacy residue and caused Workers Builds to select
+  `bun install --frozen-lockfile`; it is removed in the package-manager cleanup
+  commit. npm is the canonical package manager.
+- A clean committed-`HEAD` audit reproduced 20 npm findings: 2 low, 4
+  moderate, and 14 high. No `npm audit fix` was run. Detailed runtime versus
+  build-only classification and remediation order are in
+  `docs/project/dependency-audit-2026-08-13.md`.
+- Full Vercel/Worker parity results are recorded in
+  `docs/project/parity-audit-2026-08-13.md`. The Worker remains unpromoted and
+  no production DNS or custom domain was changed.
 
 ## Vercel dependency inventory
 
@@ -131,11 +155,10 @@ Last updated: 2026-08-13
 - Public DNS for `festa.altrospazio.org` did not resolve from this environment
   on 2026-08-12, so the rewrite exists in config even though the hostname is
   not currently reachable here.
-- `@vercel/speed-insights` is imported by `src/App.tsx` and rendered as
-  `<SpeedInsights />`.
-- No other Vercel references were found outside these files and project docs.
-- These items remain in place while Vercel is production. Removal or
-  replacement requires a successful Worker preview comparison.
+- No Vercel runtime dependency remains in the app source or canonical npm
+  dependency graph. The Worker preview comparison passed before this cleanup.
+- `vercel.js` remains as deployment configuration for the separate Vercel
+  project and is not part of the Worker runtime.
 
 ## Local workdir rename
 
@@ -146,13 +169,12 @@ Last updated: 2026-08-13
 
 ## GPT Engineer script status
 
-- `https://cdn.gpteng.co/gptengineer.js` is present in `index.html`
+- `https://cdn.gpteng.co/gptengineer.js` has been permanently removed from
+  `index.html`
 - Current evidence indicates it is a Lovable / GPT Engineer editor bridge script, not core app logic
 - Current repo code does not reference it directly
 - Search evidence indicates the script posts messages to allowed editor origins and supports DOM selection/edit overlays
-- A preview-only removal path now exists in `vite.config.ts`, guarded by
-  `STRIP_GPTENGINEER_SCRIPT=1`, so the script can be tested in a Worker preview
-  without changing default builds
+- No preview-only removal path remains in `vite.config.ts`.
 
 ## Current docs to read before major work
 
@@ -164,11 +186,11 @@ Last updated: 2026-08-13
 
 ## Next action
 
-- Connect `spac-null/laltrospazio-digital` to Cloudflare Workers Builds with
-  `main` retained as the production branch, enable non-production branch builds,
-  and trigger the first deployment from `laltrospazio-phase0-audit`.
-- Use `/` as the root directory, `npm run build` as the build command,
+- With Workers Builds connected, merge the verified cleanup to `main` and
+  allow the canonical Worker deployment. Keep custom domains and production
+  DNS unchanged.
+- Use `/` as the root directory, set `SKIP_DEPENDENCY_INSTALL=1`, and use
+  `npm ci && npm run build` as the build command,
   `npx wrangler@4.122.0 deploy` as the production deploy command, and
   `npx wrangler@4.122.0 versions upload` as the non-production deploy command.
-- Do not attach `www`, and set `STRIP_GPTENGINEER_SCRIPT=1` only for the
-  preview validation branch/build.
+- Do not attach `www` or `altrospazio.org`.
