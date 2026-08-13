@@ -109,8 +109,8 @@ Last updated: 2026-08-13
   errors on 2026-08-12, so the seasonal hostname is not currently reachable via
   public DNS from this environment.
 - `npm run build`: passed on 2026-08-12; Vite emitted `dist/` with the expected
-  SPA assets and public files, including the new preview-only GPT Engineer
-  removal path guarded by `STRIP_GPTENGINEER_SCRIPT=1`.
+  SPA assets and public files, including the preview-only GPT Engineer removal
+  path guarded by the dedicated Workers CI branch.
 - `npm run lint`: existing baseline failure remains, unrelated to this hosting
   review. No lint fix was made in this pass.
 - `package-lock.json`: pre-existing dirty change; not modified, staged, or
@@ -120,6 +120,11 @@ Last updated: 2026-08-13
 - `npm run build`: passed on canonical `main` after the merge on 2026-08-13.
 - `package-lock.json` remains the only dirty worktree file and is uncommitted;
   its content hash was unchanged across the merge.
+- A clean worktree from committed `HEAD` passed `npm ci` and `npm run build` on
+  2026-08-13 without modifying the committed npm lockfile.
+- `bun.lockb` was tracked legacy residue and caused Workers Builds to select
+  `bun install --frozen-lockfile`; it is removed in the package-manager cleanup
+  commit. npm is the canonical package manager.
 
 ## Vercel dependency inventory
 
@@ -148,8 +153,8 @@ Last updated: 2026-08-13
 - Current repo code does not reference it directly
 - Search evidence indicates the script posts messages to allowed editor origins and supports DOM selection/edit overlays
 - A preview-only removal path now exists in `vite.config.ts`, guarded by
-  `STRIP_GPTENGINEER_SCRIPT=1`, so the script can be tested in a Worker preview
-  without changing default builds
+  `WORKERS_CI_BRANCH=preview/gptengineer-removal`; the explicit
+  `STRIP_GPTENGINEER_SCRIPT=1` local override remains supported.
 
 ## Current docs to read before major work
 
@@ -163,9 +168,9 @@ Last updated: 2026-08-13
 
 - Connect `spac-null/laltrospazio-digital` to Cloudflare Workers Builds with
   `main` retained as the production branch, enable non-production branch builds,
-  and trigger the first deployment from `laltrospazio-phase0-audit`.
-- Use `/` as the root directory, `npm run build` as the build command,
+  and trigger the first deployment from `preview/gptengineer-removal`.
+- Use `/` as the root directory, set `SKIP_DEPENDENCY_INSTALL=1`, and use
+  `npm ci && npm run build` as the build command,
   `npx wrangler@4.122.0 deploy` as the production deploy command, and
   `npx wrangler@4.122.0 versions upload` as the non-production deploy command.
-- Do not attach `www`, and set `STRIP_GPTENGINEER_SCRIPT=1` only for the
-  preview validation branch/build.
+- Do not attach `www`; the preview branch automatically strips the script.

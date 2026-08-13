@@ -87,9 +87,9 @@ requirement exists.
    non-production branches.
 4. Test routes, assets, PDF access, mobile behavior, keyboard/screen-reader
    behavior, robots/sitemap, canonical metadata, and external links.
-5. Test `gptengineer.js` removal only in preview by setting
-   `STRIP_GPTENGINEER_SCRIPT=1` for the non-production build and comparing the
-   rendered output against Vercel production.
+5. Test `gptengineer.js` removal only in the dedicated preview branch; the
+   build detects `WORKERS_CI_BRANCH=preview/gptengineer-removal` and compares
+   the rendered output against Vercel production.
 6. Reconcile the Vercel-only `festa.altrospazio.org` host rewrite before any
    cutover; preserve, separately map, or retire it only by owner-approved
    decision.
@@ -122,12 +122,12 @@ requirement exists.
 
 - Production branch: `main`
 - Enable non-production branch builds: yes
-- First triggered build: `laltrospazio-phase0-audit` preview only
+- First triggered build: `preview/gptengineer-removal` preview only
 - Root directory: `/`
-- Build command: `npm run build`
+- Build variable: `SKIP_DEPENDENCY_INSTALL=1`
+- Build command: `npm ci && npm run build`
 - Production deploy command: `npx wrangler@4.122.0 deploy`
 - Non-production deploy command: `npx wrangler@4.122.0 versions upload`
-- Build variable for preview validation only: `STRIP_GPTENGINEER_SCRIPT=1`
 
 This keeps the first Worker artifact on a preview URL, avoids attaching `www`,
 and pins Wrangler in dashboard commands because this repo does not currently
@@ -179,5 +179,6 @@ Private operational/growth data:
 - verify Workers Builds can connect to the `spac-null/laltrospazio-digital`
   repository under the intended Cloudflare account
 - create a non-production Worker preview and compare it to current Vercel
-- verify preview-only `gptengineer.js` removal with `STRIP_GPTENGINEER_SCRIPT=1`
+- verify preview-only `gptengineer.js` removal on
+  `preview/gptengineer-removal`
 - verify `festa.altrospazio.org` behavior before any custom-domain change
