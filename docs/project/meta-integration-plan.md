@@ -441,6 +441,148 @@ requirement exists.
 7. Approve the rule that imported posts become candidates/drafts and never
    public events without deterministic validation and human approval.
 
+## Scheduled Cloudflare ingestion foundation (feature branch, not deployed)
+
+Branch `feature/meta-scheduled-ingestion` (worktree only; not merged, not
+pushed, not deployed) prepares a scheduled Worker version of the exact same
+proven dual-credential read used by `npm run meta:ingest`. Nothing in this
+section has been activated in production.
+
+### Reuse, not a fork
+
+`worker/meta-scheduled.mjs` calls the same `runMetaIngest` from
+`scripts/meta-ingest-lib.mjs` used by the local CLI, which in turn reuses
+`feeders/meta/client.mjs` and `feeders/meta/normalize.mjs` unchanged. Facebook
+still only ever uses the Page token; Instagram still only ever uses the
+system-user token; there is still no fallback between them and no write
+method. The Worker adds only persistence (D1) and run/health bookkeeping on
+top of the existing read path.
+
+### D1 schema (`migrations/0001_create_meta_source_records.sql`)
+
+Two private tables, applied only to a local D1 instance so far
+(`wrangler d1 migrations apply laltrospazio-meta --local`; verified against a
+real local SQLite-backed D1 with `wrangler d1 execute --local`):
+
+- `meta_source_records`: `network`, `source_id`, `source_account_id`,
+  `source_timestamp`, `message_or_caption`, `permalink`, `media_type`,
+  `candidate_signals` (JSON text of the existing deterministic
+  event_like/notice_like/explicit_date signals — no LLM-derived field),
+  `first_seen_at`, `last_seen_at`, `last_fetched_at`, with a
+  `UNIQUE (network, source_id)` constraint so Facebook and Instagram IDs
+  cannot collide and repeated ingestion is idempotent by construction.
+- `meta_feeder_runs`: `started_at`, `finished_at`, `success`,
+  `credential_model`, `facebook_record_count`, `instagram_record_count`,
+  `facebook_truncated`, `instagram_truncated`, `freshness`, and `errors_json`
+  (an array of `{surface, error_class}`, never a raw Graph error body or
+  credential).
+
+No access token, `appsecret_proof`, client secret, OAuth code, or
+token-bearing paging URL is ever written to either table; `worker/meta-d1.mjs`
+only ever receives already-normalized, already-redacted record objects.
+
+### Idempotent upsert model
+
+`upsertMetaSourceRecords` (`worker/meta-d1.mjs`) issues one
+`INSERT ... ON CONFLICT(network, source_id) DO UPDATE SET ...` per record,
+batched through `db.batch()`. The `DO UPDATE SET` clause intentionally omits
+`first_seen_at`, so a record's first-seen timestamp is set once on insert and
+never overwritten; `last_seen_at` and `last_fetched_at` always advance to the
+current run's timestamp; content columns (`message_or_caption`, `permalink`,
+`media_type`, `candidate_signals`) always refresh to the latest fetched
+value. This was verified against a real local D1/SQLite instance: a second
+identical ingestion does not duplicate the row, and a changed caption updates
+content and `last_seen_at` while `first_seen_at` stays fixed.
+
+### Failure isolation
+
+Facebook and Instagram reads remain independent inside `runMetaIngest` (each
+in its own try/catch, as in the existing probe). `runScheduledMetaIngest`
+(`worker/meta-scheduled.mjs`) only upserts records for the surface(s) that
+actually succeeded; a failing surface contributes zero rows to that run and
+never deletes or overwrites rows a previous successful run wrote for the
+other surface. Tests prove this in both directions (Facebook failing leaves
+Instagram history intact, and vice versa) using a real SQLite-backed D1
+double (`tests/meta-d1-double.mjs`, via Node's built-in `node:sqlite`).
+
+### Feeder-run/health model
+
+Every scheduled invocation writes one `meta_feeder_runs` row: a `started_at`
+row is inserted before any network call, then updated with `finished_at`,
+`success`, per-network record counts, per-network `truncated` (pagination)
+state, `freshness`, and a safe `errors_json`. If `runMetaIngest` itself throws
+unexpectedly (rather than reporting a per-surface error, as it normally does),
+the run row is still closed out as a failure before the error is re-thrown —
+no run is left open indefinitely.
+
+### Worker secret contract
+
+The Worker requires two Cloudflare secret bindings, checked at the start of
+every scheduled run by `requireMetaSecrets()`:
+
+- `META_PAGE_ACCESS_TOKEN`
+- `META_SYSTEM_USER_ACCESS_TOKEN`
+
+These are ordinary Wrangler secrets (`wrangler secret put ...`), never
+`vars`/plaintext config, and are not declared with any value in
+`wrangler.jsonc` — Wrangler secrets are never declared in config. No value
+for either secret exists anywhere in this repository; local testing used only
+synthetic values in an ignored `.dev.vars` file
+(`META_PAGE_ACCESS_TOKEN=synthetic-...`). No production secret was set in
+this task.
+
+### Public/private boundary
+
+`worker/index.mjs`'s `fetch` handler is unchanged from static-only serving:
+it does exactly one thing, `return env.ASSETS.fetch(request)`, for every
+request. It has no branch, route, or query parameter that touches `META_DB`.
+D1 is private infrastructure with no public query surface: the website must
+never expose a generic "list Meta source records" endpoint. Promotion from a
+D1 source record into public `content/events/` or `content/notices/` remains
+exactly the existing owner-gated `scripts/candidate-lib.mjs` workflow; nothing
+in the scheduled Worker writes to `content/`.
+
+### Local schedule testing performed
+
+- `wrangler d1 migrations apply laltrospazio-meta --local` applied cleanly to
+  a real local D1/SQLite instance.
+- Real local-D1 SQL was exercised directly with `wrangler d1 execute --local`:
+  first insert, idempotent re-insert, caption update preserving
+  `first_seen_at`, and Facebook/Instagram non-collision on the same numeric
+  ID all verified against genuine SQLite semantics, not just JS logic.
+- `wrangler dev --test-scheduled` was run locally with synthetic `.dev.vars`
+  secrets. `GET /` and `GET /eventi` both returned `200` (static/SPA serving
+  unchanged). `POST /__scheduled` ran the real scheduled handler, which made
+  real (network-reachable, but credential-invalid) calls to the Meta Graph
+  API, correctly classified the synthetic token as `invalid_token`, and
+  recorded `meta_feeder_runs.success = 0` / `freshness = "failed"` with a
+  redacted `errors_json` — with zero new rows written to
+  `meta_source_records`, confirming a failed run cannot corrupt state.
+- No real Meta credential was used at any point in this branch's testing.
+
+### Exact future owner/engineering steps (not performed in this task)
+
+These are the concrete commands needed for the next phase. None were run.
+
+1. `npx wrangler@4.122.0 d1 create laltrospazio-meta` — creates the real
+   production D1 database and prints a `database_id`.
+2. Add that `database_id` to the `d1_databases` entry in `wrangler.jsonc`.
+3. `npx wrangler@4.122.0 d1 migrations apply laltrospazio-meta --remote` —
+   applies `migrations/0001_create_meta_source_records.sql` to the real
+   production database.
+4. `npx wrangler@4.122.0 secret put META_PAGE_ACCESS_TOKEN` and
+   `npx wrangler@4.122.0 secret put META_SYSTEM_USER_ACCESS_TOKEN` — installs
+   the two real Worker secrets (interactive prompt only; never pass the value
+   as a CLI argument or echo it).
+5. `npx wrangler@4.122.0 versions upload` — deploy a non-production Worker
+   version so the real scheduled handler and D1 binding can be tested against
+   production-adjacent infrastructure without shifting live traffic or
+   activating a cron cadence.
+6. Only after the non-production version is verified, choose and add a
+   `triggers.crons` cadence, then `npx wrangler@4.122.0 deploy`.
+7. Merge `feature/meta-scheduled-ingestion` to `main` only after steps 1-6 are
+   verified, since `main` is connected to production Workers Builds.
+
 References: [Instagram Graph API](https://developers.facebook.com/docs/instagram-api),
 [Instagram content publishing](https://developers.facebook.com/docs/instagram-api/guides/content-publishing),
 [Facebook Graph API](https://developers.facebook.com/docs/graph-api), and

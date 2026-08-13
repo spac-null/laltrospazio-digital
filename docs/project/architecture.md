@@ -173,6 +173,40 @@ Private operational/growth data:
 - record source, last successful sync, last attempted sync, and error state
 - do not let one broken upstream source break the public site
 
+## Scheduled Meta ingestion foundation (feature branch, not deployed)
+
+`feature/meta-scheduled-ingestion` prepares, but does not activate, the first
+concrete scheduled-ingestion pipeline described above:
+
+```text
+Meta Graph (Page posts + Instagram media)
+  -> scheduled Worker read (worker/index.mjs scheduled(), reusing
+     scripts/meta-ingest-lib.mjs and feeders/meta/*)
+  -> normalization (feeders/meta/normalize.mjs, unchanged boundary)
+  -> private D1 source records (meta_source_records, meta_feeder_runs)
+  -> deterministic candidate signals only (event_like/notice_like/explicit_date;
+     no LLM extraction, no auto-classification)
+  -> owner/canonical validation (existing scripts/candidate-lib.mjs workflow)
+  -> public content only after explicit promotion (content/events,
+     content/notices)
+```
+
+D1 is private infrastructure. The website's `fetch` handler (`worker/index.mjs`)
+delegates every request to the `ASSETS` binding only; it has no route, query
+parameter, or admin surface that reads `META_DB`, and D1 content never reaches
+`content/`, `dist/`, or any generated public file. The only writer of D1 is the
+`scheduled()` handler; nothing in the public request path can mutate canonical
+content or read Meta source records.
+
+The Worker config (`wrangler.jsonc`) now declares `main` (a custom Worker
+script), the `assets.binding` needed for the Worker to serve static assets
+itself, and a `d1_databases` entry with no `database_id` yet — it is not a real
+provisioned resource. No `triggers.crons` entry exists yet; a production cron
+cadence is a separate, explicitly approved step after this foundation is
+reviewed. See `docs/project/meta-integration-plan.md` for the D1 schema, the
+Worker secret contract, and the exact owner steps required before any of this
+touches production.
+
 ## Open hosting checks
 
 - verify Cloudflare zone ownership and current DNS records with Jascha’s account

@@ -2,8 +2,24 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "laltrospazio-digital",
   "compatibility_date": "2026-08-13",
+  "main": "worker/index.mjs",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application"
-  }
+  },
+  // Not yet a production resource: no database_id is set. The owner must run
+  // `wrangler d1 create laltrospazio-meta` and add the returned database_id
+  // here before any production deploy or migration. See
+  // docs/project/meta-integration-plan.md for the exact next-phase steps.
+  "d1_databases": [
+    {
+      "binding": "META_DB",
+      "database_name": "laltrospazio-meta",
+      "migrations_dir": "./migrations"
+    }
+  ]
+  // Intentionally no "triggers": { "crons": [...] } yet. Do not add a
+  // production cron cadence until the scheduled handler has been proven with
+  // `wrangler dev --test-scheduled` and an owner-approved cadence is chosen.
 }

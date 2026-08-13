@@ -71,8 +71,18 @@ Last updated: 2026-08-13
   ingestion command, `npm run meta:ingest`, is implemented at
   `scripts/meta-ingest-lib.mjs`/`scripts/meta-ingest.mjs`; it writes only
   ignored `.local/meta-ingest.json` as `public_candidate` source records that
-  `assertPublicDataSafe` still rejects from public output. No scheduler, Cron,
-  KV, D1, Worker secret, or admin surface has been added.
+  `assertPublicDataSafe` still rejects from public output.
+- A scheduled-ingestion foundation exists only on the unmerged, unpushed,
+  undeployed `feature/meta-scheduled-ingestion` branch/worktree: a Worker
+  entrypoint (`worker/index.mjs`) that preserves static/SPA serving exactly
+  and adds a `scheduled()` handler reusing `scripts/meta-ingest-lib.mjs`, a D1
+  schema (`migrations/0001_create_meta_source_records.sql`) for private
+  idempotent source records and feeder-run health, and a two-secret contract
+  (`META_PAGE_ACCESS_TOKEN`, `META_SYSTEM_USER_ACCESS_TOKEN`). Verified locally
+  only, including a real `wrangler dev --test-scheduled` run against a local
+  D1 instance; details and exact owner steps for production activation are in
+  `docs/project/meta-integration-plan.md`. No production D1, Cron, Worker
+  secret, or admin surface has been added; `main`/production are unaffected.
 - Real-event proof preparation is implemented in `scripts/candidate-lib.mjs`
   and `scripts/create-event-candidate.mjs`. Candidates are stored separately
   under `content/candidates/`, require owner confirmation, and cannot publish
