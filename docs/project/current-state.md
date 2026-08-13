@@ -5,7 +5,8 @@ Last updated: 2026-08-13
 ## What this repo currently is
 
 - Frontend: Vite 5 + React 18 + TypeScript + Tailwind + shadcn/ui
-- Hosting target observed in production: Vercel (Cloudflare preview work in preparation)
+- Hosting target in production: Cloudflare Worker Custom Domain; Vercel remains
+  intact as rollback hosting
 - Public site pattern today: single-page static venue site rendered from `src/pages/Index.tsx`
 - Canonical branch: `main`, with phase-0 foundation merged and pushed at
   `0f8a5f4` on 2026-08-13
@@ -19,10 +20,10 @@ Last updated: 2026-08-13
   `spac-null/landing-space-generator` repository, verified through the Vercel
   project API on 2026-08-13.
 - Cloudflare DNS is production/authoritative infrastructure for
-  `altrospazio.org`; this does not make Cloudflare the production web host.
+  `altrospazio.org` and now serves the production site through the Worker.
 - The Cloudflare Worker is deployed from canonical `main` at
-  `https://laltrospazio-digital.dev-c05.workers.dev/`; no custom domain has
-  been attached.
+  `https://laltrospazio-digital.dev-c05.workers.dev/` and through the custom
+  domain `https://www.altrospazio.org/`.
 - First Worker Static Assets version uploaded without production promotion:
   `00e07aba-5bab-4992-a9f4-f334d78d3f97`. A preview URL is still required for
   parity testing.
@@ -40,11 +41,12 @@ Last updated: 2026-08-13
 
 ## Production relationship
 
-- Production URL: `https://www.altrospazio.org/`
-- Apex redirect observed: `https://altrospazio.org` -> `https://www.altrospazio.org/` via HTTP 308 on 2026-08-12
-- Live HTML fetched from Vercel on 2026-08-12 still serves `lang="en"`, the
-  GPT Engineer script tag, and older description metadata; the repo now differs
-  intentionally on these points
+- Production URL: `https://www.altrospazio.org/`, served by the Cloudflare
+  Worker Custom Domain as of 2026-08-13.
+- Vercel project `landing-laltrospazio` remains intact and connected to the
+  separate `spac-null/landing-space-generator` repository for rollback.
+- Apex redirect behavior and `festa.altrospazio.org` were not modified in the
+  production cutover.
 - No GitHub Pages configuration found in repo
 - No GitHub Actions deployment workflow found in repo
 - A minimal `wrangler.jsonc` now defines Worker Static Assets from `dist/` with
@@ -115,10 +117,15 @@ Last updated: 2026-08-13
   pre-existing dirty file is `package-lock.json`.
 - `git remote -v`: fetch and push both point to
   `git@github.com:spac-null/laltrospazio-digital.git`.
-- `curl -I https://www.altrospazio.org`: returned `server: Vercel` and `200 OK`
-  on 2026-08-12.
-- `curl -L https://www.altrospazio.org`: confirmed live HTML still includes the
-  GPT Engineer script and older metadata on 2026-08-12.
+- `https://www.altrospazio.org/` returned `200` with Cloudflare headers on
+  2026-08-13. Browser verification passed on desktop and mobile with no
+  console errors or failed requests; Playfair and all page images loaded.
+- Production and the approved workers.dev deployment matched on asset hashes,
+  metadata, typography, dimensions, and forbidden-script absence.
+- Production direct SPA paths `/`, `/foo`, `/menu`, and `/contatti` returned
+  `200`; unknown paths render the intentional NotFound route.
+- Production `robots.txt` and `sitemap.xml` returned `200`. WhatsApp, Google
+  Maps, Instagram, and Facebook destinations resolved successfully.
 - `curl -I https://festa.altrospazio.org` and
   `curl -L https://festa.altrospazio.org`: both failed with host-resolution
   errors on 2026-08-12, so the seasonal hostname is not currently reachable via
@@ -190,8 +197,8 @@ Last updated: 2026-08-13
 - Independent desktop/mobile verification passed on 2026-08-13: homepage,
   Playfair font, robots, and sitemap returned HTTP 200; console and network
   failure logs were empty; GPT Engineer and Speed Insights paths were absent.
-- Worker production hostname remains `workers.dev` only. `www.altrospazio.org`,
-  `altrospazio.org`, and current Vercel production DNS were not changed.
+- Production custom domain is `www.altrospazio.org`; apex DNS, wildcard/
+  `festa.altrospazio.org`, and Vercel project state were not changed.
 
 ## Next action
 
@@ -201,4 +208,5 @@ Last updated: 2026-08-13
   `npm ci && npm run build` as the build command,
   `npx wrangler@4.122.0 deploy` as the production deploy command, and
   `npx wrangler@4.122.0 versions upload` as the non-production deploy command.
-- Do not attach `www` or `altrospazio.org`.
+- Do not remove Vercel rollback hosting or alter apex DNS, wildcard/
+  `festa.altrospazio.org`, or external profiles without explicit authorization.
