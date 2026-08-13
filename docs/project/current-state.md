@@ -20,8 +20,9 @@ Last updated: 2026-08-13
   project API on 2026-08-13.
 - Cloudflare DNS is production/authoritative infrastructure for
   `altrospazio.org`; this does not make Cloudflare the production web host.
-- The Cloudflare Worker is a preview candidate only. A version has been
-  uploaded, but no production promotion or custom domain has been attached.
+- The Cloudflare Worker is deployed from canonical `main` at
+  `https://laltrospazio-digital.dev-c05.workers.dev/`; no custom domain has
+  been attached.
 - First Worker Static Assets version uploaded without production promotion:
   `00e07aba-5bab-4992-a9f4-f334d78d3f97`. A preview URL is still required for
   parity testing.
@@ -47,8 +48,7 @@ Last updated: 2026-08-13
 - No GitHub Pages configuration found in repo
 - No GitHub Actions deployment workflow found in repo
 - A minimal `wrangler.jsonc` now defines Worker Static Assets from `dist/` with
-  SPA fallback; the first version was uploaded through Workers Builds without
-  production promotion.
+  SPA fallback; canonical `main` is deployed through Workers Builds.
 
 ## Current repo findings
 
@@ -184,11 +184,19 @@ Last updated: 2026-08-13
 - `docs/project/decisions.md`
 - `docs/project/roadmap.md`
 
+## Latest Worker deployment
+
+- Permanent cleanup commit: `228a674`; main merge commit: `881e803`.
+- Independent desktop/mobile verification passed on 2026-08-13: homepage,
+  Playfair font, robots, and sitemap returned HTTP 200; console and network
+  failure logs were empty; GPT Engineer and Speed Insights paths were absent.
+- Worker production hostname remains `workers.dev` only. `www.altrospazio.org`,
+  `altrospazio.org`, and current Vercel production DNS were not changed.
+
 ## Next action
 
-- With Workers Builds connected, merge the verified cleanup to `main` and
-  allow the canonical Worker deployment. Keep custom domains and production
-  DNS unchanged.
+- Keep custom domains and production DNS unchanged while the dependency audit
+  and remaining content verification continue.
 - Use `/` as the root directory, set `SKIP_DEPENDENCY_INSTALL=1`, and use
   `npm ci && npm run build` as the build command,
   `npx wrangler@4.122.0 deploy` as the production deploy command, and
