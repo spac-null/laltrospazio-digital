@@ -402,6 +402,13 @@ never publish automatically.
   existing Trident project with loopback redirect
   `http://127.0.0.1:8788/oauth2callback`. No Google credentials are recorded in
   project files.
+- The first real GSC probe completed on 2026-08-13. It selected
+  `sc-domain:altrospazio.org` with `siteOwner` permission, found one submitted
+  and processed sitemap at `https://www.altrospazio.org/sitemap.xml`, and
+  generated the ignored private snapshot/report files. Search Analytics
+  returned zero rows while the newly verified property is still processing;
+  this is an availability state, not an integration failure. Probe again after
+  Search Console has accumulated and processed data.
 
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event
