@@ -65,8 +65,14 @@ Last updated: 2026-08-13
   website, coordinates, menu, social, and map fields. Email, opening hours,
   seasonal location, and accessibility facilities remain absent.
 - Meta read/publish feasibility and owner actions are documented in
-  `docs/project/meta-integration-plan.md`; no authenticated integration,
-  scheduler, KV, D1, or admin surface has been added.
+  `docs/project/meta-integration-plan.md`. Real dual-credential read
+  authentication is now operational and proven (Page token for Facebook Page
+  posts, system-user token for Instagram media). A bounded real local
+  ingestion command, `npm run meta:ingest`, is implemented at
+  `scripts/meta-ingest-lib.mjs`/`scripts/meta-ingest.mjs`; it writes only
+  ignored `.local/meta-ingest.json` as `public_candidate` source records that
+  `assertPublicDataSafe` still rejects from public output. No scheduler, Cron,
+  KV, D1, Worker secret, or admin surface has been added.
 - Real-event proof preparation is implemented in `scripts/candidate-lib.mjs`
   and `scripts/create-event-candidate.mjs`. Candidates are stored separately
   under `content/candidates/`, require owner confirmation, and cannot publish

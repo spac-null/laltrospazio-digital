@@ -5,6 +5,7 @@ export const META_ENV_FILE = ".env.meta.local";
 export const META_TOKEN_FILE = ".local/meta-access-token.json";
 export const META_PAGE_TOKEN_FILE = ".local/meta-page-access-token.json";
 export const META_REPORT_FILE = ".local/meta-probe-report.json";
+export const META_INGEST_FILE = ".local/meta-ingest.json";
 
 export function loadLocalMetaEnv(root) {
   const file = path.join(root, META_ENV_FILE);

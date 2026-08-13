@@ -1,3 +1,4 @@
+import { META_ASSETS } from "./client.mjs";
 import { makeFeederHealth } from "../../scripts/feeder-health.mjs";
 
 const signalText = (record) => `${record.caption ?? ""} ${record.message ?? ""}`.toLowerCase();
@@ -11,12 +12,13 @@ function candidateSignals(record) {
   };
 }
 
-function normalizeRecord(record, network, fetchedAt) {
+function normalizeRecord(record, network, fetchedAt, sourceAccountId) {
   if (!record?.id) throw new Error(`${network} record id is required`);
   return {
     source: "meta",
     visibility: "public_candidate",
     source_network: network,
+    source_account_id: sourceAccountId,
     source_id: record.id,
     permalink: record.permalink_url ?? record.permalink ?? null,
     published_at: record.timestamp ?? record.created_time ?? null,
@@ -34,12 +36,12 @@ function normalizeRecord(record, network, fetchedAt) {
 
 export function normalizeInstagramMedia(records = [], { fetchedAt } = {}) {
   if (!fetchedAt) throw new Error("fetchedAt is required for Meta normalization");
-  const normalized = records.map((record) => normalizeRecord(record, "instagram", fetchedAt));
+  const normalized = records.map((record) => normalizeRecord(record, "instagram", fetchedAt, META_ASSETS.instagramProfessionalAccountId));
   return { source: "meta", visibility: "public_candidate", network: "instagram", fetched_at: fetchedAt, records: normalized, health: makeFeederHealth({ source: "meta.instagram", visibility: "public_candidate", authenticationStatus: "authenticated", lastAttempt: fetchedAt, lastSuccess: fetchedAt, freshness: "fresh", recordsReceived: normalized.length }) };
 }
 
 export function normalizeFacebookPosts(records = [], { fetchedAt } = {}) {
   if (!fetchedAt) throw new Error("fetchedAt is required for Meta normalization");
-  const normalized = records.map((record) => normalizeRecord(record, "facebook", fetchedAt));
+  const normalized = records.map((record) => normalizeRecord(record, "facebook", fetchedAt, META_ASSETS.pageId));
   return { source: "meta", visibility: "public_candidate", network: "facebook", fetched_at: fetchedAt, records: normalized, health: makeFeederHealth({ source: "meta.facebook", visibility: "public_candidate", authenticationStatus: "authenticated", lastAttempt: fetchedAt, lastSuccess: fetchedAt, freshness: "fresh", recordsReceived: normalized.length }) };
 }

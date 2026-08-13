@@ -199,6 +199,50 @@ The first output is a source inventory. It must not classify every post as an
 event, and no record can become a published notice/event without the existing
 candidate validation and owner-approval workflow.
 
+## Real local ingestion (implemented)
+
+Real dual-auth ingestion is implemented as `npm run meta:ingest`. It reuses the
+existing `feeders/meta/client.mjs` and `feeders/meta/normalize.mjs` boundary and
+does not duplicate the probe: it verifies Page identity with the Page token,
+independently verifies Instagram linkage with the system-user token, then reads
+Facebook Page posts with the Page token and Instagram media with the
+system-user token, exactly like `npm run meta:probe` but without the
+single-page limit.
+
+Pagination is bounded, not a crawler: `DEFAULT_INGEST_MAX_PAGES = 1` (matching
+the already-proven 100-record-per-network read), with an operator override via
+`META_INGEST_MAX_PAGES` capped at `MAX_ALLOWED_INGEST_PAGES = 3` (scripts/meta-
+ingest-lib.mjs). A `truncated: true` flag on each surface records when more
+pages existed than were fetched; nothing follows `paging.next` beyond that
+bound.
+
+Each normalized record now also carries `source_account_id` (the fixed Page or
+Instagram ID it came from), in addition to the existing network, source ID,
+timestamp, caption/message, permalink, media metadata, provenance, and
+`fetched_at`. The existing `candidate_signals` (`event_like`, `notice_like`,
+`explicit_date`) remain the only classification signal; they are deterministic
+regex triage hints, not event/notice extraction, and no field on a record is
+LLM-derived.
+
+Output is written only to ignored `.local/meta-ingest.json` (mode `0600`); it
+is never written to `content/`, `dist/`, or any frontend bundle path. Every
+record keeps `visibility: "public_candidate"`, so `assertPublicDataSafe`
+(`scripts/feeder-health.mjs`) rejects it from public output until an explicit
+approval step promotes specific fields through the existing
+`scripts/candidate-lib.mjs` event-candidate workflow. `npm run meta:ingest`
+performs no classification into event/notice/exhibition/menu/irrelevant
+categories and creates no candidate or canonical record; that promotion step
+remains a separate, owner-gated future task.
+
+Token health is intentionally reported as `unknown` for both the system-user
+and Page tokens: Meta's `debug_token` endpoint requires sending the App Secret
+as a diagnostic input, which this project has already decided not to automate.
+Expiry/revocation therefore continues to surface only as a failed `feeder_health`
+read, not as a predicted expiry date.
+
+`npm run meta:ingest` is local-only. No Cloudflare Worker secret, Cron,
+KV/D1 binding, or scheduled deployment was added.
+
 ## Implementation preparation
 
 The credential-free client at `feeders/meta/client.mjs` is prepared for API

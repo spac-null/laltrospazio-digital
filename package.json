@@ -16,6 +16,7 @@
     "meta:store-token": "node scripts/meta-store-token.mjs",
     "meta:probe": "node scripts/meta-probe.mjs",
     "meta:authorize-page": "node scripts/meta-page-oauth.mjs",
+    "meta:ingest": "node scripts/meta-ingest.mjs",
     "test": "node --test tests/*.test.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
