@@ -25,8 +25,26 @@ test("Page discovery and identity validation use the supplied token", async () =
   assert.equal(calls[1].auth, "Bearer synthetic-page-token");
 });
 
+test("Page discovery requests only Page identity and token fields", async () => {
+  let requestUrl;
+  await listManagedPages("synthetic-user-token", {
+    fetchImpl: async (url) => {
+      requestUrl = String(url);
+      return new Response(JSON.stringify({ data: [page] }), { status: 200 });
+    },
+  });
+  assert.match(requestUrl, /fields=id%2Cname%2Caccess_token/);
+  assert.equal(requestUrl.includes("instagram_business_account"), false);
+});
+
 test("Page identity rejects the wrong linked Instagram account", async () => {
   await assert.rejects(() => verifyPageIdentity("synthetic-page-token", { fetchImpl: async () => new Response(JSON.stringify({ id: page.id, name: page.name, instagram_business_account: { id: "wrong" } }), { status: 200 }) }), /not linked/);
+});
+
+test("Page OAuth accepts the exact Page when Instagram linkage is absent", async () => {
+  const result = await verifyPageIdentity("synthetic-page-token", { requireInstagramLinkage: false, fetchImpl: async () => new Response(JSON.stringify({ id: page.id, name: page.name }), { status: 200 }) });
+  assert.equal(result.page_id, page.id);
+  assert.equal(Object.hasOwn(result, "instagram_professional_account_id"), false);
 });
 
 test("Page OAuth requests and validates only the bounded permission set", async () => {

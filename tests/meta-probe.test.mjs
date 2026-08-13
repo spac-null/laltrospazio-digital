@@ -6,8 +6,9 @@ import { runMetaProbe } from "../scripts/meta-probe-lib.mjs";
 function fakeFetch({ instagramError = false } = {}) {
   return async (url, init) => {
     const value = String(url);
-    assert.equal(init.headers.Authorization, value.includes("/17841402902868891/media") ? "Bearer synthetic-system-token" : "Bearer synthetic-page-token");
-    if (value === `${META_GRAPH_BASE}/264601140373284?fields=id%2Cname%2Cinstagram_business_account`) return new Response(JSON.stringify({ id: "264601140373284", name: "L'Altro Spazio", instagram_business_account: { id: "17841402902868891" } }), { status: 200 });
+    assert.equal(init.headers.Authorization, value.includes("/17841402902868891/media") || value.includes("fields=id%2Cinstagram_business_account") ? "Bearer synthetic-system-token" : "Bearer synthetic-page-token");
+    if (value.includes("fields=id%2Cname")) return new Response(JSON.stringify({ id: "264601140373284", name: "L'Altro Spazio" }), { status: 200 });
+    if (value.includes("fields=id%2Cinstagram_business_account")) return new Response(JSON.stringify({ id: "264601140373284", instagram_business_account: { id: "17841402902868891" } }), { status: 200 });
     if (value.includes("/264601140373284/posts")) return new Response(JSON.stringify({ data: [{ id: "page-post-1", message: "Post" }] }), { status: 200 });
     if (value.includes("/17841402902868891/media")) return new Response(JSON.stringify(instagramError ? { error: { code: 10, message: "permission denied" } } : { data: [{ id: "ig-media-1", caption: "Caption", media_type: "IMAGE", timestamp: "2026-08-13T10:00:00Z" }] }), { status: 200 });
     throw new Error(`unexpected synthetic URL ${value}`);
@@ -38,8 +39,9 @@ test("Instagram success and Page code 190 remain a resource-specific partial res
     pageToken: "synthetic-page-token",
     fetchImpl: async (url, init) => {
       const value = String(url);
-      assert.equal(init.headers.Authorization, value.includes("/17841402902868891/media") ? "Bearer synthetic-system-token" : "Bearer synthetic-page-token");
-      if (value.includes("/264601140373284?fields=")) return new Response(JSON.stringify({ id: "264601140373284", name: "L'Altro Spazio", instagram_business_account: { id: "17841402902868891" } }), { status: 200 });
+      assert.equal(init.headers.Authorization, value.includes("/17841402902868891/media") || value.includes("fields=id%2Cinstagram_business_account") ? "Bearer synthetic-system-token" : "Bearer synthetic-page-token");
+      if (value.includes("fields=id%2Cname")) return new Response(JSON.stringify({ id: "264601140373284", name: "L'Altro Spazio" }), { status: 200 });
+      if (value.includes("fields=id%2Cinstagram_business_account")) return new Response(JSON.stringify({ id: "264601140373284", instagram_business_account: { id: "17841402902868891" } }), { status: 200 });
       if (value.includes("/264601140373284/posts")) return new Response(JSON.stringify({ error: { code: 190, message: "synthetic resource token error" } }), { status: 200 });
       if (value.includes("/17841402902868891/media")) return new Response(JSON.stringify({ data: [{ id: "ig-media-1" }] }), { status: 200 });
       throw new Error(`unexpected synthetic URL ${value}`);

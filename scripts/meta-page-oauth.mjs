@@ -34,7 +34,7 @@ try {
     validateGrantedPermissions(await getUserPermissions(tokens.access_token));
     const pages = await listManagedPages(tokens.access_token);
     const page = selectOwnerPage(pages);
-    await verifyPageIdentity(page.access_token);
+    await verifyPageIdentity(page.access_token, { requireInstagramLinkage: false });
     fs.mkdirSync(path.join(root, ".local"), { recursive: true, mode: 0o700 });
     const tokenPath = path.join(root, META_PAGE_TOKEN_FILE);
     fs.writeFileSync(tokenPath, `${JSON.stringify({ access_token: page.access_token, token_type: "page", page_id: page.id, source: "owner_oauth", installed_at: new Date().toISOString(), expires_at: null }, null, 2)}\n`, { mode: 0o600 });

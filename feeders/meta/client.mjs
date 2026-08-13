@@ -77,20 +77,26 @@ export async function metaRequest(pathOrUrl, { accessToken, method = "GET", para
   return body;
 }
 
-export function verifyAssetIdentity({ page, instagram }) {
+export function verifyAssetIdentity({ page, instagram, requireInstagramLinkage = true }) {
   if (page?.id !== META_ASSETS.pageId || page?.name !== "L'Altro Spazio") throw new MetaError("Meta Page identity does not match the owner-confirmed L'Altro Spazio Page", { code: "page_identity_mismatch" });
-  if (page.instagram_business_account?.id !== META_ASSETS.instagramProfessionalAccountId) throw new MetaError("Meta Page is not linked to the owner-confirmed Instagram professional account", { code: "instagram_link_mismatch" });
+  if (requireInstagramLinkage && page.instagram_business_account?.id !== META_ASSETS.instagramProfessionalAccountId) throw new MetaError("Meta Page is not linked to the owner-confirmed Instagram professional account", { code: "instagram_link_mismatch" });
   if (instagram && instagram.id !== META_ASSETS.instagramProfessionalAccountId) throw new MetaError("Meta Instagram identity does not match the owner-confirmed account", { code: "instagram_identity_mismatch" });
+  return { page_id: page.id, ...(page.instagram_business_account?.id ? { instagram_professional_account_id: page.instagram_business_account.id } : {}) };
+}
+
+export async function verifyPageIdentity(accessToken, { fetchImpl = fetch, requireInstagramLinkage = true } = {}) {
+  const page = await metaRequest(META_ASSETS.pageId, { accessToken, params: { fields: requireInstagramLinkage ? "id,name,instagram_business_account" : "id,name" }, fetchImpl });
+  return verifyAssetIdentity({ page, requireInstagramLinkage });
+}
+
+export async function verifyInstagramLinkage(systemUserToken, { fetchImpl = fetch } = {}) {
+  const page = await metaRequest(META_ASSETS.pageId, { accessToken: systemUserToken, params: { fields: "id,instagram_business_account" }, fetchImpl });
+  if (page?.id !== META_ASSETS.pageId || page.instagram_business_account?.id !== META_ASSETS.instagramProfessionalAccountId) throw new MetaError("System-user Instagram linkage does not match the owner-confirmed account", { code: "instagram_link_mismatch" });
   return { page_id: page.id, instagram_professional_account_id: page.instagram_business_account.id };
 }
 
-export async function verifyPageIdentity(accessToken, { fetchImpl = fetch } = {}) {
-  const page = await metaRequest(META_ASSETS.pageId, { accessToken, params: { fields: "id,name,instagram_business_account" }, fetchImpl });
-  return verifyAssetIdentity({ page });
-}
-
 export async function listManagedPages(userAccessToken, { fetchImpl = fetch } = {}) {
-  return metaRequest("me/accounts", { accessToken: userAccessToken, params: { fields: "id,name,access_token,instagram_business_account" }, fetchImpl });
+  return metaRequest("me/accounts", { accessToken: userAccessToken, params: { fields: "id,name,access_token" }, fetchImpl });
 }
 
 export async function getUserPermissions(userAccessToken, { fetchImpl = fetch } = {}) {

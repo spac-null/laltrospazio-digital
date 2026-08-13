@@ -473,6 +473,12 @@ never publish automatically.
   `business_management` is absent. If permissions are granted but
   `/me/accounts` remains empty, the next investigation is a Facebook Login for
   Business Configuration ID; no workaround or broader permission is used.
+- The Page OAuth boundary is intentionally limited to the owner-confirmed
+  Facebook Page: it validates the exact Page ID/name and stores that Page
+  token, but does not require `instagram_business_account` to be returned.
+  Instagram linkage is validated separately with the system-user credential
+  in `npm run meta:probe`; the Page OAuth flow never expands its scopes to
+  make that diagnostic pass.
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event
   data, and public information architecture.

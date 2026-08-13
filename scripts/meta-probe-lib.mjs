@@ -1,4 +1,4 @@
-import { listInstagramMedia, listPagePosts, MetaError, verifyPageIdentity } from "../feeders/meta/client.mjs";
+import { listInstagramMedia, listPagePosts, MetaError, verifyInstagramLinkage, verifyPageIdentity } from "../feeders/meta/client.mjs";
 import { normalizeFacebookPosts, normalizeInstagramMedia } from "../feeders/meta/normalize.mjs";
 import { makeFeederHealth } from "./feeder-health.mjs";
 
@@ -23,11 +23,16 @@ export async function runMetaProbe({ systemUserToken, pageToken, fetchImpl = fet
     checked_at: checkedAt,
   };
   try {
-    await verifyPageIdentity(pageToken, { fetchImpl });
+    await verifyPageIdentity(pageToken, { fetchImpl, requireInstagramLinkage: false });
     report.page_identity_verified = true;
-    report.instagram_linkage_verified = true;
   } catch (error) {
     report.errors.push({ surface: "identity", error_class: safeError(error, "identity") });
+  }
+  try {
+    await verifyInstagramLinkage(systemUserToken, { fetchImpl });
+    report.instagram_linkage_verified = true;
+  } catch (error) {
+    report.errors.push({ surface: "instagram_linkage", error_class: safeError(error, "instagram_linkage") });
   }
   if (report.page_identity_verified) {
     try {

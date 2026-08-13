@@ -185,8 +185,9 @@ After owner confirmation and app authorization, the first connector should:
 1. Obtain a user token with the selected read scopes.
 2. Discover Pages and match the owner-confirmed Page ID; do not match only by
    display name or public URL.
-3. Retrieve the linked Instagram professional-account ID and verify account
-   type/linkage.
+3. Validate the linked Instagram professional-account ID independently through
+   the system-user Instagram path; Page OAuth does not require the linkage
+   field or an Instagram permission.
 4. Read the Page's own post records and the Instagram media edge with only
    IDs, timestamps, captions/messages, permalinks, media type, and permitted
    media URLs.
@@ -203,7 +204,8 @@ candidate validation and owner-approval workflow.
 The credential-free client at `feeders/meta/client.mjs` is prepared for API
 v26.0. It:
 
-- verifies the owner-confirmed Page ID/name and Instagram linkage;
+- verifies the owner-confirmed Page ID/name for Page authorization; the
+  system-user path independently verifies the Instagram linkage;
 - reads Page posts and Instagram media with fixed field selections;
 - follows `paging.next` without trusting its embedded credentials;
 - sends tokens only in the `Authorization: Bearer` header;
@@ -234,7 +236,8 @@ pbcopy < /dev/null
 The real read-only probe is `npm run meta:probe`. It reads that ignored file,
 reads the separate ignored Page-token file for Facebook, reads the system-user
 file for Instagram, queries only the fixed owner-confirmed Page and Instagram
-IDs, verifies the Page/linkage, reads one bounded page of Page posts and
+IDs, verifies the Page identity and independently verifies the linkage through
+the system-user path, reads one bounded page of Page posts and
 Instagram media, and writes only the redacted summary
 `.local/meta-probe-report.json`. It never
 prints media URLs, paging URLs, cursors, raw responses, or tokens.
@@ -279,10 +282,10 @@ Owner/engineering local setup:
    also bootstraps them automatically when `mkcert` is available; otherwise it
    fails closed with these exact setup commands.
 4. Run `npm run meta:authorize-page`, sign in as the authorized owner, and
-   approve only the two requested read permissions.
+   approve only the four bounded permissions requested by the current flow.
 5. The flow calls `/me/accounts` with the temporary user token, selects only
-   Page `264601140373284`, verifies the Page name and linked Instagram ID using
-   the returned Page token, then stores only the final Page token at
+   Page `264601140373284`, verifies the Page name using the returned Page
+   token, and stores only the final Page token at
   `.local/meta-page-access-token.json` mode `0600`. The exact HTTPS redirect URI
   is sent byte-for-byte both to Meta's authorization endpoint and token
 exchange.
@@ -320,6 +323,12 @@ The final routing is explicit:
 - Facebook Page posts: `.local/meta-page-access-token.json`, Page token.
 
 There is no fallback between these token types.
+
+The separation is deliberate: Page OAuth authorizes only Facebook Page
+own-post reads. The system-user credential owns Instagram media reads and
+independently verifies the owner-confirmed Page-to-Instagram linkage. A
+missing or inaccessible `instagram_business_account` field during Page OAuth
+is non-fatal and never triggers scope expansion.
 
 No raw authenticated response, media CDN URL, token, cursor payload, or report
 has been committed. `.env.meta.local` is reserved for future non-token
