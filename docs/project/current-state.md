@@ -71,6 +71,12 @@ Last updated: 2026-08-13
   and `scripts/create-event-candidate.mjs`. Candidates are stored separately
   under `content/candidates/`, require owner confirmation, and cannot publish
   automatically. No candidate or production event exists yet.
+- A separate canonical operational-notice model now exists under
+  `content/notices/`. The owner-confirmed August 2026 temporary closure is
+  published with Europe/Rome date validity and expires automatically at
+  `2026-08-27T00:00` Europe/Rome; no reopening hour is asserted.
+- Operational-notice details and expiry semantics are documented in
+  `docs/project/operational-notices.md`.
 - No GA4 or GTM detected in repo or live HTML
 - Project memory has been moved from obsolete `.claude/` files into `docs/project/`
 - A machine-readable provenance layer now exists at `docs/project/content-provenance.json`

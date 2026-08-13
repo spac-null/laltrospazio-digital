@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Users, Palette, Calendar, MapPin, Phone, Heart, Music, BookOpen, Users2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { venue } from "@/lib/content";
+import { activeNotices, venue } from "@/lib/content";
 
 const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const currentNotices = activeNotices();
 
   return (
     <div className="min-h-screen">
@@ -27,6 +28,15 @@ const Index = () => {
 {/* Button removed */}
         </div>
       </section>
+
+      {currentNotices.length > 0 && (
+        <section aria-labelledby="current-status" className="bg-primary px-6 py-8 text-white md:px-12">
+          <div className="container mx-auto max-w-5xl">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/80">Stato attuale</p>
+            <h2 id="current-status" className="mt-2 font-display text-3xl md:text-4xl">{currentNotices[0].message}</h2>
+          </div>
+        </section>
+      )}
 
       {/* Mission Section */}
       <section className="section-padding bg-muted">

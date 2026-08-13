@@ -6,6 +6,7 @@ export const EVENT_STATUSES = ["scheduled", "cancelled", "postponed"];
 const SOURCE_TYPES = ["owner_registry", "instagram", "facebook", "cultura_bologna", "cheventi", "other"];
 const PUBLIC_PROVENANCE_STATUSES = ["verified", "owner_confirmed", "externally_supported"];
 const URL_FIELDS = ["booking_url"];
+const NOTICE_TYPES = ["temporary_closure", "exceptional_opening", "location_change", "sold_out", "service_interruption"];
 
 function issue(message, file) {
   return `${file}: ${message}`;
@@ -98,7 +99,7 @@ export function validateEvent(event, venue, file = "event") {
   return errors;
 }
 
-export function validateContent({ venue, events, files = [] }) {
+export function validateContent({ venue, events, files = [], notices = [], noticeFiles = [] }) {
   const errors = validateVenue(venue);
   const ids = new Set();
   const slugs = new Set();
@@ -110,11 +111,52 @@ export function validateContent({ venue, events, files = [] }) {
     ids.add(event.id);
     slugs.add(event.slug);
   });
+  const noticeIds = new Set();
+  const noticeSlugs = new Set();
+  notices.forEach((notice, index) => {
+    const file = noticeFiles[index] ?? `notice[${index}]`;
+    errors.push(...validateNotice(notice, venue, file));
+    if (noticeIds.has(notice.id)) errors.push(issue(`duplicate notice id ${notice.id}`, file));
+    if (noticeSlugs.has(notice.slug)) errors.push(issue(`duplicate notice slug ${notice.slug}`, file));
+    noticeIds.add(notice.id);
+    noticeSlugs.add(notice.slug);
+  });
   if (errors.length) throw new Error(`Content validation failed:\n${errors.map((error) => `- ${error}`).join("\n")}`);
   return true;
 }
 
-export function normalizePublicContent({ venue, events }) {
+export function validateNotice(notice, venue, file = "notice") {
+  const errors = [];
+  if (!notice || typeof notice !== "object") return [issue("record must be an object", file)];
+  for (const field of ["id", "slug", "type", "message", "valid_from", "valid_until", "timezone"]) requireString(notice, field, errors, file);
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(notice.slug ?? "")) errors.push(issue("slug must be lowercase kebab-case", file));
+  if (!NOTICE_TYPES.includes(notice.type)) errors.push(issue("invalid notice type", file));
+  if (notice.venue_id !== venue.id) errors.push(issue("venue_id must reference the canonical venue", file));
+  requireString(notice.location ?? {}, "name", errors, file);
+  requireString(notice.location ?? {}, "address", errors, file);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(notice.valid_from ?? "")) errors.push(issue("valid_from must be a calendar date", file));
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(notice.valid_until ?? "")) errors.push(issue("valid_until must be a calendar date", file));
+  if (notice.valid_from >= notice.valid_until) errors.push(issue("valid_until must be after valid_from", file));
+  if (!isTimezone(notice.timezone)) errors.push(issue("timezone must be a valid IANA timezone", file));
+  if (notice.reopening_date !== null && notice.reopening_date !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(notice.reopening_date)) errors.push(issue("reopening_date must be null or a calendar date", file));
+  if (! ["draft", "published", "archived"].includes(notice.publication_status)) errors.push(issue("invalid publication_status", file));
+  if (notice.publication_status === "published" && notice.owner_confirmed !== true) errors.push(issue("published notices require owner_confirmed", file));
+  if (!notice.source || notice.source.type !== "owner_confirmation" || !/^\d{4}-\d{2}-\d{2}$/.test(notice.source.confirmed_at ?? "") || !notice.source.reference) errors.push(issue("source requires owner_confirmation, confirmed_at, and reference", file));
+  return errors;
+}
+
+function localCalendarDate(date, timezone) {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(date);
+  const values = Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+export function isNoticeActive(notice, now = new Date()) {
+  const date = localCalendarDate(now, notice.timezone);
+  return notice.publication_status === "published" && date >= notice.valid_from && date < notice.valid_until;
+}
+
+export function normalizePublicContent({ venue, events, notices = [] }) {
   const publicVenue = Object.fromEntries(Object.entries(venue.fields).filter(([, field]) => PUBLIC_PROVENANCE_STATUSES.includes(field.status)).map(([name, field]) => [name, field.value]));
   return {
     venue: structuredClone({ id: venue.id, ...publicVenue }),
@@ -122,15 +164,19 @@ export function normalizePublicContent({ venue, events }) {
       .filter((event) => event.publication_status === "published")
       .sort((a, b) => Date.parse(a.start) - Date.parse(b.start))
       .map((event) => structuredClone(event)),
+    notices: notices.filter((notice) => notice.publication_status === "published").map((notice) => structuredClone(notice)),
   };
 }
 
 export function readContent(root) {
   const venuePath = path.join(root, "content", "venue.json");
   const eventDir = path.join(root, "content", "events");
+  const noticeDir = path.join(root, "content", "notices");
   const venue = JSON.parse(fs.readFileSync(venuePath, "utf8"));
   const files = fs.readdirSync(eventDir).filter((name) => name.endsWith(".json")).sort().map((name) => path.join(eventDir, name));
   const events = files.map((file) => JSON.parse(fs.readFileSync(file, "utf8")));
-  validateContent({ venue, events, files });
-  return normalizePublicContent({ venue, events });
+  const noticeFiles = fs.readdirSync(noticeDir).filter((name) => name.endsWith(".json")).sort().map((name) => path.join(noticeDir, name));
+  const notices = noticeFiles.map((file) => JSON.parse(fs.readFileSync(file, "utf8")));
+  validateContent({ venue, events, files, notices, noticeFiles });
+  return normalizePublicContent({ venue, events, notices });
 }
