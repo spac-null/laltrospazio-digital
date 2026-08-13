@@ -6,12 +6,17 @@ import path from "path";
 const GPT_ENGINEER_TAG = `    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
 `;
+const GPT_ENGINEER_REMOVAL_BRANCH = "preview/gptengineer-removal";
 
 function stripGptEngineerScriptForPreview() {
   return {
     name: "strip-gptengineer-script-for-preview",
     transformIndexHtml(html: string) {
-      if (process.env.STRIP_GPTENGINEER_SCRIPT !== "1") {
+      const explicitLocalOverride = process.env.STRIP_GPTENGINEER_SCRIPT === "1";
+      const isRemovalPreview =
+        process.env.WORKERS_CI_BRANCH === GPT_ENGINEER_REMOVAL_BRANCH;
+
+      if (!explicitLocalOverride && !isRemovalPreview) {
         return html;
       }
 

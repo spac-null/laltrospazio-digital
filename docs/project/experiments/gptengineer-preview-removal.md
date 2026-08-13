@@ -11,9 +11,10 @@ navigation, so a Worker preview can remove it without changing visible behavior.
 
 Change:
 
-Enable `STRIP_GPTENGINEER_SCRIPT=1` only in the Cloudflare Workers
-non-production build configuration, leaving normal local and Vercel-style builds
-unchanged.
+Strip the script automatically only when Cloudflare Workers Builds reports
+`WORKERS_CI_BRANCH=preview/gptengineer-removal`. An explicit local
+`STRIP_GPTENGINEER_SCRIPT=1` override remains available, while normal local,
+Vercel-style, and `main` Worker builds retain the script by default.
 
 Metric:
 
