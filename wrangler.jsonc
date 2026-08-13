@@ -8,14 +8,15 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   },
-  // Not yet a production resource: no database_id is set. The owner must run
-  // `wrangler d1 create laltrospazio-meta` and add the returned database_id
-  // here before any production deploy or migration. See
+  // Real production D1 database (region EEUR), created 2026-08-13. No
+  // migration has been applied to it yet with --remote, and it is not yet
+  // referenced by any deployed Worker version. See
   // docs/project/meta-integration-plan.md for the exact next-phase steps.
   "d1_databases": [
     {
       "binding": "META_DB",
       "database_name": "laltrospazio-meta",
+      "database_id": "d3f2054c-2010-4dbc-9a4e-58d73a821c02",
       "migrations_dir": "./migrations"
     }
   ]
