@@ -16,7 +16,7 @@ Last updated: 2026-08-13
 
 - New GitHub `main` is the canonical source branch for
   `spac-null/laltrospazio-digital`.
-- Current Vercel production remains served by the separate
+- Vercel rollback project remains intact and is served by the separate
   `spac-null/landing-space-generator` repository, verified through the Vercel
   project API on 2026-08-13.
 - Cloudflare DNS is production/authoritative infrastructure for
@@ -24,20 +24,16 @@ Last updated: 2026-08-13
 - The Cloudflare Worker is deployed from canonical `main` at
   `https://laltrospazio-digital.dev-c05.workers.dev/` and through the custom
   domain `https://www.altrospazio.org/`.
-- First Worker Static Assets version uploaded without production promotion:
-  `00e07aba-5bab-4992-a9f4-f334d78d3f97`. A preview URL is still required for
-  parity testing.
+- The approved workers.dev deployment remains available as a comparison and
+  rollback diagnostic endpoint.
 - Preview URL now available and audited:
   `https://preview-gptengineer-removal-laltrospazio-digital.dev-c05.workers.dev/`.
   The focused preview audit found matching desktop/mobile geometry and no
   script-removal regression. Playfair is externally loaded from Google Fonts
   and returned HTTP 200.
-- Recheck on 2026-08-13 against the same stable preview alias did not reproduce
-  the prior Playfair 404 in headless Chrome. The live preview loaded
-  `fonts.gstatic.com` Playfair and Inter assets with HTTP 200 on desktop and
-  mobile, but it did reproduce a Cloudflare-only console error from the
-  Vercel-specific `/_vercel/speed-insights/script.js` request being served the
-  SPA HTML shell as `text/html`.
+- The earlier preview recheck corrected the Playfair diagnosis: Google Fonts
+  returned HTTP 200, and the Vercel-specific Speed Insights request was
+  removed before production cutover.
 
 ## Production relationship
 
@@ -105,8 +101,9 @@ Last updated: 2026-08-13
   independently verified through public DNS. Menu and group redirect hosts are
   being replaced with Cloudflare Single Redirects using proxied `192.0.2.1`
   records.
-- No DNS, custom domain, or production traffic has been changed by this
-  workspace. The Worker version upload remains non-production.
+- Production custom-domain cutover is complete. DNS, DNSSEC, apex behavior,
+  wildcard/`festa.altrospazio.org`, menu/gruppo routing, Vercel, and external
+  profiles were not modified by this verification pass.
 
 ## Latest validation
 
@@ -118,14 +115,22 @@ Last updated: 2026-08-13
 - `git remote -v`: fetch and push both point to
   `git@github.com:spac-null/laltrospazio-digital.git`.
 - `https://www.altrospazio.org/` returned `200` with Cloudflare headers on
-  2026-08-13. Browser verification passed on desktop and mobile with no
-  console errors or failed requests; Playfair and all page images loaded.
-- Production and the approved workers.dev deployment matched on asset hashes,
-  metadata, typography, dimensions, and forbidden-script absence.
+- 2026-08-13. DNS answers for `www` and the apex carried the public resolver
+  DNSSEC `ad` flag. Browser verification passed at 1440, 1200, 768, 390, and
+  375px widths with no homepage console errors or failed requests; Playfair,
+  all four page images, CSS, and JavaScript loaded.
+- Production and the approved workers.dev deployment matched on metadata,
+  typography, responsive dimensions, image health, and forbidden-script
+  absence.
 - Production direct SPA paths `/`, `/foo`, `/menu`, and `/contatti` returned
-  `200`; unknown paths render the intentional NotFound route.
-- Production `robots.txt` and `sitemap.xml` returned `200`. WhatsApp, Google
-  Maps, Instagram, and Facebook destinations resolved successfully.
+  `200`; unknown paths render the intentional NotFound route, whose expected
+  diagnostic is the only console error on those paths.
+- Production `robots.txt`, `sitemap.xml`, `/menu-gruppo-nazario.pdf`, and
+  `/og-image.png` returned `200`. WhatsApp, Google Maps, Instagram, and
+  Facebook destinations resolved successfully. TripAdvisor remains present;
+  its automated request returned `403` from TripAdvisor.
+- Keyboard Tab navigation advanced through the interactive Instagram,
+  WhatsApp, Maps, Facebook, Instagram, and TripAdvisor controls.
 - `curl -I https://festa.altrospazio.org` and
   `curl -L https://festa.altrospazio.org`: both failed with host-resolution
   errors on 2026-08-12, so the seasonal hostname is not currently reachable via
@@ -199,6 +204,8 @@ Last updated: 2026-08-13
   failure logs were empty; GPT Engineer and Speed Insights paths were absent.
 - Production custom domain is `www.altrospazio.org`; apex DNS, wildcard/
   `festa.altrospazio.org`, and Vercel project state were not changed.
+- The apex currently returns an unchanged Vercel `308` redirect to
+  `https://www.altrospazio.org/`; `www` returns the Cloudflare Worker site.
 
 ## Next action
 
