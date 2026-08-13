@@ -67,6 +67,10 @@ Last updated: 2026-08-13
 - Meta read/publish feasibility and owner actions are documented in
   `docs/project/meta-integration-plan.md`; no authenticated integration,
   scheduler, KV, D1, or admin surface has been added.
+- Real-event proof preparation is implemented in `scripts/candidate-lib.mjs`
+  and `scripts/create-event-candidate.mjs`. Candidates are stored separately
+  under `content/candidates/`, require owner confirmation, and cannot publish
+  automatically. No candidate or production event exists yet.
 - No GA4 or GTM detected in repo or live HTML
 - Project memory has been moved from obsolete `.claude/` files into `docs/project/`
 - A machine-readable provenance layer now exists at `docs/project/content-provenance.json`
