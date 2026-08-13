@@ -27,8 +27,9 @@ Last updated: 2026-08-13
   parity testing.
 - Preview URL now available and audited:
   `https://preview-gptengineer-removal-laltrospazio-digital.dev-c05.workers.dev/`.
-  The audit found matching desktop/mobile geometry and no script-removal
-  regression, but a preview-only Playfair font 404 causes two console errors.
+  The focused preview audit found matching desktop/mobile geometry and no
+  script-removal regression. Playfair is externally loaded from Google Fonts
+  and returned HTTP 200.
 - Recheck on 2026-08-13 against the same stable preview alias did not reproduce
   the prior Playfair 404 in headless Chrome. The live preview loaded
   `fonts.gstatic.com` Playfair and Inter assets with HTTP 200 on desktop and
@@ -154,15 +155,10 @@ Last updated: 2026-08-13
 - Public DNS for `festa.altrospazio.org` did not resolve from this environment
   on 2026-08-12, so the rewrite exists in config even though the hostname is
   not currently reachable here.
-- `@vercel/speed-insights` is imported by `src/App.tsx` and rendered as
-  `<SpeedInsights />`.
-- No other Vercel references were found outside these files and project docs.
-- These items remain in place while Vercel is production. Removal or
-  replacement requires a successful Worker preview comparison.
-- `src/App.tsx` has now been changed locally to stop rendering
-  `<SpeedInsights />` for the Worker preview follow-up, because Cloudflare
-  Static Assets serves SPA fallback HTML for `/_vercel/speed-insights/script.js`
-  and that request causes the current preview console error.
+- No Vercel runtime dependency remains in the app source or canonical npm
+  dependency graph. The Worker preview comparison passed before this cleanup.
+- `vercel.js` remains as deployment configuration for the separate Vercel
+  project and is not part of the Worker runtime.
 
 ## Local workdir rename
 
@@ -173,13 +169,12 @@ Last updated: 2026-08-13
 
 ## GPT Engineer script status
 
-- `https://cdn.gpteng.co/gptengineer.js` is present in `index.html`
+- `https://cdn.gpteng.co/gptengineer.js` has been permanently removed from
+  `index.html`
 - Current evidence indicates it is a Lovable / GPT Engineer editor bridge script, not core app logic
 - Current repo code does not reference it directly
 - Search evidence indicates the script posts messages to allowed editor origins and supports DOM selection/edit overlays
-- A preview-only removal path now exists in `vite.config.ts`, guarded by
-  `WORKERS_CI_BRANCH=preview/gptengineer-removal`; the explicit
-  `STRIP_GPTENGINEER_SCRIPT=1` local override remains supported.
+- No preview-only removal path remains in `vite.config.ts`.
 
 ## Current docs to read before major work
 
@@ -191,16 +186,11 @@ Last updated: 2026-08-13
 
 ## Next action
 
-- With Workers Builds connected, compare the uploaded
-  `preview/gptengineer-removal` version against Vercel when its preview URL is
-  provided. Keep `main` as the production branch and non-production branch
-  builds enabled.
+- With Workers Builds connected, merge the verified cleanup to `main` and
+  allow the canonical Worker deployment. Keep custom domains and production
+  DNS unchanged.
 - Use `/` as the root directory, set `SKIP_DEPENDENCY_INSTALL=1`, and use
   `npm ci && npm run build` as the build command,
   `npx wrangler@4.122.0 deploy` as the production deploy command, and
   `npx wrangler@4.122.0 versions upload` as the non-production deploy command.
-- Do not attach `www`; the preview branch automatically strips the script.
-- Rebuild after the local `SpeedInsights` removal, push the focused fix on
-  `preview/gptengineer-removal`, let Workers Builds publish a fresh preview,
-  and run a focused parity check before considering any Worker promotion. Do
-  not promote the Worker version or change production DNS during that work.
+- Do not attach `www` or `altrospazio.org`.
