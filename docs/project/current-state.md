@@ -402,14 +402,32 @@ never publish automatically.
   existing Trident project with loopback redirect
   `http://127.0.0.1:8788/oauth2callback`. No Google credentials are recorded in
   project files.
-- The first real GSC probe completed on 2026-08-13. It selected
-  `sc-domain:altrospazio.org` with `siteOwner` permission, found one submitted
-  and processed sitemap at `https://www.altrospazio.org/sitemap.xml`, and
-  generated the ignored private snapshot/report files. Search Analytics
-  returned zero rows while the newly verified property is still processing;
-  this is an availability state, not an integration failure. Probe again after
-  Search Console has accumulated and processed data.
+- Search Console's first real probe selected `sc-domain:altrospazio.org` with
+  `siteOwner`, found the submitted/processed canonical sitemap with zero
+  errors and warnings, and returned zero analytics rows while the new property
+  was still processing. No GSC connector change is required; probe again once
+  data is available.
 
+## Meta account discovery preparation (2026-08-13)
+
+- No Meta asset relationship is verified yet. The Page ID, Instagram
+  professional-account ID/type, linked Page, owning Business Portfolio, and
+  Jascha's access level must be confirmed in Meta UI; no ID is inferred from a
+  public URL.
+- The preferred combined read-only model is Facebook Login for Business with
+  the minimum current permissions to validate in the selected API version:
+  `pages_show_list`, `pages_read_engagement`, and `instagram_basic`, plus the
+  baseline `public_profile`. Instagram Login's newer
+  `instagram_business_basic` is documented as an Instagram-only alternative,
+  not a replacement for Facebook Page reads.
+- No Meta app has been created or reused, no tokens requested, and no profile
+  or publication operation performed. The existing normalized Meta adapter and
+  candidate/publication boundary remain unchanged.
+- The smallest public IA improvement available without Meta or GBP is a
+  homepage `Next` empty state driven by the existing canonical event registry:
+  display a concise no-confirmed-event message and link to `/eventi`, without
+  inventing programming. The current verified operational-status block and
+  visit/contact facts remain the primary current-state content.
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event
   data, and public information architecture.
