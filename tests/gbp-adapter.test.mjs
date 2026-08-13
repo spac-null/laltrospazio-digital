@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { normalizeGoogleBusinessProfile } from "../feeders/google-business-profile/normalize.mjs";
 import { makeField, resolveField, FIELD_AUTHORITY_POLICY } from "../scripts/field-authority.mjs";
+import { gbpRequest } from "../scripts/gbp-client.mjs";
 
 // These are synthetic API-shaped fixtures, not copied production responses.
 const fetchedAt = "2026-08-13T12:00:00Z";
@@ -70,4 +71,10 @@ test("canonical accepted field wins over a changed GBP feeder", () => {
   const resolved = resolveField({ canonical, feeder, policy: FIELD_AUTHORITY_POLICY.address });
   assert.equal(resolved.value, "Canonical address");
   assert.equal(resolved.resolution, "canonical");
+});
+
+test("GBP client rejects every mutation method before making a network request", async () => {
+  for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
+    await assert.rejects(() => gbpRequest("https://example.test/locations/1", { accessToken: "redacted", method }), /mutation method/);
+  }
 });

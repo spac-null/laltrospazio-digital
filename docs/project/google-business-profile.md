@@ -13,7 +13,9 @@ The current Business Information API location resource exposes `name` as the
 `phoneNumbers`, `websiteUri`, `regularHours`, `specialHours`, `openInfo`,
 `latlng`, `categories`, `profile`, and metadata. Google-updated data is handled
 as a separate comparison field when returned by the corresponding API method.
-Attributes are an optional feeder field and remain owner-confirmation-gated.
+Attributes are retrieved separately with `locations.getAttributes` and remain
+owner-confirmation-gated. Google-updated location data is retrieved separately
+with `locations.getGoogleUpdated`; both are GET-only calls.
 
 Discovery is two-step:
 
@@ -50,6 +52,55 @@ GBP API access, enable the approved Business Profile APIs, configure OAuth
 consent and an OAuth client, implement token storage, and run the read-only
 discovery. Google documents that project approval precedes API visibility and
 that protected requests require OAuth; there is no GBP sandbox.
+
+## Exact engineering setup
+
+1. Create a dedicated Google Cloud project named `L'Altro Spazio Digital`.
+2. In the GBP API access request form, submit the application text below and
+   wait for approval. If an enabled API reports quota 0, approval is still
+   incomplete.
+3. After approval, enable the Business Profile APIs needed for this probe:
+   My Business Account Management API and My Business Business Information API.
+   The current Google setup page may expose the broader associated API set; do
+   not enable write-oriented integrations beyond the APIs required for this
+   read-only probe.
+4. Configure the OAuth consent screen as an external application with the
+   project identity, support contact, developer contact, and the exact
+   `business.manage` scope. Add the localhost loopback redirect URI used by the
+   command: `http://127.0.0.1:8787/oauth2callback`.
+5. Create an OAuth client for a web application with the exact loopback
+   redirect URI above, and place its client ID/secret only in
+   `.env.gbp.local`. The local command uses authorization-code exchange with
+   PKCE; `GOOGLE_CLIENT_SECRET` remains local configuration and is never
+   committed.
+6. Run `npm run gbp:authorize`; the browser authorization code flow uses
+   `business.manage`, offline access, state, and PKCE. The refresh token is
+   written only to ignored `.local/gbp-refresh-token.json`.
+7. Run `npm run gbp:probe`. It performs account discovery, location listing,
+   location selection, read-only location/attribute/Google-updated GETs,
+   normalization, and discrepancy reporting. It never writes Google data.
+
+The local OAuth command stores the refresh token in an ignored file only for
+the proof. A later Worker deployment should use `GOOGLE_CLIENT_ID` as ordinary
+configuration and `GOOGLE_CLIENT_SECRET` plus `GOOGLE_REFRESH_TOKEN` as Worker
+secrets. Adding those secrets is a deployment change and requires explicit
+approval; this phase adds none.
+
+## Suggested GBP API access application text
+
+> L'Altro Spazio operates its own Google Business Profile for its Bologna
+> venue. We are building a first-party website and need programmatic read
+> access to our own location data so the website team can synchronize and
+> verify regular hours, special hours, address, phone, coordinates, open status,
+> and selected profile attributes. The integration will use OAuth on behalf of
+> the account owner, will access only the owned/managed venue, and will use the
+> `business.manage` scope. This is not a third-party profile management
+> platform, agency, multi-customer service, or bulk listing tool. The first
+> implementation is strictly read-only: it contains no location updates,
+> attribute updates, posts, review replies, or other mutation calls. Retrieved
+> data will be normalized, compared with our canonical website record, and sent
+> for owner review when discrepancies occur; it will not automatically overwrite
+> either Google or the website.
 
 ## Security and lifecycle
 

@@ -342,6 +342,11 @@ content must never publish automatically.
 - No authenticated fetcher, Cron, KV, D1, dashboard, or Meta connector has
   been added. The next concrete step is a read-only authenticated GBP proof
   after owner authorization.
+- A one-account local OAuth bootstrap and read-only GBP probe are now
+  implemented as `npm run gbp:authorize` and `npm run gbp:probe`. The flow uses
+  the full `business.manage` scope as required by Google, offline access,
+  state, PKCE, ignored local token storage, and GET-only API methods. No real
+  token or GBP response is present.
 
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event
