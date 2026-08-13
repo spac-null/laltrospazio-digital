@@ -31,3 +31,23 @@ test("Page success and Instagram permission failure remain explicit", async () =
   assert.match(report.system_user_viability, /^NO:/);
   assert.equal(JSON.stringify(report).includes("access_token"), false);
 });
+
+test("Instagram success and Page code 190 remain a resource-specific partial result", async () => {
+  const report = await runMetaProbe({
+    accessToken: "synthetic-system-token",
+    fetchImpl: async (url, init) => {
+      assert.equal(init.headers.Authorization, "Bearer synthetic-system-token");
+      const value = String(url);
+      if (value.includes("/264601140373284?fields=")) return new Response(JSON.stringify({ id: "264601140373284", name: "L'Altro Spazio", instagram_business_account: { id: "17841402902868891" } }), { status: 200 });
+      if (value.includes("/264601140373284/posts")) return new Response(JSON.stringify({ error: { code: 190, message: "synthetic resource token error" } }), { status: 200 });
+      if (value.includes("/17841402902868891/media")) return new Response(JSON.stringify({ data: [{ id: "ig-media-1" }] }), { status: 200 });
+      throw new Error(`unexpected synthetic URL ${value}`);
+    },
+    checkedAt: "2026-08-13T12:00:00Z",
+  });
+  assert.equal(report.page_read.ok, false);
+  assert.equal(report.instagram_read.ok, true);
+  assert.equal(report.errors[0].error_class, "SYSTEM_USER_PAGE_READ_TOKEN_CONTEXT_UNSUPPORTED_OR_UNAUTHORIZED");
+  assert.match(report.system_user_viability, /^PARTIAL:/);
+  assert.equal(report.feeder_health.last_error, "SYSTEM_USER_PAGE_READ_TOKEN_CONTEXT_UNSUPPORTED_OR_UNAUTHORIZED");
+});

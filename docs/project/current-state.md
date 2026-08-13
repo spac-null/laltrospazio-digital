@@ -449,6 +449,12 @@ never publish automatically.
   owner-confirmed IDs and persists only redacted health/report data. Graph
   error codes 10 and 190 are classified explicitly. No real Meta credential was
   requested or installed.
+- The first real system-user probe authenticated Page identity and read 100
+  Instagram media records, but Page own-post reads returned Graph code 190.
+  Because Instagram succeeded, this is classified as
+  `SYSTEM_USER_PAGE_READ_TOKEN_CONTEXT_UNSUPPORTED_OR_UNAUTHORIZED`, not a
+  globally invalid token. System-user viability is partial pending a Meta
+  decision about compatible Page-token context/asset authorization.
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event
   data, and public information architecture.

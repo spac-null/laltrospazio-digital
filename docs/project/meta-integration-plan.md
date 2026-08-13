@@ -266,6 +266,14 @@ If Page reads succeed but Instagram media fails with permission denial, the
 probe reports `SYSTEM_USER_INSTAGRAM_UNSUPPORTED_OR_UNAUTHORIZED`; it does not
 request broader permissions.
 
+If Instagram media succeeds but Page own-post reads return Graph code `190`,
+the probe reports `SYSTEM_USER_PAGE_READ_TOKEN_CONTEXT_UNSUPPORTED_OR_UNAUTHORIZED`
+and marks the system-user result partial. This is not treated as proof that the
+token is globally expired, because the same probe has authenticated successfully
+against the Page identity and Instagram media. Do not broaden permissions
+automatically; validate whether the current Page endpoint requires a compatible
+Page-token context or a separate asset assignment.
+
 ## Capability boundary
 
 Reading the venue's own Instagram media is feasible through the Instagram

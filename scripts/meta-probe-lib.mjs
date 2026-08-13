@@ -46,8 +46,13 @@ export async function runMetaProbe({ accessToken, fetchImpl = fetch, checkedAt =
     }
   }
   const totalRecords = report.page_read.records + report.instagram_read.records;
-  report.feeder_health = makeFeederHealth({ source: "meta", visibility: "public_candidate", authenticationStatus: "authenticated", lastAttempt: checkedAt, lastSuccess: report.page_read.ok || report.instagram_read.ok ? checkedAt : null, freshness: report.page_read.ok || report.instagram_read.ok ? "fresh" : "failed", recordsReceived: totalRecords, conflictsFound: [] });
+  if (!report.page_read.ok && report.instagram_read.ok) {
+    const pageError = report.errors.find((error) => error.surface === "page");
+    if (pageError?.error_class === "invalid_token") pageError.error_class = "SYSTEM_USER_PAGE_READ_TOKEN_CONTEXT_UNSUPPORTED_OR_UNAUTHORIZED";
+  }
+  report.feeder_health = makeFeederHealth({ source: "meta", visibility: "public_candidate", authenticationStatus: "authenticated", lastAttempt: checkedAt, lastSuccess: report.page_read.ok || report.instagram_read.ok ? checkedAt : null, freshness: report.page_read.ok || report.instagram_read.ok ? "fresh" : "failed", lastError: report.errors[0]?.error_class ?? null, recordsReceived: totalRecords, conflictsFound: [] });
   if (report.page_read.ok && report.instagram_read.ok) report.system_user_viability = "YES";
   else if (report.page_read.ok && report.errors.some((error) => error.error_class === "SYSTEM_USER_INSTAGRAM_UNSUPPORTED_OR_UNAUTHORIZED")) report.system_user_viability = "NO: Instagram capability unavailable for this system-user token";
+  else if (!report.page_read.ok && report.instagram_read.ok && report.errors.some((error) => error.error_class === "SYSTEM_USER_PAGE_READ_TOKEN_CONTEXT_UNSUPPORTED_OR_UNAUTHORIZED")) report.system_user_viability = "PARTIAL: Instagram works; Page own-post read requires a compatible Page-token context or authorization";
   return report;
 }
