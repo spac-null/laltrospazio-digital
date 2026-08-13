@@ -1,0 +1,15 @@
+{
+  "record_type": "venue",
+  "record_version": 1,
+  "id": "l-altro-spazio-bologna",
+  "fields": {
+    "name": { "value": "L'Altro Spazio", "status": "externally_supported", "sources": ["repo:src/pages/Index.tsx", "external:live-site"] },
+    "address": { "value": "Via Nazario Sauro 24/F, 40121 Bologna, Italy", "status": "externally_supported", "sources": ["repo:src/pages/Index.tsx", "external:cultura-bologna", "external:cheventi"] },
+    "phone": { "value": "+39 351 704 8064", "status": "externally_supported", "sources": ["repo:src/pages/Index.tsx", "external:tripadvisor", "external:cheventi"] },
+    "website": { "value": "https://www.altrospazio.org/", "status": "verified", "sources": ["repo:public/index.html", "external:live-site"] },
+    "coordinates": { "value": { "latitude": 44.4977164, "longitude": 11.3394358 }, "status": "externally_supported", "sources": ["repo:src/pages/Index.tsx", "external:google-maps-link"] },
+    "menu_url": { "value": "https://www.altrospazio.org/menu-gruppo-nazario.pdf", "status": "verified", "sources": ["repo:public/menu-gruppo-nazario.pdf"] },
+    "social_profiles": { "value": { "instagram": "https://www.instagram.com/laltrospazio/", "facebook": "https://www.facebook.com/laltrospazio.bologna/", "tripadvisor": "https://www.tripadvisor.it/Restaurant_Review-g187801-d6578619-Reviews-L_Altro_Spazio-Bologna_Province_of_Bologna_Emilia_Romagna.html" }, "status": "externally_supported", "sources": ["repo:src/pages/Index.tsx", "external:live-site"] },
+    "map_profile": { "value": { "url": "https://maps.app.goo.gl/xDqtoatfha1PdTtT7" }, "status": "verified", "sources": ["repo:src/pages/Index.tsx", "external:google-maps-link"] }
+  }
+}

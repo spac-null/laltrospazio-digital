@@ -56,6 +56,17 @@ Last updated: 2026-08-13
 - Base document language had been `en`; corrected locally to `it`
 - Canonical URL and robots metadata are now present locally
 - No structured event/content system exists in repo yet
+- Structured content foundation is now implemented: `content/venue.json`,
+  individual `content/events/<slug>.json` records, deterministic build
+  validation, generated public content, `/eventi`, and `/eventi/:slug`.
+- No production event records are present because no event has been authorized
+  for publication. The public event index intentionally shows an empty state.
+- Public venue data is limited to provenance-permitted name, address, phone,
+  website, coordinates, menu, social, and map fields. Email, opening hours,
+  seasonal location, and accessibility facilities remain absent.
+- Meta read/publish feasibility and owner actions are documented in
+  `docs/project/meta-integration-plan.md`; no authenticated integration,
+  scheduler, KV, D1, or admin surface has been added.
 - No GA4 or GTM detected in repo or live HTML
 - Project memory has been moved from obsolete `.claude/` files into `docs/project/`
 - A machine-readable provenance layer now exists at `docs/project/content-provenance.json`

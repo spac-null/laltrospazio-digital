@@ -1,68 +1,40 @@
-# Minimal Event Data Model
+# Canonical Event Content Model
 
-Initial representation: a versioned `content/events.json` file in the
-repository. No database or third-party runtime calls are required for the
-first implementation.
+Production event records are individual JSON files in `content/events/<slug>.json`.
+The directory is currently empty because no event has been authorized for
+publication. Test fixtures are in-memory only.
 
-```json
-{
-  "id": "2026-09-12-example-slug",
-  "status": "draft",
-  "title": "",
-  "slug": "",
-  "start": "2026-09-12T20:30:00+02:00",
-  "end": null,
-  "timezone": "Europe/Rome",
-  "recurrence": null,
-  "location": {
-    "venue_id": "l-altro-spazio-bologna",
-    "name": "L'Altro Spazio",
-    "address": null,
-    "coordinates": null
-  },
-  "description": "",
-  "image": null,
-  "booking_url": null,
-  "accessibility": {
-    "summary": null,
-    "details": [],
-    "status": "unverified"
-  },
-  "source": {
-    "type": "owner_registry",
-    "url": null,
-    "retrieved_at": null,
-    "source_event_id": null
-  },
-  "published_at": null,
-  "updated_at": "2026-08-13",
-  "notes": null
-}
-```
+Each record has two status axes:
 
-## Rules
+- `publication_status`: `draft`, `published`, or `archived`.
+- `event_status`: `scheduled`, `cancelled`, or `postponed`.
 
-- `status` is one of `draft`, `published`, `cancelled`, `postponed`, or
-  `archived`.
-- `published` requires a title, start time, location, description or short
-  summary, and a source reference.
-- Dates must include an offset or use `Europe/Rome`; never infer a timezone.
-- A recurring event stores a recurrence rule plus explicit exceptions and
-  cancellations. It does not generate public occurrences until validated.
-- Historical events remain in the same file with `archived` status and their
-  original source URL.
-- Accessibility is event-specific. Venue-level claims do not automatically
-  transfer to an event.
-- Missing image, booking URL, end time, or accessibility detail is valid null
-  data, not a reason to invent a value.
+This preserves the requested lifecycle vocabulary without making a cancelled
+event indistinguishable from a draft. Only `publication_status: "published"`
+records enter the generated public snapshot. Published cancelled and postponed
+records remain addressable so their state can be communicated.
 
-## Automation boundary
+Required fields are `id`, `slug`, `title`, `start`, `end`, `timezone`,
+`location.venue_id`, `location.name`, `description`, `source`,
+`published_at`, and `updated_at`. Published records require an ISO source URL;
+dates must carry an explicit offset and use a valid IANA timezone. A cancelled
+record requires a reason and announcement date. A postponed record requires a
+reason and either a new start date or an explicit null.
 
-| Stage | Implementation | Failure behavior | Cadence |
-|---|---|---|---|
-| Input | Owner edits one registry; optional social/API imports create drafts only | No source change means no new event | On update |
-| Normalization | Build-time schema validation and date normalization | Reject invalid records; keep last valid published snapshot | Every build |
-| Validation | Required fields, dates, status, source URL, duplicate IDs | Block publication of invalid records; report actionable errors | Every build |
-| Cache/storage | Versioned JSON in Git; generated static output | Serve last committed valid snapshot | Per deploy |
-| Public output | Upcoming list, event detail pages, archive, JSON-LD where complete | Omit drafts and invalid records | Per deploy |
-| Human action | Approve/edit drafts, cancellations, recurring exceptions, accessibility facts | No automatic publication from untrusted mirrors | As needed |
+`content/venue.json` is the canonical venue implementation record. It is a
+public-safe projection of `docs/project/venue-record.json`: conflicting,
+unverified, and unknown fields are intentionally omitted. The build step
+validates both sources, writes `src/generated/content.ts`, and regenerates
+`public/sitemap.xml` with `/eventi` and every published event page.
+
+## Editorial and automation boundary
+
+The current fallback is a reviewed Git change to a single event file. Future
+inputs should create candidate/draft records, run the same deterministic
+validation, and require owner approval before changing `publication_status` to
+`published`. Social/API imports never publish directly.
+
+The next thin editorial surface can be a Cloudflare Access-protected API that
+writes these records, with audit history and the same build validator. D1,
+KV, Cron, and a full admin UI are not justified until file-based editing is an
+actual operational blocker.

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Users, Palette, Calendar, MapPin, Phone, Heart, Music, BookOpen, Users2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { venue } from "@/lib/content";
 
 const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -132,7 +133,7 @@ const Index = () => {
           <div className="max-w-4xl mx-auto mt-16 text-center">
             <Button 
               className="bg-primary text-white hover:bg-primary/90"
-              onClick={() => window.open('https://www.instagram.com/laltrospazio/', '_blank')}
+              onClick={() => window.open(venue.social_profiles.instagram, '_blank')}
             >
               Seguici su Instagram per vedere le nostre attività
             </Button>
@@ -236,7 +237,7 @@ const Index = () => {
                 <Button 
                   variant="ghost" 
                   className="mt-4 text-primary hover:text-accent" 
-                  onClick={() => window.open('https://www.instagram.com/laltrospazio/', '_blank')}
+                  onClick={() => window.open(venue.social_profiles.instagram, '_blank')}
                 >
                   Esplora su Instagram
                 </Button>
@@ -246,9 +247,7 @@ const Index = () => {
               <Phone className="w-8 h-8 mb-4 text-primary mx-auto" />
               <h3 className="font-display text-xl mb-2">Contattaci</h3>
               <p className="text-secondary/80">
-                Email: nazariosauro@altrospazio.org
-                <br />
-                WhatsApp: +39 351 704 8064
+                WhatsApp: {venue.phone}
               </p>
                 <Button 
                 variant="ghost" 
@@ -262,16 +261,12 @@ const Index = () => {
               <MapPin className="w-8 h-8 mb-4 text-primary mx-auto" />
               <h3 className="font-display text-xl mb-2">Dove Siamo</h3>
               <p className="text-secondary/80">
-                Via Nazario Sauro 24/F
-                <br />
-                Bologna, Italia
-                <br />
-<em className="text-sm">Durante l'estate, il nostro bar pop-up si trova a Parco 11 Settembre 2001</em>
+                {venue.address}
               </p>              
               <Button 
                   variant="ghost" 
                   className="mt-4 text-primary hover:text-accent" 
-                  onClick={() => window.open('https://maps.app.goo.gl/xDqtoatfha1PdTtT7', '_blank')}
+                  onClick={() => window.open(venue.map_profile.url, '_blank')}
                 >
                   Trova la strada con Google Maps
                 </Button>
@@ -292,9 +287,9 @@ const Index = () => {
             Un luogo dove la diversità è celebrata e l'inclusione è la normalità
           </p>
           <div className="flex justify-center space-x-4">
-<a href="https://www.facebook.com/laltrospazio.bologna/" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">Facebook</a>
-<a href="https://www.instagram.com/laltrospazio/" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">Instagram</a>
-<a href="https://www.tripadvisor.it/Restaurant_Review-g187801-d6578619-Reviews-L_Altro_Spazio-Bologna_Province_of_Bologna_Emilia_Romagna.html" target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">TripAdvisor</a>
+<a href={venue.social_profiles.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">Facebook</a>
+<a href={venue.social_profiles.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">Instagram</a>
+<a href={venue.social_profiles.tripadvisor} target="_blank" rel="noopener noreferrer" className="hover:text-accent transition-colors">TripAdvisor</a>
           </div>
         </div>
       </footer>
