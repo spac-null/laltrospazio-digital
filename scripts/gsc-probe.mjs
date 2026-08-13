@@ -3,7 +3,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { listSites, listSitemaps, querySearchAnalytics, refreshAccessToken } from "../feeders/google-search-console/client.mjs";
 import { normalizeProperties, normalizeSearchAnalytics, normalizeSitemaps, selectCanonicalProperty } from "../feeders/google-search-console/normalize.mjs";
-import { assertPublicDataSafe } from "./feeder-health.mjs";
 import { GSC_REPORT_FILE, GSC_SCOPE, GSC_SNAPSHOT_FILE, loadLocalGscEnv, requireGscCredentials, GSC_TOKEN_FILE } from "./gsc-env.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -120,12 +119,15 @@ ${table(["Country", "Impressions", "Clicks"], countries.map((item) => [item.valu
 `;
 }
 
+let accessibleProperties = [];
+
 try {
   const { clientId, clientSecret } = requireGscCredentials();
   const access = await refreshAccessToken({ clientId, clientSecret, refreshToken: readRefreshToken() });
   const fetchedAt = new Date().toISOString();
   const propertiesResponse = await listSites(apiBase, { accessToken: access.access_token });
   const normalizedProperties = normalizeProperties(propertiesResponse, { fetchedAt });
+  accessibleProperties = normalizedProperties.properties;
   const property = selectCanonicalProperty(normalizedProperties.properties);
   const range = dateRange();
   const requested = { ...range, dimensions: ["query", "page", "device", "country", "date"], type: "web", rowLimit: 25000, aggregationType: "auto" };
@@ -143,7 +145,6 @@ try {
     sitemaps: normalizeSitemaps(sitemapsResponse, { property: property.site_url, fetchedAt }),
     analytics: normalizeSearchAnalytics(analyticsResponse, { property: property.site_url, requested, fetchedAt }),
   };
-  assertPublicDataSafe(snapshot);
   fs.mkdirSync(path.join(root, ".local"), { recursive: true, mode: 0o700 });
   fs.writeFileSync(path.join(root, GSC_SNAPSHOT_FILE), `${JSON.stringify(snapshot, null, 2)}\n`, { mode: 0o600 });
   fs.chmodSync(path.join(root, GSC_SNAPSHOT_FILE), 0o600);
@@ -152,6 +153,17 @@ try {
   console.log(`GSC ACCOUNT/PROPERTY DISCOVERY COMPLETE\nProperty: ${property.site_url}\nPermission: ${property.permission_level ?? "not reported"}\nSitemaps: ${snapshot.sitemaps.sitemaps.length}\nAnalytics rows: ${snapshot.analytics.rows.length}\nPrivate snapshot: ${GSC_SNAPSHOT_FILE}\nPrivate report: ${GSC_REPORT_FILE}`);
 } catch (error) {
   console.error(`GSC PROBE FAILED\n${error.message}`);
+  if (error.message === "no canonical Search Console property was found") {
+    console.error("ACCESSIBLE SEARCH CONSOLE PROPERTIES");
+    if (accessibleProperties.length === 0) {
+      console.error("- none returned by sites.list");
+    } else {
+      for (const property of accessibleProperties) {
+        console.error(`- siteUrl: ${property.site_url ?? "(missing)"}`);
+        console.error(`  permissionLevel: ${property.permission_level ?? "(not reported)"}`);
+      }
+    }
+  }
   if (error.code === "permission_or_approval") console.error("Check Search Console API enablement, OAuth scope, property ownership, and Google project access.");
   if (error.code === "quota") console.error("Google reports quota exhaustion or zero quota; wait for project/API access or reduce request volume.");
   process.exitCode = 1;

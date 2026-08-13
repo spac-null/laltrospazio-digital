@@ -14,6 +14,7 @@ test("finds the canonical URL-prefix Search Console property", () => {
 test("rejects missing canonical properties and prefers the domain property", () => {
   assert.throws(() => findCanonicalProperty([]), /no canonical/);
   assert.equal(selectCanonicalProperty([{ siteUrl: "https://www.altrospazio.org/" }, { siteUrl: "sc-domain:altrospazio.org" }]).siteUrl, "sc-domain:altrospazio.org");
+  assert.equal(selectCanonicalProperty([{ site_url: "https://www.altrospazio.org/" }, { site_url: "sc-domain:altrospazio.org" }]).site_url, "sc-domain:altrospazio.org");
 });
 
 test("normalizes private site, analytics, and sitemap snapshots", () => {

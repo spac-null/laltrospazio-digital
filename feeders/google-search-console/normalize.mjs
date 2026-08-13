@@ -16,9 +16,10 @@ export function findCanonicalProperty(properties = []) {
 }
 
 export function selectCanonicalProperty(properties = []) {
-  const domain = properties.find((property) => property.siteUrl === "sc-domain:altrospazio.org");
+  const siteUrl = (property) => property.siteUrl ?? property.site_url;
+  const domain = properties.find((property) => siteUrl(property) === "sc-domain:altrospazio.org");
   if (domain) return domain;
-  const urlPrefix = properties.find((property) => property.siteUrl === "https://www.altrospazio.org/");
+  const urlPrefix = properties.find((property) => siteUrl(property) === "https://www.altrospazio.org/");
   if (urlPrefix) return urlPrefix;
   throw new Error("no canonical Search Console property was found");
 }
