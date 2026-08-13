@@ -29,6 +29,12 @@ Last updated: 2026-08-13
   `https://preview-gptengineer-removal-laltrospazio-digital.dev-c05.workers.dev/`.
   The audit found matching desktop/mobile geometry and no script-removal
   regression, but a preview-only Playfair font 404 causes two console errors.
+- Recheck on 2026-08-13 against the same stable preview alias did not reproduce
+  the prior Playfair 404 in headless Chrome. The live preview loaded
+  `fonts.gstatic.com` Playfair and Inter assets with HTTP 200 on desktop and
+  mobile, but it did reproduce a Cloudflare-only console error from the
+  Vercel-specific `/_vercel/speed-insights/script.js` request being served the
+  SPA HTML shell as `text/html`.
 
 ## Production relationship
 
@@ -153,6 +159,10 @@ Last updated: 2026-08-13
 - No other Vercel references were found outside these files and project docs.
 - These items remain in place while Vercel is production. Removal or
   replacement requires a successful Worker preview comparison.
+- `src/App.tsx` has now been changed locally to stop rendering
+  `<SpeedInsights />` for the Worker preview follow-up, because Cloudflare
+  Static Assets serves SPA fallback HTML for `/_vercel/speed-insights/script.js`
+  and that request causes the current preview console error.
 
 ## Local workdir rename
 
@@ -190,6 +200,7 @@ Last updated: 2026-08-13
   `npx wrangler@4.122.0 deploy` as the production deploy command, and
   `npx wrangler@4.122.0 versions upload` as the non-production deploy command.
 - Do not attach `www`; the preview branch automatically strips the script.
-- Resolve the preview-only Playfair font 404 and repeat the parity audit before
-  considering any Worker promotion. Do not promote the Worker version or
-  change production DNS during that work.
+- Rebuild after the local `SpeedInsights` removal, push the focused fix on
+  `preview/gptengineer-removal`, let Workers Builds publish a fresh preview,
+  and run a focused parity check before considering any Worker promotion. Do
+  not promote the Worker version or change production DNS during that work.
