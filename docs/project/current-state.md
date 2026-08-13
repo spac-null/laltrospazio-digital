@@ -209,11 +209,53 @@ Last updated: 2026-08-13
 - The apex returns a Cloudflare `301` to `https://www.altrospazio.org/` with
   path/query preservation; `www` returns the Cloudflare Worker site.
 
+## Residual Vercel host inventory (2026-08-13)
+
+The primary-domain migration is complete. This inventory is bounded to
+residual Vercel/DNS dependencies and does not change DNS, Worker, or Vercel.
+
+| Hostname | DNS/origin | Current behavior | Purpose/evidence | Disposition |
+|---|---|---|---|---|
+| `festa.altrospazio.org` | CNAME `cname.vercel-dns.com`; Vercel project URL | `/` `200`; `/foo` and `/robots.txt` `404`; Vercel headers; legacy HTML/assets | Named by current `vercel.js`; no current site/repo public link; seasonal purpose is not proven | Owner decision required; preserve until reconciled |
+| `program.altrospazio.org` | CNAME `cname.vercel-dns.com` via wildcard; Vercel | `/` `200`; `/foo` and `/robots.txt` `404`; same legacy deployment as `festa` | No current link or distinct content found; purpose unknown | Owner decision required; preserve until identified |
+| `qr.altrospazio.org` | CNAME `cname.vercel-dns.com` | `/` `200`; `/foo` and `/robots.txt` `404`; same legacy deployment | Historical `vercel.js` redirected QR traffic to the menu PDF; no current link found | Owner decision required; likely redirect to menu PDF |
+| `*.altrospazio.org` | Wildcard CNAME to `cname.vercel-dns.com` | Arbitrary labels resolve to Vercel; random unconfigured HTTPS label fails TLS | No useful wildcard behavior demonstrated; explicit live hosts must be handled separately | Retire after explicit-host replacements are approved |
+| `menu.altrospazio.org` | Cloudflare proxied record/redirect | `301` to `https://www.leggimenu.it/menu/laltrospazio` | Current menu destination; no Vercel dependency | Preserve on Cloudflare |
+| `gruppo.altrospazio.org` | Cloudflare proxied record/redirect | `301` to `https://altrospazio.org/menu.html` | Current group/menu destination; no Vercel dependency | Preserve on Cloudflare; owner may later review target |
+
+No additional residual hostnames were found in the historical repository DNS
+inventory or current public material. The wildcard means arbitrary unlisted
+labels still resolve through Vercel even though they have no demonstrated
+useful behavior.
+
+### Festa reconciliation
+
+The repository `vercel.js` declares `cleanUrls`, removes trailing slashes, and
+rewrites every request whose host is `festa.altrospazio.org` to `/index.html`.
+Public behavior does not match that declaration: the root is `200`, but
+`/foo` and `/robots.txt` are `404`. The Vercel project inspection confirms the
+project and build settings but does not expose the deployed route configuration;
+the account-level domain list is empty and direct domain inspection is denied
+for the current scope. The evidence supports an unresolved deployment/config
+boundary, not a claim about which setting overrides the file.
+
+### Vercel retirement plan
+
+1. Obtain owner confirmation for the purpose and required destination of
+   `festa`, `program`, and `qr`, including whether QR signage still exists.
+2. Replace each approved live hostname with an explicit Cloudflare redirect or
+   Worker route, and remove the Vercel wildcard only after those replacements
+   are verified.
+3. Recheck the Vercel project has no required domain, deployment, or rollback
+   role; retain a reversible export/record of the legacy configuration.
+4. Only then retire the Vercel project/domain dependency. Do not remove Vercel
+   in this audit.
+
 ## Next action
 
-- Investigate `festa.altrospazio.org` and the remaining `vercel.js` dependency:
-  document the Vercel project/site behavior, required seasonal routing, and a
-  reversible Cloudflare replacement plan. Do not change or remove it yet.
+- Stop infrastructure migration work after this bounded inventory. Return to
+  canonical content/provenance, the real event source, structured venue/event
+  data, and public information architecture.
 - Use `/` as the root directory, set `SKIP_DEPENDENCY_INSTALL=1`, and use
   `npm ci && npm run build` as the build command,
   `npx wrangler@4.122.0 deploy` as the production deploy command, and
