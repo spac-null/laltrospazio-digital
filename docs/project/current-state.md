@@ -251,6 +251,33 @@ boundary, not a claim about which setting overrides the file.
 4. Only then retire the Vercel project/domain dependency. Do not remove Vercel
    in this audit.
 
+## Digital system findings: event and venue data
+
+- No canonical current/upcoming event source exists in the repository or
+  public ecosystem.
+- The current site contains generic activity categories but no event records,
+  feed, calendar endpoint, or event API.
+- Instagram and Facebook are the strongest candidates for operational
+  announcements, but owner/API access and a machine-readable feed are not
+  verified. Their public pages were access-limited during this investigation.
+- Google Maps/Business Profile is useful for venue identity and discovery, not
+  a dependable event calendar. Cultura Bologna, Cheventi, and OggiBo provide
+  structured or historical secondary evidence only; Cheventi's organizer page
+  labeled 2026 contained stale 2025 event records.
+- Historical recurring formats include Spazi Migranti, Serata Erasmus,
+  exhibitions, concert series, Pasta & Friends, Cena al Buio, and DJ formats.
+  These are not current programming.
+- Normalized venue facts and field-level status are recorded in
+  `docs/project/venue-record.json`.
+- Source classification is recorded in
+  `docs/project/event-source-inventory-2026-08-13.md`.
+- The minimal event model is recorded in `docs/project/event-schema.md`.
+
+Recommended source of truth: one owner-controlled versioned
+`content/events.json` registry. Social channels publish from or point to it;
+optional API imports may create drafts, but unreviewed social or aggregator
+content must never publish automatically.
+
 ## Next action
 
 - Stop infrastructure migration work after this bounded inventory. Return to

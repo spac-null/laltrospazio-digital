@@ -1,0 +1,67 @@
+{
+  "record_type": "venue",
+  "record_version": 1,
+  "generated_on": "2026-08-13",
+  "canonical_entity_id": "l-altro-spazio-bologna",
+  "fields": {
+    "canonical_name": {
+      "value": "L'Altro Spazio",
+      "status": "externally_supported",
+      "sources": ["repo:index.html", "repo:src/pages/Index.tsx", "external:tripadvisor", "external:cultura-bologna"]
+    },
+    "primary_address": {
+      "value": "Via Nazario Sauro 24/F, 40121 Bologna, Italy",
+      "status": "externally_supported",
+      "sources": ["repo:src/pages/Index.tsx", "external:cultura-bologna", "external:cheventi"]
+    },
+    "seasonal_secondary_locations": {
+      "value": [{"name": "Parco 11 Settembre 2001", "address": null, "dates": null}],
+      "status": "conflicting",
+      "sources": ["repo:src/pages/Index.tsx", "external:oggibo-parco"],
+      "notes": "Seasonal presence is mentioned, but current-year dates and exact operating address are not owner-confirmed. OggiBo lists a Parco location at Via delle Lame 61/S."
+    },
+    "phone": {
+      "value": "+39 351 704 8064",
+      "status": "externally_supported",
+      "sources": ["repo:src/pages/Index.tsx", "external:tripadvisor", "external:cheventi"],
+      "notes": "Owner/system-of-record confirmation is still desirable."
+    },
+    "email": {"value": "nazariosauro@altrospazio.org", "status": "unverified", "sources": ["repo:src/pages/Index.tsx"]},
+    "website": {"value": "https://www.altrospazio.org/", "status": "verified", "sources": ["repo:index.html", "external:live-site"]},
+    "opening_hours": {
+      "value": null,
+      "status": "conflicting",
+      "sources": ["external:wanderlog", "external:oggibo-parco"],
+      "notes": "The current website publishes no hours. External hours are venue/location-specific or aggregated and must not be published as current."
+    },
+    "coordinates": {
+      "value": {"latitude": 44.4977164, "longitude": 11.3394358},
+      "status": "externally_supported",
+      "sources": ["repo:src/pages/Index.tsx", "external:google-maps-link", "external:cheventi"],
+      "notes": "Coordinates resolve from the current Google Maps short link and agree closely with historical event listings."
+    },
+    "accessibility_facilities": {
+      "value": ["lowered counter", "braille menus", "LIS/sign-language support", "audio-described performances", "tactile exhibitions", "accessible event entry"],
+      "status": "unverified",
+      "sources": ["repo:src/pages/Index.tsx"],
+      "notes": "These are claims in current copy, not a verified facility checklist. Keep out of new factual UI until owner-confirmed field by field."
+    },
+    "menu_url": {"value": "https://www.altrospazio.org/menu-gruppo-nazario.pdf", "status": "verified", "sources": ["repo:public/menu-gruppo-nazario.pdf", "repo:public/index.html"]},
+    "social_profiles": {
+      "value": {"instagram": "https://www.instagram.com/laltrospazio/", "facebook": "https://www.facebook.com/laltrospazio.bologna/", "tripadvisor": "https://www.tripadvisor.it/Restaurant_Review-g187801-d6578619-Reviews-L_Altro_Spazio-Bologna_Province_of_Bologna_Emilia_Romagna.html"},
+      "status": "externally_supported",
+      "sources": ["repo:src/pages/Index.tsx", "external:live-site"]
+    },
+    "map_profile": {
+      "value": {"short_url": "https://maps.app.goo.gl/xDqtoatfha1PdTtT7", "place_identifier_fragment": "g/1pzpgnt3y"},
+      "status": "verified",
+      "sources": ["repo:src/pages/Index.tsx", "external:google-maps-link"]
+    },
+    "event_source": {
+      "value": null,
+      "status": "unverified",
+      "sources": ["repo", "external:instagram", "external:facebook", "external:cultura-bologna", "external:cheventi"],
+      "notes": "No canonical current/upcoming event source identified. See event-source-inventory-2026-08-13.md."
+    }
+  }
+}
