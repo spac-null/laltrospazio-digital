@@ -7,6 +7,17 @@ export const HUMAN_PROOF_PERMISSIONS = Object.freeze([
   "instagram_basic",
 ]);
 export const META_READ_PERMISSIONS = HUMAN_PROOF_PERMISSIONS;
+export const META_PAGE_OAUTH_PERMISSIONS = Object.freeze([
+  "business_management",
+  "pages_show_list",
+  "pages_read_engagement",
+  "public_profile",
+]);
+export const META_PAGE_REQUIRED_PERMISSIONS = Object.freeze([
+  "business_management",
+  "pages_show_list",
+  "pages_read_engagement",
+]);
 export const SYSTEM_USER_REQUIRED_CAPABILITIES = Object.freeze([
   "facebook_page_own_post_read",
   "instagram_professional_own_media_read",
@@ -79,7 +90,19 @@ export async function verifyPageIdentity(accessToken, { fetchImpl = fetch } = {}
 }
 
 export async function listManagedPages(userAccessToken, { fetchImpl = fetch } = {}) {
-  return metaRequest("me/accounts", { accessToken: userAccessToken, params: { fields: "id,name,access_token,tasks,instagram_business_account" }, fetchImpl });
+  return metaRequest("me/accounts", { accessToken: userAccessToken, params: { fields: "id,name,access_token,instagram_business_account" }, fetchImpl });
+}
+
+export async function getUserPermissions(userAccessToken, { fetchImpl = fetch } = {}) {
+  return metaRequest("me/permissions", { accessToken: userAccessToken, params: { fields: "permission,status" }, fetchImpl });
+}
+
+export function validateGrantedPermissions(response) {
+  const granted = new Set((response?.data ?? []).filter((item) => item.status === "granted").map((item) => item.permission));
+  const missing = META_PAGE_REQUIRED_PERMISSIONS.filter((permission) => !granted.has(permission));
+  if (missing.includes("business_management")) throw new MetaError("Meta OAuth did not grant business_management; /me/accounts was not attempted.", { code: "business_management_missing" });
+  if (missing.length) throw new MetaError(`Meta OAuth did not grant required Page permissions: ${missing.join(", ")}; /me/accounts was not attempted.`, { code: "page_permissions_missing" });
+  return { granted: [...granted], missing: [] };
 }
 
 export function selectOwnerPage(response) {

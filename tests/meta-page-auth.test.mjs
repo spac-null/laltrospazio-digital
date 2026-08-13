@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { listManagedPages, selectOwnerPage, verifyPageIdentity } from "../feeders/meta/client.mjs";
+import { getUserPermissions, listManagedPages, META_PAGE_OAUTH_PERMISSIONS, selectOwnerPage, validateGrantedPermissions, verifyPageIdentity } from "../feeders/meta/client.mjs";
 
 const page = { id: "264601140373284", name: "L'Altro Spazio", access_token: "synthetic-page-token", instagram_business_account: { id: "17841402902868891" } };
 
@@ -27,4 +27,19 @@ test("Page discovery and identity validation use the supplied token", async () =
 
 test("Page identity rejects the wrong linked Instagram account", async () => {
   await assert.rejects(() => verifyPageIdentity("synthetic-page-token", { fetchImpl: async () => new Response(JSON.stringify({ id: page.id, name: page.name, instagram_business_account: { id: "wrong" } }), { status: 200 }) }), /not linked/);
+});
+
+test("Page OAuth requests and validates only the bounded permission set", async () => {
+  assert.deepEqual(META_PAGE_OAUTH_PERMISSIONS, ["business_management", "pages_show_list", "pages_read_engagement", "public_profile"]);
+  const permissions = { data: META_PAGE_OAUTH_PERMISSIONS.map((permission) => ({ permission, status: "granted" })) };
+  assert.deepEqual(validateGrantedPermissions(permissions).missing, []);
+  assert.throws(() => validateGrantedPermissions({ data: [{ permission: "pages_show_list", status: "granted" }, { permission: "pages_read_engagement", status: "granted" }] }), /business_management/);
+});
+
+test("/me/permissions uses the user token and does not expose it in the URL", async () => {
+  let call;
+  const response = await getUserPermissions("synthetic-user-token", { fetchImpl: async (url, init) => { call = { url: String(url), auth: init.headers.Authorization }; return new Response(JSON.stringify({ data: [] }), { status: 200 }); } });
+  assert.deepEqual(response.data, []);
+  assert.equal(call.auth, "Bearer synthetic-user-token");
+  assert.equal(call.url.includes("access_token"), false);
 });

@@ -467,6 +467,12 @@ never publish automatically.
   actual local HTTPS server with mkcert certificate/key files under ignored
   `.local/`; it fails closed rather than weakening TLS. The exact redirect URI
   is reused for authorization and token exchange.
+- The Page OAuth bootstrap now requests only `business_management`,
+  `pages_show_list`, `pages_read_engagement`, and `public_profile`, verifies
+  `/me/permissions` before `/me/accounts`, and fails specifically when
+  `business_management` is absent. If permissions are granted but
+  `/me/accounts` remains empty, the next investigation is a Facebook Login for
+  Business Configuration ID; no workaround or broader permission is used.
 - Stop infrastructure migration work after this bounded inventory. Return to
   canonical content/provenance, the real event source, structured venue/event
   data, and public information architecture.

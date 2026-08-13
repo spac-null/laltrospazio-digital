@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { META_API_VERSION, META_GRAPH_BASE, listManagedPages, selectOwnerPage, verifyPageIdentity } from "../feeders/meta/client.mjs";
+import { META_API_VERSION, META_GRAPH_BASE, getUserPermissions, listManagedPages, META_PAGE_OAUTH_PERMISSIONS, selectOwnerPage, validateGrantedPermissions, verifyPageIdentity } from "../feeders/meta/client.mjs";
 import { loadLocalMetaEnv, META_PAGE_TOKEN_FILE, requireMetaAppCredentials } from "./meta-env.mjs";
 import { createLocalHttpsServer, META_PAGE_OAUTH_PORT, META_PAGE_REDIRECT_URI, validateOAuthCallback } from "./meta-page-oauth-lib.mjs";
 
@@ -17,7 +17,7 @@ const state = crypto.randomBytes(32).toString("base64url");
 const verifier = crypto.randomBytes(48).toString("base64url");
 const challenge = crypto.createHash("sha256").update(verifier).digest("base64url");
 const authorization = new URL(`https://www.facebook.com/${META_API_VERSION}/dialog/oauth`);
-authorization.search = new URLSearchParams({ client_id: credentials.appId, redirect_uri: redirectUri, response_type: "code", scope: "pages_show_list,pages_read_engagement", state, code_challenge: challenge, code_challenge_method: "S256" });
+authorization.search = new URLSearchParams({ client_id: credentials.appId, redirect_uri: redirectUri, response_type: "code", scope: META_PAGE_OAUTH_PERMISSIONS.join(","), state, code_challenge: challenge, code_challenge_method: "S256" });
 console.log(`Open this URL in the owner Facebook account for L'Altro Spazio:\n\n${authorization}\n`);
 console.log(`Waiting for OAuth callback on ${redirectUri} ...`);
 
@@ -31,6 +31,7 @@ try {
     const tokenResponse = await fetch(`${META_GRAPH_BASE}/oauth/access_token`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ client_id: credentials.appId, client_secret: credentials.appSecret, redirect_uri: redirectUri, code, code_verifier: verifier }) });
     const tokens = await tokenResponse.json().catch(() => ({}));
     if (!tokenResponse.ok || !tokens.access_token) throw new Error("Facebook did not return a user access token");
+    validateGrantedPermissions(await getUserPermissions(tokens.access_token));
     const pages = await listManagedPages(tokens.access_token);
     const page = selectOwnerPage(pages);
     await verifyPageIdentity(page.access_token);

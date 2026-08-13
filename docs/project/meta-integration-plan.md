@@ -246,6 +246,13 @@ existing app `L'Altro Spazio Digital System`, the exact HTTPS loopback callback
 `https://127.0.0.1:8789/oauth2callback`, state validation, PKCE, and only
 `pages_show_list,pages_read_engagement`.
 
+The current OAuth request is bounded to exactly
+`business_management`, `pages_show_list`, `pages_read_engagement`, and
+`public_profile`. Immediately after exchanging the authorization code, the
+flow reads `/me/permissions` with the in-memory user token. If
+`business_management` is absent or declined, it stops with a specific
+diagnostic and does not call `/me/accounts`.
+
 Owner/engineering local setup:
 
 1. In the ignored mode-600 `.env.meta.local`, set `META_APP_ID` and
@@ -278,7 +285,14 @@ Owner/engineering local setup:
    the returned Page token, then stores only the final Page token at
   `.local/meta-page-access-token.json` mode `0600`. The exact HTTPS redirect URI
   is sent byte-for-byte both to Meta's authorization endpoint and token
-  exchange.
+exchange.
+
+If `/me/accounts` still returns no owner Page after `/me/permissions` confirms
+the required grants, the connector does not select a legacy or alternate Page
+and does not broaden permissions. Record the safe empty-result diagnostic and
+evaluate the existing Facebook Login for Business Configuration ID as the next
+owner/UI step: the configuration can define the token type, selected assets,
+and permissions. No configuration ID is currently assumed or stored.
 
 The intermediate user token and authorization code exist only in process
 memory. The Page token schema is:
