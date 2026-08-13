@@ -41,8 +41,9 @@ Last updated: 2026-08-13
   Worker Custom Domain as of 2026-08-13.
 - Vercel project `landing-laltrospazio` remains intact and connected to the
   separate `spac-null/landing-space-generator` repository for rollback.
-- Apex redirect behavior and `festa.altrospazio.org` were not modified in the
-  production cutover.
+- Apex `https://altrospazio.org` is now a Cloudflare-native `301` redirect to
+  `https://www.altrospazio.org/`, preserving path and query string.
+- `festa.altrospazio.org` remains intentionally outside the Worker cutover.
 - No GitHub Pages configuration found in repo
 - No GitHub Actions deployment workflow found in repo
 - A minimal `wrangler.jsonc` now defines Worker Static Assets from `dist/` with
@@ -131,10 +132,10 @@ Last updated: 2026-08-13
   its automated request returned `403` from TripAdvisor.
 - Keyboard Tab navigation advanced through the interactive Instagram,
   WhatsApp, Maps, Facebook, Instagram, and TripAdvisor controls.
-- `curl -I https://festa.altrospazio.org` and
-  `curl -L https://festa.altrospazio.org`: both failed with host-resolution
-  errors on 2026-08-12, so the seasonal hostname is not currently reachable via
-  public DNS from this environment.
+- `festa.altrospazio.org` resolves via CNAME `cname.vercel-dns.com` and serves
+  a Vercel response (`server: Vercel`, `x-vercel-cache: HIT`). Its root returns
+  `200`, while `/foo` and `/robots.txt` return `404`; this is the next
+  infrastructure investigation and was not changed.
 - `npm run build`: passed on 2026-08-12; Vite emitted `dist/` with the expected
   SPA assets and public files, including the preview-only GPT Engineer removal
   path guarded by the dedicated Workers CI branch.
@@ -157,20 +158,21 @@ Last updated: 2026-08-13
   build-only classification and remediation order are in
   `docs/project/dependency-audit-2026-08-13.md`.
 - Full Vercel/Worker parity results are recorded in
-  `docs/project/parity-audit-2026-08-13.md`. The Worker remains unpromoted and
-  no production DNS or custom domain was changed.
+  `docs/project/parity-audit-2026-08-13.md`. Production custom-domain cutover
+  is complete; wildcard, `festa`, Vercel, and external profiles were not
+  changed by this verification.
 
 ## Vercel dependency inventory
 
 - `vercel.js` supplies `cleanUrls` and the host-specific rewrite for
   `festa.altrospazio.org`; it is deployment behavior, not app content.
-- Public DNS for `festa.altrospazio.org` did not resolve from this environment
-  on 2026-08-12, so the rewrite exists in config even though the hostname is
-  not currently reachable here.
-- No Vercel runtime dependency remains in the app source or canonical npm
-  dependency graph. The Worker preview comparison passed before this cleanup.
-- `vercel.js` remains as deployment configuration for the separate Vercel
-  project and is not part of the Worker runtime.
+- Public DNS for `festa.altrospazio.org` now resolves through Vercel's CNAME;
+  its current behavior is separate from the Cloudflare Worker.
+- `vercel.js` is the only remaining Vercel-specific application/configuration
+  file in canonical `main`; it enables clean URLs and rewrites the
+  `festa.altrospazio.org` host to `/index.html` on Vercel.
+- `@vercel/speed-insights` is absent from canonical `main` source and npm
+  manifests. Vercel remains intact as rollback infrastructure.
 
 ## Local workdir rename
 
@@ -202,15 +204,16 @@ Last updated: 2026-08-13
 - Independent desktop/mobile verification passed on 2026-08-13: homepage,
   Playfair font, robots, and sitemap returned HTTP 200; console and network
   failure logs were empty; GPT Engineer and Speed Insights paths were absent.
-- Production custom domain is `www.altrospazio.org`; apex DNS, wildcard/
-  `festa.altrospazio.org`, and Vercel project state were not changed.
-- The apex currently returns an unchanged Vercel `308` redirect to
-  `https://www.altrospazio.org/`; `www` returns the Cloudflare Worker site.
+- Production custom domain is `www.altrospazio.org`; wildcard/
+  `festa.altrospazio.org`, and Vercel project state remain unchanged.
+- The apex returns a Cloudflare `301` to `https://www.altrospazio.org/` with
+  path/query preservation; `www` returns the Cloudflare Worker site.
 
 ## Next action
 
-- Keep custom domains and production DNS unchanged while the dependency audit
-  and remaining content verification continue.
+- Investigate `festa.altrospazio.org` and the remaining `vercel.js` dependency:
+  document the Vercel project/site behavior, required seasonal routing, and a
+  reversible Cloudflare replacement plan. Do not change or remove it yet.
 - Use `/` as the root directory, set `SKIP_DEPENDENCY_INSTALL=1`, and use
   `npm ci && npm run build` as the build command,
   `npx wrangler@4.122.0 deploy` as the production deploy command, and
