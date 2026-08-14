@@ -3,11 +3,14 @@ import test from "node:test";
 import {
   candidateIdForGroup,
   classifyCandidateType,
+  classifyDateShape,
   classifyTimeRelevance,
+  extractAllDates,
   extractExplicitDate,
   extractExplicitTime,
-  findDateConflicts,
+  findDateRelationships,
   groupDuplicates,
+  suggestTitle,
   todayInTimezone,
 } from "../scripts/candidate-detect.mjs";
 
@@ -48,10 +51,41 @@ test("extractExplicitDate returns missing when there is no date-shaped text", ()
   assert.equal(result.status, "missing");
 });
 
+test("extractAllDates does not double-count a full DD/MM/YYYY as also a bare DD/MM match", () => {
+  const results = extractAllDates("Appuntamento il 03/09/2026, segnatevi la data!", { referenceDate: "2026-08-14" });
+  assert.equal(results.length, 1);
+  assert.equal(results[0].value, "2026-09-03");
+  assert.equal(results[0].status, "extracted");
+});
+
 test("extractExplicitTime extracts HH:MM and Italian 'ore HH' patterns", () => {
   assert.equal(extractExplicitTime("si comincia alle 21:00 in punto").value, "21:00");
   assert.equal(extractExplicitTime("apertura porte ore 20").value, "20:00");
   assert.equal(extractExplicitTime("nessun orario qui").value, null);
+});
+
+test("classifyDateShape: a single date is 'single'", () => {
+  const shape = classifyDateShape("Concerto il 03/09/2026 alle 21:00", { referenceDate: "2026-08-14" });
+  assert.equal(shape.shape, "single");
+  assert.equal(shape.dates.length, 1);
+});
+
+test("classifyDateShape: an explicit 'dal...al...' range is 'range', not a conflict", () => {
+  const shape = classifyDateShape("Mostra fotografica aperta dal 03/09/2026 al 10/09/2026, ingresso libero", { referenceDate: "2026-08-14" });
+  assert.equal(shape.shape, "range");
+  assert.equal(shape.dates.length, 2);
+  assert.equal(shape.dates[0].value, "2026-09-03");
+  assert.equal(shape.dates[1].value, "2026-09-10");
+});
+
+test("classifyDateShape: a programme listing several separate dates with no range connector is 'list'", () => {
+  const shape = classifyDateShape("Aperitivo il 04/09/2026, il 11/09/2026, il 18/09/2026 e il 25/09/2026, tutti i venerdì di settembre", { referenceDate: "2026-08-14" });
+  assert.equal(shape.shape, "list");
+  assert.equal(shape.dates.length, 4);
+});
+
+test("classifyDateShape: no date-shaped text is 'none'", () => {
+  assert.equal(classifyDateShape("Buongiorno a tutti!").shape, "none");
 });
 
 test("classifyCandidateType recognizes an operational notice over an event keyword", () => {
@@ -74,11 +108,21 @@ test("classifyCandidateType marks a fully empty record as irrelevant", () => {
   assert.equal(result.type, "irrelevant");
 });
 
-test("classifyTimeRelevance distinguishes past, current, and upcoming", () => {
+test("classifyTimeRelevance buckets near-term, upcoming, future-distant, past, and undated", () => {
+  assert.equal(classifyTimeRelevance("2026-08-20", { today: "2026-08-14" }), "near_term"); // 6 days
+  assert.equal(classifyTimeRelevance("2026-09-10", { today: "2026-08-14" }), "upcoming"); // 27 days
+  assert.equal(classifyTimeRelevance("2026-12-01", { today: "2026-08-14" }), "future_distant"); // >60 days
   assert.equal(classifyTimeRelevance("2026-01-01", { today: "2026-08-14" }), "past");
-  assert.equal(classifyTimeRelevance("2026-08-14", { today: "2026-08-14" }), "current");
-  assert.equal(classifyTimeRelevance("2026-12-31", { today: "2026-08-14" }), "upcoming");
   assert.equal(classifyTimeRelevance(null, { today: "2026-08-14" }), "undated");
+});
+
+test("classifyTimeRelevance: ambiguous always wins over the date's own distance", () => {
+  assert.equal(classifyTimeRelevance("2026-08-20", { today: "2026-08-14", isAmbiguous: true }), "ambiguous");
+});
+
+test("classifyTimeRelevance: recurring wins for a future date, but a past date always stays past", () => {
+  assert.equal(classifyTimeRelevance("2026-09-10", { today: "2026-08-14", isRecurring: true }), "recurring_or_multi_date");
+  assert.equal(classifyTimeRelevance("2026-01-01", { today: "2026-08-14", isRecurring: true }), "past", "a past occurrence of a recurring event must not be upgraded — it is not proof a future one exists");
 });
 
 test("todayInTimezone returns the Europe/Rome calendar date", () => {
@@ -103,13 +147,43 @@ test("groupDuplicates never merges records with different explicit dates even if
   assert.equal(groups.length, 2);
 });
 
-test("findDateConflicts flags a likely-same-post pair with disagreeing explicit dates", () => {
-  const a = { source_network: "facebook", source_id: "fb-1", message_or_caption: "Serata di beneficenza il 03/09/2026 alle 21:00 con musica dal vivo e buffet" };
-  const b = { source_network: "instagram", source_id: "ig-1", message_or_caption: "Serata di beneficenza il 10/09/2026 alle 21:00 con musica dal vivo e buffet" };
-  const conflicts = findDateConflicts([a, b], { referenceDate: "2026-08-14" });
-  assert.equal(conflicts.length, 1);
-  assert.equal(conflicts[0].dateA, "2026-09-03");
-  assert.equal(conflicts[0].dateB, "2026-09-10");
+test("findDateRelationships: a large cluster of similar-but-differently-dated posts is recurring, not ambiguous", () => {
+  const base = "Aperitivo del venerdì con musica dal vivo e drink speciali, vi aspettiamo numerosi il";
+  const records = [
+    { source_network: "facebook", source_id: "fb-1", message_or_caption: `${base} 04/09/2026` },
+    { source_network: "facebook", source_id: "fb-2", message_or_caption: `${base} 11/09/2026` },
+    { source_network: "facebook", source_id: "fb-3", message_or_caption: `${base} 18/09/2026` },
+  ];
+  const { ambiguousPairs, recurringClusters } = findDateRelationships(records, { referenceDate: "2026-08-14" });
+  assert.equal(ambiguousPairs.length, 0);
+  assert.equal(recurringClusters.length, 1);
+  assert.equal(recurringClusters[0].length, 3);
+});
+
+test("findDateRelationships: an isolated pair with disagreeing dates and no third similar variant is ambiguous", () => {
+  const a = { source_network: "facebook", source_id: "fb-1", message_or_caption: "Serata di beneficenza il 03/09/2026 alle 21:00 con musica dal vivo e buffet per tutti" };
+  const b = { source_network: "instagram", source_id: "ig-1", message_or_caption: "Serata di beneficenza il 10/09/2026 alle 21:00 con musica dal vivo e buffet per tutti" };
+  const { ambiguousPairs, recurringClusters } = findDateRelationships([a, b], { referenceDate: "2026-08-14" });
+  assert.equal(recurringClusters.length, 0);
+  assert.equal(ambiguousPairs.length, 1);
+  assert.equal(ambiguousPairs[0].length, 2);
+});
+
+test("suggestTitle finds a genuine heading line, never a truncated arbitrary sentence", () => {
+  const heading = suggestTitle([{ message_or_caption: "Serata Jazz\nStasera dalle 21:00 vi aspettiamo con musica dal vivo e drink speciali" }]);
+  assert.equal(heading.value, "Serata Jazz");
+
+  const noHeading = suggestTitle([{ message_or_caption: "Buongiorno a tutti, oggi vi aspettiamo per un aperitivo speciale con tanta musica dal vivo" }]);
+  assert.equal(noHeading, null);
+});
+
+test("suggestTitle prefers a heading repeated identically across Facebook/Instagram duplicates", () => {
+  const heading = suggestTitle([
+    { message_or_caption: "Aperitivo del Venerdì\nDalle 19 in poi, musica e drink scontati" },
+    { message_or_caption: "Aperitivo del Venerdì\nVi aspettiamo numerosi stasera!" },
+  ]);
+  assert.equal(heading.value, "Aperitivo del Venerdì");
+  assert.match(heading.reason, /repeated/);
 });
 
 test("candidateIdForGroup is deterministic and stable regardless of input order", () => {

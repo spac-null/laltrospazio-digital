@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildCandidates, fromD1Row, fromNormalizedRecord, renderReviewMarkdown } from "./candidate-review-lib.mjs";
+import { CANDIDATE_DECISIONS_FILE, decisionFor, loadDecisions } from "./candidate-decisions-lib.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const CANDIDATE_REVIEW_JSON = ".local/candidate-review.json";
@@ -43,9 +44,20 @@ function parseArgs(argv) {
   return args;
 }
 
-export function refresh({ source = "remote", now = new Date(), all = false, jsonPath: jsonPathOverride, mdPath: mdPathOverride } = {}) {
+// candidates:refresh never writes decisions — it only READS the existing
+// private decision file (if any) to attach each candidate's current
+// review_decision, so a previously ignored/deferred/promoted candidate is
+// never silently resurrected into the default actionable view after a
+// re-run. Source records and canonical content remain untouched either way.
+export function refresh({ source = "remote", now = new Date(), all = false, jsonPath: jsonPathOverride, mdPath: mdPathOverride, decisionsPath: decisionsPathOverride } = {}) {
   const rawRecords = source === "remote" ? loadFromRemoteD1() : loadFromLocalFixture(source);
-  const result = buildCandidates(rawRecords, { now });
+  const built = buildCandidates(rawRecords, { now });
+
+  const decisionsPath = decisionsPathOverride ?? path.join(root, CANDIDATE_DECISIONS_FILE);
+  const decisionState = loadDecisions(decisionsPath);
+  const candidates = built.candidates.map((candidate) => ({ ...candidate, review_decision: decisionFor(decisionState, candidate.candidate_id) }));
+  const result = { ...built, candidates };
+
   const jsonPath = jsonPathOverride ?? path.join(root, CANDIDATE_REVIEW_JSON);
   const mdPath = mdPathOverride ?? path.join(root, CANDIDATE_REVIEW_MARKDOWN);
   fs.mkdirSync(path.dirname(jsonPath), { recursive: true, mode: 0o700 });
@@ -66,10 +78,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       `Total source records considered: ${summary.total_source_records}`,
       `Total candidates (after duplicate grouping): ${summary.total_candidates}`,
       `Duplicate groups: ${summary.duplicate_groups}`,
-      `Date conflicts detected: ${summary.date_conflicts_detected}`,
       `By type: ${Object.entries(summary.by_type).map(([type, count]) => `${type}=${count}`).join(", ")}`,
-      `By time relevance: past=${summary.by_time_relevance.past} current=${summary.by_time_relevance.current} upcoming=${summary.by_time_relevance.upcoming} undated=${summary.by_time_relevance.undated}`,
-      `Promotion-ready: ${summary.promotion_ready} | Blocked: ${summary.promotion_blocked}`,
+      `By priority: high=${summary.by_priority.high} medium=${summary.by_priority.medium} low=${summary.by_priority.low}`,
+      `By time relevance: past=${summary.by_time_relevance.past} near_term=${summary.by_time_relevance.near_term} upcoming=${summary.by_time_relevance.upcoming} future_distant=${summary.by_time_relevance.future_distant} recurring_or_multi_date=${summary.by_time_relevance.recurring_or_multi_date} ambiguous=${summary.by_time_relevance.ambiguous} undated=${summary.by_time_relevance.undated}`,
+      `Title suggestions available: ${summary.title_suggestions}`,
+      `Ambiguous-date: ${summary.ambiguous_date_count} | Multiple-event-dates: ${summary.multiple_event_dates_count} | Recurring/multi-date: ${summary.recurring_or_multi_date_count}`,
+      `Promotion-ready: ${summary.promotion_ready} | Blocked: ${summary.promotion_blocked} (blocked only by title: ${summary.blocked_only_by_title})`,
       `Private output: ${CANDIDATE_REVIEW_JSON}, ${CANDIDATE_REVIEW_MARKDOWN}`,
       "No candidate was promoted or written to canonical content by this command.",
     ].join("\n"));

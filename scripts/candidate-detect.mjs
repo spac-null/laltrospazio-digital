@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 
 export const CANDIDATE_TYPES = ["event", "operational_notice", "art_or_exhibition", "menu_or_product", "venue_generic", "irrelevant", "unknown"];
-export const TIME_RELEVANCE = ["past", "current", "upcoming", "undated"];
+export const TIME_RELEVANCE = ["past", "near_term", "upcoming", "future_distant", "recurring_or_multi_date", "ambiguous", "undated"];
+export const DATE_STATES = ["single_explicit_date", "explicit_date_range", "multiple_event_dates", "ambiguous_date", "conflicting_sources", "undated"];
 
 const MONTHS_IT = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
 
@@ -19,58 +20,84 @@ function inferYear(day, month, referenceDate) {
   return hasPassedThisYear ? refYear + 1 : refYear;
 }
 
-// Deterministic date extraction/inference:
-// - An explicit year in the source text (ISO, DD/MM/YYYY, or "20 agosto
-//   2026") yields status "extracted" — the value is traceable verbatim to
-//   source text, just reformatted.
-// - A bare day/month with NO year (e.g. "20/08", "20 agosto") yields status
-//   "inferred": the year is guessed deterministically as the nearest
-//   same-or-future occurrence of that day/month relative to referenceDate.
-//   This is never treated as a verified fact — callers must block
-//   publication on an "inferred" status without an explicit owner override.
-// - No date-shaped text at all yields status "missing".
-export function extractExplicitDate(text, { referenceDate } = {}) {
-  if (!text) return { value: null, status: "missing", evidence: null };
+function dateRangeOverlaps(claimed, start, end) {
+  return claimed.some(([s, e]) => start < e && end > s);
+}
+
+// Deterministic date extraction: scans the WHOLE text and returns every
+// distinct date-shaped match (deduped by resolved value), not just the
+// first. Matches are claimed left-to-right in priority order (ISO >
+// DD/MM/YYYY > Italian month name > bare day/month) so a full "20/08/2026"
+// is never double-counted as also a bare "20/08" match.
+//
+// - An explicit year in the source text yields status "extracted".
+// - A bare day/month with NO year yields status "inferred": the year is
+//   guessed deterministically as the nearest same-or-future occurrence
+//   relative to referenceDate. Never treated as a verified fact.
+export function extractAllDates(text, { referenceDate } = {}) {
+  if (!text) return [];
   const today = referenceDate ?? new Date().toISOString().slice(0, 10);
+  const claimed = [];
+  const results = [];
 
-  const isoMatch = text.match(/\b(20\d{2})[-/](\d{1,2})[-/](\d{1,2})\b/);
-  if (isoMatch) {
-    const [raw, year, month, day] = isoMatch;
-    if (validDayMonth(Number(day), Number(month))) {
-      return { value: `${year}-${pad2(month)}-${pad2(day)}`, status: "extracted", evidence: raw };
-    }
+  function record(value, status, evidence, start, end) {
+    claimed.push([start, end]);
+    if (!results.some((existing) => existing.value === value)) results.push({ value, status, evidence });
   }
 
-  const dmyMatch = text.match(/\b(\d{1,2})[./-](\d{1,2})[./-](\d{4})\b/);
-  if (dmyMatch) {
-    const [raw, day, month, year] = dmyMatch;
-    if (validDayMonth(Number(day), Number(month))) {
-      return { value: `${year}-${pad2(month)}-${pad2(day)}`, status: "extracted", evidence: raw };
-    }
+  for (const match of text.matchAll(/\b(20\d{2})[-/](\d{1,2})[-/](\d{1,2})\b/g)) {
+    const [raw, year, month, day] = match;
+    if (validDayMonth(Number(day), Number(month))) record(`${year}-${pad2(month)}-${pad2(day)}`, "extracted", raw, match.index, match.index + raw.length);
   }
 
-  const monthNamePattern = new RegExp(`\\b(\\d{1,2})\\s+(${MONTHS_IT.join("|")})(?:\\s+(\\d{4}))?\\b`, "i");
-  const monthNameMatch = text.match(monthNamePattern);
-  if (monthNameMatch) {
-    const [raw, day, monthName, year] = monthNameMatch;
+  for (const match of text.matchAll(/\b(\d{1,2})[./-](\d{1,2})[./-](\d{4})\b/g)) {
+    const [raw, day, month, year] = match;
+    if (dateRangeOverlaps(claimed, match.index, match.index + raw.length)) continue;
+    if (validDayMonth(Number(day), Number(month))) record(`${year}-${pad2(month)}-${pad2(day)}`, "extracted", raw, match.index, match.index + raw.length);
+  }
+
+  const monthNamePattern = new RegExp(`\\b(\\d{1,2})\\s+(${MONTHS_IT.join("|")})(?:\\s+(\\d{4}))?\\b`, "gi");
+  for (const match of text.matchAll(monthNamePattern)) {
+    const [raw, day, monthName, year] = match;
+    if (dateRangeOverlaps(claimed, match.index, match.index + raw.length)) continue;
     const month = MONTHS_IT.indexOf(monthName.toLowerCase()) + 1;
-    if (validDayMonth(Number(day), month)) {
-      if (year) return { value: `${year}-${pad2(month)}-${pad2(day)}`, status: "extracted", evidence: raw };
-      const inferredYear = inferYear(Number(day), month, today);
-      return { value: `${inferredYear}-${pad2(month)}-${pad2(day)}`, status: "inferred", evidence: raw };
-    }
+    if (!validDayMonth(Number(day), month)) continue;
+    if (year) record(`${year}-${pad2(month)}-${pad2(day)}`, "extracted", raw, match.index, match.index + raw.length);
+    else record(`${inferYear(Number(day), month, today)}-${pad2(month)}-${pad2(day)}`, "inferred", raw, match.index, match.index + raw.length);
   }
 
-  const bareMatch = text.match(/\b(\d{1,2})[./-](\d{1,2})\b/);
-  if (bareMatch) {
-    const [raw, day, month] = bareMatch;
-    if (validDayMonth(Number(day), Number(month)) && Number(month) <= 12) {
-      const inferredYear = inferYear(Number(day), Number(month), today);
-      return { value: `${inferredYear}-${pad2(month)}-${pad2(day)}`, status: "inferred", evidence: raw };
-    }
+  for (const match of text.matchAll(/\b(\d{1,2})[./-](\d{1,2})\b/g)) {
+    const [raw, day, month] = match;
+    if (dateRangeOverlaps(claimed, match.index, match.index + raw.length)) continue;
+    if (validDayMonth(Number(day), Number(month))) record(`${inferYear(Number(day), Number(month), today)}-${pad2(month)}-${pad2(day)}`, "inferred", raw, match.index, match.index + raw.length);
   }
 
-  return { value: null, status: "missing", evidence: null };
+  return results;
+}
+
+// Convenience wrapper for callers that only want the first/primary date.
+export function extractExplicitDate(text, { referenceDate } = {}) {
+  const [first] = extractAllDates(text, { referenceDate });
+  return first ?? { value: null, status: "missing", evidence: null };
+}
+
+const RANGE_CONNECTOR_PATTERN = /\bdal\b[\s\S]{0,40}\bal\b|\bda\b[\s\S]{0,25}\ba\b[\s\S]{0,5}(?:20\d{2}|\d{1,2}[./-]|gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)/i;
+
+// Classifies what a SINGLE record's own text implies about its date(s):
+// - "none": no date-shaped text at all.
+// - "single": exactly one distinct date.
+// - "range": exactly two dates joined by an explicit "dal...al..."/"da...a..."
+//   range connector — e.g. an exhibition or closure spanning several days.
+//   Not ambiguous: the two dates are start and end of one known span.
+// - "list": two or more dates with no recognized range connector — e.g. a
+//   programme listing several separate occasions. We cannot deterministically
+//   pick a single date for a "list" shape.
+export function classifyDateShape(text, { referenceDate } = {}) {
+  const dates = extractAllDates(text, { referenceDate });
+  if (dates.length === 0) return { shape: "none", dates };
+  if (dates.length === 1) return { shape: "single", dates };
+  if (dates.length === 2 && RANGE_CONNECTOR_PATTERN.test(text ?? "")) return { shape: "range", dates };
+  return { shape: "list", dates };
 }
 
 // Deterministic time extraction. Returns null unless an explicit HH:MM (or
@@ -141,11 +168,26 @@ export function classifyCandidateType(record) {
   return { type: "unknown", reasons: ["no deterministic keyword signal matched"] };
 }
 
-export function classifyTimeRelevance(dateIso, { today } = {}) {
+function daysBetween(dateIso, todayIso) {
+  const [ty, tm, td] = todayIso.split("-").map(Number);
+  const [dy, dm, dd] = dateIso.split("-").map(Number);
+  return Math.round((Date.UTC(dy, dm - 1, dd) - Date.UTC(ty, tm - 1, td)) / 86400000);
+}
+
+// near_term: next 14 days | upcoming: 15-60 days | future_distant: >60 days.
+// A date already in the past always stays "past", even if it is part of a
+// recurring series — a past occurrence is never treated as proof a future
+// one exists. isAmbiguous (ambiguous_date/conflicting_sources) always wins;
+// isRecurring only changes the bucket for a non-past date.
+export function classifyTimeRelevance(dateIso, { today, isAmbiguous = false, isRecurring = false } = {}) {
+  if (isAmbiguous) return "ambiguous";
   if (!dateIso) return "undated";
-  if (dateIso < today) return "past";
-  if (dateIso > today) return "upcoming";
-  return "current";
+  const diff = daysBetween(dateIso, today);
+  if (diff < 0) return "past";
+  if (isRecurring) return "recurring_or_multi_date";
+  if (diff <= 14) return "near_term";
+  if (diff <= 60) return "upcoming";
+  return "future_distant";
 }
 
 export function todayInTimezone(now, timezone = "Europe/Rome") {
@@ -154,13 +196,18 @@ export function todayInTimezone(now, timezone = "Europe/Rome") {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
+// Purely-numeric tokens are almost always fragments of a date or time
+// (e.g. "01", "2026", "21", "00") — matching on them inflates similarity
+// between two otherwise-unrelated short captions that just happen to both
+// contain a date and a time. They are excluded from similarity comparison
+// (not from date/time extraction itself, which is separate).
 function normalizeForDedup(text) {
   return `${text ?? ""}`
     .toLowerCase()
     .replace(/https?:\/\/\S+/g, "")
     .replace(/[^\p{L}\p{N}\s]/gu, " ")
     .split(/\s+/)
-    .filter(Boolean)
+    .filter((token) => token && !/^\d+$/.test(token))
     .sort()
     .join(" ");
 }
@@ -169,8 +216,13 @@ function tokenSet(normalizedText) {
   return new Set(normalizedText.split(" ").filter(Boolean));
 }
 
+// A minimum meaningful-token count before trusting Jaccard similarity at
+// all: with very few words, a couple of coincidentally shared generic terms
+// can push similarity above threshold even for unrelated posts.
+const MIN_MEANINGFUL_TOKENS = 5;
+
 function jaccard(setA, setB) {
-  if (setA.size === 0 && setB.size === 0) return 0;
+  if (setA.size < MIN_MEANINGFUL_TOKENS || setB.size < MIN_MEANINGFUL_TOKENS) return 0;
   let intersection = 0;
   for (const token of setA) if (setB.has(token)) intersection += 1;
   const union = setA.size + setB.size - intersection;
@@ -217,37 +269,125 @@ export function groupDuplicates(records, { referenceDate } = {}) {
 }
 
 const CONFLICT_JACCARD_THRESHOLD = 0.7;
+const RECURRING_CLUSTER_MIN_SIZE = 3;
 
-// Detects likely-same-post pairs (high text similarity, above the dedup
-// threshold) that nonetheless carry two different explicit dates — e.g. a
-// caption edited after a reschedule, or a Facebook/Instagram cross-post
-// where one copy was updated and the other wasn't. These are never merged
-// into one record; they are surfaced so a candidate's date can be marked
-// CONFLICTING instead of silently trusting either value.
-export function findDateConflicts(records, { referenceDate } = {}) {
+function unionFind() {
+  const parent = new Map();
+  function find(key) {
+    if (!parent.has(key)) parent.set(key, key);
+    if (parent.get(key) !== key) parent.set(key, find(parent.get(key)));
+    return parent.get(key);
+  }
+  function union(a, b) {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra !== rb) parent.set(ra, rb);
+  }
+  return { find, union, parent };
+}
+
+const recordKey = (record) => `${record.source_network}:${record.source_id}`;
+
+// Diagnostic evidence (real production read, 200 records, 2026-08-14): every
+// text-similar pair with disagreeing explicit dates turned out to belong to
+// just two connected clusters (sizes 3 and 14) — i.e. one recurring
+// weekly/monthly post template reused with a different real date each time,
+// not genuine data disagreement. Flagging every pairwise combination inside
+// such a cluster as a "conflict" was the bug: a large cluster of mutually
+// similar, differently-dated posts is evidence of a RECURRING SERIES, not an
+// unresolvable conflict. Only an ISOLATED PAIR (no third similar variant) is
+// treated as a true ambiguity, since there we have no series evidence to
+// explain the disagreement away.
+//
+// Returns:
+// - ambiguousPairs: connected components of exactly 2 records — genuinely
+//   suspicious, should block promotion (date_state "ambiguous_date").
+// - recurringClusters: connected components of >= RECURRING_CLUSTER_MIN_SIZE
+//   records — treated as separate legitimate occurrences of a recurring
+//   format, not blocking; each member keeps its own single extracted/inferred
+//   date, annotated with the cluster for owner context.
+export function findDateRelationships(records, { referenceDate, recurringClusterMinSize = RECURRING_CLUSTER_MIN_SIZE } = {}) {
   const withMeta = records.map((record) => ({
     record,
     date: extractExplicitDate(record.message_or_caption, { referenceDate }).value,
     tokens: tokenSet(normalizeForDedup(record.message_or_caption)),
   }));
-  const conflicts = [];
+
+  const { find, union, parent } = unionFind();
   for (let i = 0; i < withMeta.length; i += 1) {
     for (let j = i + 1; j < withMeta.length; j += 1) {
-      if (!withMeta[i].date || !withMeta[j].date) continue;
-      if (withMeta[i].date === withMeta[j].date) continue;
-      const similarity = jaccard(withMeta[i].tokens, withMeta[j].tokens);
-      if (similarity >= CONFLICT_JACCARD_THRESHOLD) {
-        conflicts.push({
-          a: withMeta[i].record,
-          b: withMeta[j].record,
-          dateA: withMeta[i].date,
-          dateB: withMeta[j].date,
-          similarity,
-        });
+      if (!withMeta[i].date || !withMeta[j].date || withMeta[i].date === withMeta[j].date) continue;
+      if (jaccard(withMeta[i].tokens, withMeta[j].tokens) >= CONFLICT_JACCARD_THRESHOLD) {
+        union(recordKey(withMeta[i].record), recordKey(withMeta[j].record));
       }
     }
   }
-  return conflicts;
+
+  const byKey = new Map(withMeta.map((item) => [recordKey(item.record), item.record]));
+  const membersByRoot = new Map();
+  for (const key of parent.keys()) {
+    const root = find(key);
+    if (!membersByRoot.has(root)) membersByRoot.set(root, []);
+    membersByRoot.get(root).push(byKey.get(key));
+  }
+
+  const ambiguousPairs = [];
+  const recurringClusters = [];
+  for (const members of membersByRoot.values()) {
+    if (members.length >= recurringClusterMinSize) recurringClusters.push(members);
+    else if (members.length === 2) ambiguousPairs.push(members);
+  }
+
+  return { ambiguousPairs, recurringClusters };
+}
+
+const MAX_TITLE_LENGTH = 70;
+const MAX_TITLE_WORDS = 10;
+
+// A heading is the first non-empty line of a caption/message, ONLY when
+// there is further content after it (so we know it functions structurally
+// as a heading, not merely the whole short message) and it doesn't already
+// end like a full sentence.
+function firstLineHeading(text) {
+  if (!text) return null;
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (lines.length < 2) return null;
+  const [first] = lines;
+  if (!first || first.length > MAX_TITLE_LENGTH || /[.!?]$/.test(first)) return null;
+  if (first.split(/\s+/).length > MAX_TITLE_WORDS) return null;
+  return { value: first, reason: "first standalone line of the caption, followed by further content, short and not sentence-punctuated" };
+}
+
+// Text before a strong delimiter (colon, dash, pipe), when followed by more
+// content, e.g. "Serata Jazz — stasere alle 21 vi aspettiamo...".
+function delimiterHeading(text) {
+  if (!text) return null;
+  const match = text.match(/^(.{3,70}?)\s+[-–—:|]\s+\S/);
+  if (!match) return null;
+  const candidate = match[1].trim();
+  if (!candidate || candidate.length > MAX_TITLE_LENGTH || /[.!?]$/.test(candidate)) return null;
+  if (candidate.split(/\s+/).length > MAX_TITLE_WORDS) return null;
+  return { value: candidate, reason: "text before a strong delimiter, followed by further programme detail" };
+}
+
+function headingCandidate(text) {
+  return firstLineHeading(text) ?? delimiterHeading(text);
+}
+
+// A title is NEVER invented from arbitrary prose. It is only suggested when
+// there is a genuine structural heading marker (a standalone first line, or
+// short pre-delimiter text) with further content after it — never a
+// truncated substring of a running sentence. Always status "inferred": it
+// requires explicit owner confirmation before it can satisfy a title
+// requirement.
+export function suggestTitle(sourceRecords) {
+  const candidates = sourceRecords.map((record) => headingCandidate(record.message_or_caption));
+  const [primary, ...rest] = candidates;
+  if (sourceRecords.length > 1 && primary && rest.some((candidate) => candidate && candidate.value.toLowerCase() === primary.value.toLowerCase())) {
+    return { value: primary.value, reason: "identical heading line repeated across Facebook/Instagram duplicate sources" };
+  }
+  if (primary) return primary;
+  return null;
 }
 
 export function candidateIdForGroup(sourceRecords) {

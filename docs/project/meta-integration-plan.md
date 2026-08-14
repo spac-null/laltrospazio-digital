@@ -760,6 +760,106 @@ CREATE TABLE meta_candidate_reviews (
 This is a proposal only — no migration file was added and no remote D1
 schema change was made for it in this task.
 
+## Candidate quality + owner review UX (feature branch, not deployed)
+
+### The 86 "date conflicts" were almost entirely one false-positive cause
+
+A real read against production D1 (200 records) originally flagged 86
+same-similarity-different-date pairs as conflicts. Diagnosis (aggregate
+counts only; no caption was committed) found this was overwhelmingly one
+root cause: nearly all 86 pairs traced back to just **two connected
+clusters** of mutually-similar text (sizes 3 and 14) — one recurring
+weekly/monthly post template reused with a different real date each time,
+not genuine data disagreement. A second, unrelated robustness bug was found
+and fixed in the same pass: very short captions could hit the similarity
+threshold purely because shared date/time digit fragments (e.g. "01" vs
+"12") were being counted as ordinary tokens; numeric-only tokens are now
+excluded from similarity comparison, and a minimum meaningful-token count
+guards against short-text false positives.
+
+### Refined deterministic date model
+
+`scripts/candidate-detect.mjs` now computes, per candidate, a `date_state`:
+`single_explicit_date`, `explicit_date_range` (an explicit "dal...al..."
+span — both ends extracted, never treated as a conflict), `multiple_event_dates`
+(a programme listing several separate dates with no range connector — blocks
+promotion because no single date can be chosen, not because of a
+cross-source disagreement), `ambiguous_date` (an **isolated pair** — no
+third similar variant — of near-identical text with disagreeing dates), or
+`conflicting_sources` (reserved for an already-merged duplicate group whose
+members' extracted dates disagree, which cannot currently happen given how
+`groupDuplicates` merges). Only `ambiguous_date` and `conflicting_sources`
+block for a "date conflict" reason. A cluster of 3+ similar-but-differently-
+dated records is instead recorded as `recurring_series` (cluster size +
+related candidate IDs) — informational, not blocking; each member keeps its
+own valid single date. A past date always stays classified `past` even when
+part of a recurring series — a historic occurrence is never used as implicit
+proof a future one exists.
+
+### Deterministic title suggestions
+
+`suggestTitle()` proposes a `title_suggestion` only from a genuine
+structural heading marker: a standalone first line followed by further
+content, or short text before a strong delimiter (colon/dash/pipe) followed
+by more content — confidence increases when the same heading line repeats
+across Facebook/Instagram duplicate sources. It never truncates arbitrary
+prose into a fake title. Its status is always `inferred` and it is a
+**separate field** from `title` — `candidates:promote`'s title-resolution
+path only ever reads an explicit `--title` flag or the fixed "missing"
+default; `title_suggestion.value` is never read automatically, confirmed by
+test.
+
+### Time relevance and review priority
+
+`time_relevance` is now `past | near_term (0-14d) | upcoming (15-60d) |
+future_distant (>60d) | recurring_or_multi_date | ambiguous | undated`.
+`review_priority` (`high`/`medium`/`low`, categorical — no numeric
+pseudo-confidence) is computed from explainable rules: HIGH requires a
+strong event/notice signal, a low-ambiguity date_state, a near-term/upcoming
+date, a usable permalink, and no substantive missing field besides the
+always-owner-confirmable title. Every candidate carries `review_priority_why`
+(the matched reasons) and `next_owner_action` (a concrete, deterministic
+suggestion — e.g. "provide --date to resolve the ambiguous date").
+
+### CLI review UX
+
+`candidates:list` now supports `--upcoming`, `--priority <high|medium|low>`,
+`--type <event|...>`, `--blocked`, `--past`, `--limit <n>`, and a compact
+default table (id/type/priority/date-state/title-suggestion/networks/
+blockers) — no full captions by default. With no flags it shows the default
+**review queue**: unresolved (not ignored/promoted), non-past,
+non-low-priority candidates only. `candidates:show -- <id>` remains the only
+place full caption text is shown, one candidate at a time.
+
+### Local review-state (not D1 yet)
+
+`.local/candidate-decisions.json` (mode `0600`, git-ignored) records
+`pending | reviewed | ignore | defer | promoted` per `candidate_id`, each
+change timestamped and appended to a `history` array — never silently
+overwritten. `npm run candidates:review -- <id> --ignore|--defer|--reviewed`
+sets it; `candidates:promote` sets `promoted` automatically on a successful
+write, linking `promoted_path`. `candidates:refresh` only ever *reads* this
+file to attach `review_decision` to each candidate — it never writes
+decisions, and an ignored/promoted candidate is excluded from the default
+queue on every subsequent refresh (verified by test: the decision survives a
+refresh). Source records and canonical content are never touched by any of
+this. No D1 table was added for review state in this task — the proposed
+`meta_candidate_reviews` schema above remains a proposal only.
+
+### Real-data result after the refinement
+
+Read-only against the real production D1 (200 records, unchanged —
+`changed_db: false`): 144 candidates (56 duplicate groups), by priority
+high=2/medium=59/low=83, by type event=56/operational_notice=5/
+art_or_exhibition=1/menu_or_product=3/unknown=79. **Ambiguous-date count: 0**
+(down from the original 86 false positives); multiple-event-dates: 2
+(genuine, different reason); 7 candidates correctly tagged as part of a
+recurring series. 39 candidates got a deterministic title suggestion. Of 61
+blocked candidates, 32 are blocked *only* by the always-required title
+confirmation; 29 are blocked by a more substantive missing/ambiguous fact.
+The default review queue (unresolved, non-past, non-low-priority) contains
+27 candidates. No candidate was promoted.
+
 References: [Instagram Graph API](https://developers.facebook.com/docs/instagram-api),
 [Instagram content publishing](https://developers.facebook.com/docs/instagram-api/guides/content-publishing),
 [Facebook Graph API](https://developers.facebook.com/docs/graph-api), and

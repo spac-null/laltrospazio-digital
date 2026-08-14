@@ -1,11 +1,13 @@
 import {
   candidateIdForGroup,
   classifyCandidateType,
+  classifyDateShape,
   classifyTimeRelevance,
   extractExplicitDate,
   extractExplicitTime,
-  findDateConflicts,
+  findDateRelationships,
   groupDuplicates,
+  suggestTitle,
   todayInTimezone,
 } from "./candidate-detect.mjs";
 
@@ -71,56 +73,170 @@ function field(value, status, evidence = null) {
   return { value, status, evidence };
 }
 
-function buildEventOrNoticeFields(sourceRecords, conflictedDateSourceIds, referenceDate) {
+const recordKey = (record) => `${record.source_network}:${record.source_id}`;
+
+// Determines this candidate's date_state and the resulting start_date/
+// end_date fields, from three deterministic inputs: what the primary
+// record's OWN text implies (single/range/list — classifyDateShape), and
+// whether this record participates in an isolated ambiguous pair or a
+// recurring cluster (from findDateRelationships, computed once for the
+// whole batch). Only "ambiguous_date" and "conflicting_sources" block
+// because of date conflict; "multiple_event_dates" blocks separately
+// because no single date field value can be chosen, not because of a
+// cross-source disagreement.
+function resolveDateState(sourceRecords, { ambiguousSourceIds, recurringSourceIds, recurringClusterInfo, referenceDate }) {
   const primary = sourceRecords[0];
   const text = primary.message_or_caption;
-  const dateResult = extractExplicitDate(text, { referenceDate });
+  const shape = classifyDateShape(text, { referenceDate });
+  const isAmbiguous = sourceRecords.some((record) => ambiguousSourceIds.has(recordKey(record)));
+  const isRecurring = sourceRecords.some((record) => recurringSourceIds.has(recordKey(record)));
+  const recurringInfo = isRecurring ? sourceRecords.map((record) => recurringClusterInfo.get(recordKey(record))).find(Boolean) : null;
+
+  if (isAmbiguous) {
+    return {
+      dateState: "ambiguous_date",
+      startDate: field(null, "ambiguous", "this candidate's date disagrees with a highly similar, but not clearly recurring, other source — see the related candidate"),
+      endDate: field(null, "missing", null),
+      recurringInfo: null,
+    };
+  }
+
+  if (shape.shape === "none") {
+    return { dateState: "undated", startDate: field(null, "missing", null), endDate: field(null, "missing", null), recurringInfo };
+  }
+
+  if (shape.shape === "range") {
+    const [start, end] = shape.dates;
+    return {
+      dateState: "explicit_date_range",
+      startDate: field(start.value, start.status, start.evidence),
+      endDate: field(end.value, end.status, end.evidence),
+      recurringInfo,
+    };
+  }
+
+  if (shape.shape === "list") {
+    return {
+      dateState: "multiple_event_dates",
+      startDate: field(null, "missing", `source text lists ${shape.dates.length} distinct dates with no recognized range connector; cannot determine which one this candidate refers to without an owner override`),
+      endDate: field(null, "missing", null),
+      recurringInfo,
+    };
+  }
+
+  const [only] = shape.dates;
+  return {
+    dateState: "single_explicit_date",
+    startDate: field(only.value, only.status, only.status === "inferred" ? `${only.evidence} (year not stated in source; guessed as the nearest same-or-future occurrence — never publishable without owner confirmation)` : only.evidence),
+    endDate: field(null, "missing", null),
+    recurringInfo,
+  };
+}
+
+function buildEventOrNoticeFields(sourceRecords, dateResolution) {
+  const primary = sourceRecords[0];
+  const text = primary.message_or_caption;
   const { value: timeValue, evidence: timeEvidence } = extractExplicitTime(text);
-
-  const hasConflict = sourceRecords.some((record) => conflictedDateSourceIds.has(`${record.source_network}:${record.source_id}`));
-
-  const startDateField = hasConflict
-    ? field(null, "conflicting", "source records disagree on the explicit date (see conflicting_fields)")
-    : dateResult.status === "extracted"
-      ? field(dateResult.value, "extracted", dateResult.evidence)
-      : dateResult.status === "inferred"
-        ? field(dateResult.value, "inferred", `${dateResult.evidence} (year not stated in source; guessed as the nearest same-or-future occurrence — never publishable without owner confirmation)`)
-        : field(null, "missing", null);
+  const titleSuggestion = suggestTitle(sourceRecords);
 
   const fields = {
     title: field(null, "missing", null),
     description: text ? field(text, "extracted", "verbatim source caption/message") : field(null, "missing", null),
-    start_date: startDateField,
+    start_date: dateResolution.startDate,
+    end_date: dateResolution.endDate,
     start_time: timeValue ? field(timeValue, "extracted", timeEvidence) : field(null, "missing", null),
     location_name: field(VENUE_NAME, "extracted", "derived from posting account identity (the venue's own Facebook Page / Instagram account)"),
   };
 
-  const missing = Object.entries(fields).filter(([, entry]) => entry.status === "missing").map(([name]) => name);
+  const missing = Object.entries(fields).filter(([name, entry]) => entry.status === "missing" && name !== "end_date").map(([name]) => name);
   const conflicting = Object.entries(fields).filter(([, entry]) => entry.status === "conflicting").map(([name]) => name);
+  const ambiguous = Object.entries(fields).filter(([, entry]) => entry.status === "ambiguous").map(([name]) => name);
   const inferred = Object.entries(fields).filter(([, entry]) => entry.status === "inferred").map(([name]) => name);
 
-  return { fields, missing, conflicting, inferred };
+  return {
+    fields,
+    missing,
+    conflicting,
+    ambiguous,
+    inferred,
+    title_suggestion: titleSuggestion ? { value: titleSuggestion.value, status: "inferred", reason: titleSuggestion.reason } : null,
+  };
 }
 
-function promotionReadiness(candidateType, missing, conflicting, inferred) {
+function promotionReadiness(candidateType, { missing, conflicting, ambiguous, inferred }) {
   if (!["event", "operational_notice"].includes(candidateType)) {
     return { readiness: "not_applicable", reasons: [`candidate_type "${candidateType}" is not a promotable type`] };
   }
   const reasons = [];
   if (missing.length) reasons.push(`missing required field(s): ${missing.join(", ")}`);
   if (conflicting.length) reasons.push(`conflicting field(s) need owner resolution: ${conflicting.join(", ")}`);
+  if (ambiguous.length) reasons.push(`ambiguous field(s) need owner resolution: ${ambiguous.join(", ")}`);
   if (inferred.length) reasons.push(`inferred (guessed, not verified) field(s) need owner confirmation: ${inferred.join(", ")}`);
   if (candidateType === "operational_notice") reasons.push("operational notices always require explicit owner confirmation of message/dates (see docs)");
   return { readiness: reasons.length ? "blocked" : "ready", reasons };
 }
 
-export function buildCandidates(rawRecords, { now = new Date(), timezone = VENUE_TIMEZONE } = {}) {
+// Deterministic, categorical (no numeric pseudo-confidence) review priority.
+export function computeReviewPriority(candidate) {
+  const isEventOrNotice = ["event", "operational_notice"].includes(candidate.candidate_type);
+  const hasPermalink = candidate.sources.some((source) => source.permalink);
+  const substantiveMissing = candidate.missing_fields.filter((name) => name !== "title");
+  const lowAmbiguity = ["single_explicit_date", "explicit_date_range"].includes(candidate.date_state);
+  const nearOrUpcoming = ["near_term", "upcoming"].includes(candidate.time_relevance);
+
+  if (isEventOrNotice && lowAmbiguity && nearOrUpcoming && hasPermalink && substantiveMissing.length === 0) {
+    return {
+      priority: "high",
+      why: [
+        `explicit ${candidate.time_relevance === "near_term" ? "near-term" : "upcoming"} date (${candidate.fields.start_date?.value ?? "n/a"})`,
+        `strong ${candidate.candidate_type} signal`,
+        "has a usable source permalink",
+        `low date ambiguity (date_state: ${candidate.date_state})`,
+        candidate.missing_fields.length ? `only owner-confirmable field(s) remain: ${candidate.missing_fields.join(", ")}` : "no missing fields besides the always-required owner title confirmation",
+      ],
+    };
+  }
+
+  if (isEventOrNotice) {
+    const why = [`${candidate.candidate_type} signal present`];
+    if (["multiple_event_dates", "ambiguous_date", "conflicting_sources"].includes(candidate.date_state)) why.push(`date_state is "${candidate.date_state}", needs clarification`);
+    if (candidate.time_relevance === "future_distant") why.push("date is more than 60 days out");
+    if (candidate.time_relevance === "recurring_or_multi_date") why.push(`part of a likely recurring series (${candidate.recurring_series?.cluster_size ?? "?"} related posts found)`);
+    if (substantiveMissing.length) why.push(`missing substantive field(s): ${substantiveMissing.join(", ")}`);
+    if (why.length === 1) why.push("not near-term/upcoming, or missing a usable permalink");
+    return { priority: "medium", why };
+  }
+
+  return { priority: "low", why: [`candidate_type "${candidate.candidate_type}" is weak/generic, or the date is past/undated/ambiguous`] };
+}
+
+function nextOwnerAction(candidate) {
+  if (candidate.candidate_type === "operational_notice") return "Review with candidates:show, then promote with --message/--valid-from/--valid-until/--notice-type if genuine.";
+  if (candidate.candidate_type === "event") {
+    if (candidate.date_state === "multiple_event_dates") return "Inspect the source with candidates:show: it lists multiple dates — decide which one applies, then promote with --date (and --time).";
+    if (candidate.date_state === "ambiguous_date") return "Inspect the disagreeing sources with candidates:show, then promote with an explicit --date to resolve.";
+    if (candidate.missing_fields.length === 1 && candidate.missing_fields[0] === "title") return `Confirm a title${candidate.fields.title_suggestion ? ` (suggestion: "${candidate.fields.title_suggestion.value}")` : ""} and promote with --title.`;
+    if (candidate.missing_fields.length) return `Provide the missing field(s) via promote flags: ${candidate.missing_fields.join(", ")}.`;
+    return "Review with candidates:show, then promote.";
+  }
+  return "No owner action needed unless this classification looks wrong.";
+}
+
+export function buildCandidates(rawRecords, { now = new Date(), timezone = VENUE_TIMEZONE, recurringClusterMinSize } = {}) {
   const today = todayInTimezone(now, timezone);
-  const conflicts = findDateConflicts(rawRecords, { referenceDate: today });
-  const conflictedSourceIds = new Set();
-  for (const conflict of conflicts) {
-    conflictedSourceIds.add(`${conflict.a.source_network}:${conflict.a.source_id}`);
-    conflictedSourceIds.add(`${conflict.b.source_network}:${conflict.b.source_id}`);
+  const { ambiguousPairs, recurringClusters } = findDateRelationships(rawRecords, { referenceDate: today, recurringClusterMinSize });
+
+  const ambiguousSourceIds = new Set();
+  for (const pair of ambiguousPairs) for (const record of pair) ambiguousSourceIds.add(recordKey(record));
+
+  const recurringSourceIds = new Set();
+  const recurringClusterInfo = new Map();
+  for (const cluster of recurringClusters) {
+    const relatedIds = cluster.map((record) => `meta-${record.source_network}-${record.source_id}`);
+    for (const record of cluster) {
+      recurringSourceIds.add(recordKey(record));
+      recurringClusterInfo.set(recordKey(record), { cluster_size: cluster.length, related_candidate_ids: relatedIds });
+    }
   }
 
   const groups = groupDuplicates(rawRecords, { referenceDate: today });
@@ -128,57 +244,100 @@ export function buildCandidates(rawRecords, { now = new Date(), timezone = VENUE
   const candidates = groups.map((sourceRecords) => {
     const primary = sourceRecords[0];
     const { type: candidateType, reasons: classificationReasons } = classifyCandidateType(primary);
-    const explicitDate = extractExplicitDate(primary.message_or_caption, { referenceDate: today }).value;
-    const timeRelevance = classifyTimeRelevance(explicitDate, { today });
 
-    let fieldsResult = { fields: {}, missing: [], conflicting: [], inferred: [] };
+    let fieldsResult = { fields: {}, missing: [], conflicting: [], ambiguous: [], inferred: [], title_suggestion: null };
+    let dateState = "undated";
+    let recurringInfo = null;
     if (["event", "operational_notice"].includes(candidateType)) {
-      fieldsResult = buildEventOrNoticeFields(sourceRecords, conflictedSourceIds, today);
+      const dateResolution = resolveDateState(sourceRecords, { ambiguousSourceIds, recurringSourceIds, recurringClusterInfo, referenceDate: today });
+      dateState = dateResolution.dateState;
+      recurringInfo = dateResolution.recurringInfo;
+      fieldsResult = buildEventOrNoticeFields(sourceRecords, dateResolution);
     }
-    const { readiness, reasons: blockedReasons } = promotionReadiness(candidateType, fieldsResult.missing, fieldsResult.conflicting, fieldsResult.inferred);
 
-    return {
+    const explicitDate = fieldsResult.fields.start_date?.value ?? null;
+    const isAmbiguousTime = dateState === "ambiguous_date" || dateState === "conflicting_sources";
+    const timeRelevance = classifyTimeRelevance(explicitDate, { today, isAmbiguous: isAmbiguousTime, isRecurring: Boolean(recurringInfo) });
+
+    const { readiness, reasons: blockedReasons } = promotionReadiness(candidateType, fieldsResult);
+
+    const candidate = {
       visibility: "private",
       candidate_id: candidateIdForGroup(sourceRecords),
       candidate_type: candidateType,
       classification_reasons: classificationReasons,
+      date_state: dateState,
+      recurring_series: recurringInfo,
       time_relevance: timeRelevance,
       sources: sourceRecords.map(sourceRef),
-      fields: fieldsResult.fields,
+      fields: { ...fieldsResult.fields, title_suggestion: fieldsResult.title_suggestion },
       missing_fields: fieldsResult.missing,
       conflicting_fields: fieldsResult.conflicting,
+      ambiguous_fields: fieldsResult.ambiguous,
       inferred_fields: fieldsResult.inferred,
       promotion_readiness: readiness,
       blocked_reasons: blockedReasons,
       generated_at: now.toISOString(),
     };
+
+    const { priority, why } = computeReviewPriority(candidate);
+    candidate.review_priority = priority;
+    candidate.review_priority_why = why;
+    candidate.next_owner_action = nextOwnerAction(candidate);
+
+    return candidate;
   });
 
   const summary = {
     total_source_records: rawRecords.length,
     total_candidates: candidates.length,
     duplicate_groups: candidates.filter((candidate) => candidate.sources.length > 1).length,
-    by_time_relevance: Object.fromEntries(["past", "current", "upcoming", "undated"].map((key) => [key, candidates.filter((candidate) => candidate.time_relevance === key).length])),
+    by_time_relevance: Object.fromEntries(["past", "near_term", "upcoming", "future_distant", "recurring_or_multi_date", "ambiguous", "undated"].map((key) => [key, candidates.filter((candidate) => candidate.time_relevance === key).length])),
     by_type: Object.fromEntries(candidates.reduce((map, candidate) => map.set(candidate.candidate_type, (map.get(candidate.candidate_type) ?? 0) + 1), new Map())),
+    by_priority: Object.fromEntries(["high", "medium", "low"].map((key) => [key, candidates.filter((candidate) => candidate.review_priority === key).length])),
     promotion_ready: candidates.filter((candidate) => candidate.promotion_readiness === "ready").length,
     promotion_blocked: candidates.filter((candidate) => candidate.promotion_readiness === "blocked").length,
-    date_conflicts_detected: conflicts.length,
+    blocked_only_by_title: candidates.filter((candidate) => candidate.promotion_readiness === "blocked" && candidate.missing_fields.length === 1 && candidate.missing_fields[0] === "title" && candidate.conflicting_fields.length === 0 && candidate.ambiguous_fields.length === 0 && candidate.inferred_fields.length === 0).length,
+    title_suggestions: candidates.filter((candidate) => candidate.fields.title_suggestion).length,
+    ambiguous_date_count: candidates.filter((candidate) => candidate.date_state === "ambiguous_date").length,
+    multiple_event_dates_count: candidates.filter((candidate) => candidate.date_state === "multiple_event_dates").length,
+    recurring_or_multi_date_count: candidates.filter((candidate) => Boolean(candidate.recurring_series)).length,
     generated_at: now.toISOString(),
   };
 
   return { visibility: "private", candidates, summary };
 }
 
-function priorityRank(candidate) {
-  if (candidate.time_relevance === "upcoming") return 0;
-  if (candidate.candidate_type === "operational_notice" && candidate.time_relevance === "current") return 1;
-  if (candidate.time_relevance === "current") return 2;
-  if (candidate.time_relevance === "undated") return 3;
-  return 4; // past
+const PRIORITY_RANK = { high: 0, medium: 1, low: 2 };
+
+function timeRelevanceRank(candidate) {
+  const order = ["near_term", "upcoming", "recurring_or_multi_date", "future_distant", "ambiguous", "undated", "past"];
+  return order.indexOf(candidate.time_relevance);
 }
 
 export function sortForReport(candidates) {
-  return [...candidates].sort((a, b) => priorityRank(a) - priorityRank(b) || (b.sources[0]?.source_timestamp ?? "").localeCompare(a.sources[0]?.source_timestamp ?? ""));
+  return [...candidates].sort(
+    (a, b) => PRIORITY_RANK[a.review_priority] - PRIORITY_RANK[b.review_priority]
+      || timeRelevanceRank(a) - timeRelevanceRank(b)
+      || (b.sources[0]?.source_timestamp ?? "").localeCompare(a.sources[0]?.source_timestamp ?? ""),
+  );
+}
+
+export function filterCandidates(candidates, { priority, type, upcomingOnly, blockedOnly, pastOnly, limit } = {}) {
+  let result = candidates;
+  if (priority) result = result.filter((candidate) => candidate.review_priority === priority);
+  if (type) result = result.filter((candidate) => candidate.candidate_type === type);
+  if (upcomingOnly) result = result.filter((candidate) => ["near_term", "upcoming", "future_distant"].includes(candidate.time_relevance));
+  if (blockedOnly) result = result.filter((candidate) => candidate.promotion_readiness === "blocked");
+  if (pastOnly) result = result.filter((candidate) => candidate.time_relevance === "past");
+  const sorted = sortForReport(result);
+  return typeof limit === "number" ? sorted.slice(0, limit) : sorted;
+}
+
+// The default "review" view: only unresolved, non-past, non-low-priority
+// noise — the material actually worth an owner's attention right now.
+export function defaultReviewQueue(candidates) {
+  return sortForReport(candidates.filter((candidate) => candidate.time_relevance !== "past" && candidate.review_priority !== "low"));
 }
 
 function renderCandidateMarkdown(candidate) {
@@ -186,30 +345,37 @@ function renderCandidateMarkdown(candidate) {
     `### ${candidate.candidate_id}`,
     "",
     `- Type: ${candidate.candidate_type}`,
-    `- Time relevance: ${candidate.time_relevance}`,
+    `- Priority: ${candidate.review_priority} — ${candidate.review_priority_why.join("; ")}`,
+    `- Date state: ${candidate.date_state} | Time relevance: ${candidate.time_relevance}`,
     `- Classification reason(s): ${candidate.classification_reasons.join("; ")}`,
     `- Source network(s): ${candidate.sources.map((source) => source.network).join(", ")}`,
   ];
   for (const source of candidate.sources) {
     lines.push(`  - ${source.network} ${source.source_id} — ${source.source_timestamp ?? "no timestamp"} — ${source.permalink ?? "no permalink"}`);
   }
-  if (Object.keys(candidate.fields).length) {
+  if (candidate.fields.title_suggestion) lines.push(`- Title suggestion: "${candidate.fields.title_suggestion.value}" [inferred — ${candidate.fields.title_suggestion.reason}]`);
+  const structuredFields = Object.entries(candidate.fields).filter(([name]) => name !== "title_suggestion");
+  if (structuredFields.length) {
     lines.push("- Fields:");
-    for (const [name, value] of Object.entries(candidate.fields)) {
+    for (const [name, value] of structuredFields) {
       const shown = value.value === null ? "(none)" : JSON.stringify(value.value);
       lines.push(`  - ${name}: ${shown} [${value.status}]${value.evidence ? ` — evidence: ${value.evidence}` : ""}`);
     }
   }
   if (candidate.missing_fields.length) lines.push(`- Missing: ${candidate.missing_fields.join(", ")}`);
   if (candidate.conflicting_fields.length) lines.push(`- Conflicting: ${candidate.conflicting_fields.join(", ")}`);
+  if (candidate.ambiguous_fields.length) lines.push(`- Ambiguous: ${candidate.ambiguous_fields.join(", ")}`);
+  if (candidate.recurring_series) lines.push(`- Recurring series: ${candidate.recurring_series.cluster_size} related posts (${candidate.recurring_series.related_candidate_ids.join(", ")})`);
   lines.push(`- Promotion readiness: ${candidate.promotion_readiness}`);
   if (candidate.blocked_reasons.length) lines.push(`- Blocked because: ${candidate.blocked_reasons.join("; ")}`);
+  lines.push(`- Next owner action: ${candidate.next_owner_action}`);
   lines.push("");
   return lines.join("\n");
 }
 
 export function renderReviewMarkdown({ candidates, summary }, { includePast = false } = {}) {
-  const sorted = sortForReport(candidates).filter((candidate) => includePast || candidate.time_relevance !== "past");
+  const base = includePast ? candidates : candidates.filter((candidate) => candidate.time_relevance !== "past");
+  const sorted = sortForReport(base);
   const header = [
     "# Meta candidate review",
     "",
@@ -218,9 +384,11 @@ export function renderReviewMarkdown({ candidates, summary }, { includePast = fa
     `Total source records considered: ${summary.total_source_records}`,
     `Total candidates (after duplicate grouping): ${summary.total_candidates}`,
     `Duplicate groups: ${summary.duplicate_groups}`,
-    `Date conflicts detected: ${summary.date_conflicts_detected}`,
-    `By time relevance: past=${summary.by_time_relevance.past} current=${summary.by_time_relevance.current} upcoming=${summary.by_time_relevance.upcoming} undated=${summary.by_time_relevance.undated}`,
-    `Promotion-ready: ${summary.promotion_ready} | Blocked: ${summary.promotion_blocked}`,
+    `By priority: high=${summary.by_priority.high} medium=${summary.by_priority.medium} low=${summary.by_priority.low}`,
+    `By time relevance: past=${summary.by_time_relevance.past} near_term=${summary.by_time_relevance.near_term} upcoming=${summary.by_time_relevance.upcoming} future_distant=${summary.by_time_relevance.future_distant} recurring_or_multi_date=${summary.by_time_relevance.recurring_or_multi_date} ambiguous=${summary.by_time_relevance.ambiguous} undated=${summary.by_time_relevance.undated}`,
+    `Title suggestions available: ${summary.title_suggestions}`,
+    `Ambiguous-date count: ${summary.ambiguous_date_count} | Multiple-event-dates count: ${summary.multiple_event_dates_count} | Recurring/multi-date count: ${summary.recurring_or_multi_date_count}`,
+    `Promotion-ready: ${summary.promotion_ready} | Blocked: ${summary.promotion_blocked} (of which blocked only by title confirmation: ${summary.blocked_only_by_title})`,
     "",
     includePast ? "Showing all candidates, including past." : "Past candidates are hidden by default (pass --all to candidates:list to see them).",
     "",

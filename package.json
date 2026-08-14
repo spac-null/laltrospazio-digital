@@ -21,6 +21,7 @@
     "candidates:list": "node scripts/candidates-list.mjs",
     "candidates:show": "node scripts/candidates-show.mjs",
     "candidates:promote": "node scripts/candidates-promote.mjs",
+    "candidates:review": "node scripts/candidates-review.mjs",
     "test": "node --test tests/*.test.mjs",
     "lint": "eslint .",
     "preview": "vite preview"

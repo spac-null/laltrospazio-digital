@@ -5,6 +5,7 @@ import { findCandidate } from "./candidates-show.mjs";
 import { isoWithOffset, VENUE_ADDRESS, VENUE_ID, VENUE_NAME, VENUE_TIMEZONE } from "./candidate-review-lib.mjs";
 import { todayInTimezone } from "./candidate-detect.mjs";
 import { validateEvent, validateNotice } from "./content-lib.mjs";
+import { CANDIDATE_DECISIONS_FILE, loadDecisions, recordDecision, saveDecisions } from "./candidate-decisions-lib.mjs";
 
 const DEFAULT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const NOTICE_TYPES = ["temporary_closure", "exceptional_opening", "location_change", "sold_out", "service_interruption"];
@@ -45,6 +46,7 @@ function resolvedField(candidateField, overrideValue, label) {
   if (overrideValue !== undefined && overrideValue !== null) return { value: overrideValue, status: "owner_confirmed" };
   if (candidateField?.status === "extracted") return { value: candidateField.value, status: "extracted" };
   if (candidateField?.status === "conflicting") throw new PromotionError([`${label} is conflicting across sources; pass an explicit override to resolve it`]);
+  if (candidateField?.status === "ambiguous") throw new PromotionError([`${label} is ambiguous: it disagrees with a highly similar but not clearly recurring source; pass an explicit override to resolve it`]);
   if (candidateField?.status === "inferred") throw new PromotionError([`${label} is only inferred/guessed (${candidateField.value}), not verified from source text; pass an explicit override to confirm it`]);
   return { value: null, status: "missing" };
 }
@@ -56,7 +58,10 @@ function buildEventDraft(candidate, flags, now, root) {
   if (title.status === "missing") throw new PromotionError(["title is missing (Meta posts carry no structured title field): pass --title \"...\""]);
 
   const startDate = resolvedField(candidate.fields.start_date, flags.date, "start date");
-  if (startDate.status === "missing") throw new PromotionError(["start date is missing: pass --date YYYY-MM-DD"]);
+  if (startDate.status === "missing") {
+    const hint = candidate.date_state === "multiple_event_dates" ? " (the source lists multiple dates with no recognized range; pick the correct one)" : "";
+    throw new PromotionError([`start date is missing${hint}: pass --date YYYY-MM-DD`]);
+  }
 
   const startTime = resolvedField(candidate.fields.start_time, flags.time, "start time");
   if (startTime.status === "missing") throw new PromotionError(["start time is missing: pass --time HH:MM"]);
@@ -74,7 +79,8 @@ function buildEventDraft(candidate, flags, now, root) {
   const slug = ensureUniqueSlug(slugBase, path.join(root, "content", "events"), root);
 
   const start = isoWithOffset(startDate.value, startTime.value, VENUE_TIMEZONE);
-  const end = flags.endDate && flags.endTime ? isoWithOffset(flags.endDate, flags.endTime, VENUE_TIMEZONE) : null;
+  const endDateValue = flags.endDate ?? (candidate.fields.end_date?.status === "extracted" ? candidate.fields.end_date.value : null);
+  const end = endDateValue && flags.endTime ? isoWithOffset(endDateValue, flags.endTime, VENUE_TIMEZONE) : null;
 
   const draft = {
     id: slug,
@@ -131,7 +137,7 @@ function buildNoticeDraft(candidate, flags, now, root) {
   return { draft, targetDir: "notices", provenance: { message: "owner_confirmed", valid_from: "owner_confirmed", valid_until: "owner_confirmed" } };
 }
 
-export function promoteCandidate({ candidateId, flags = {}, confirm = false, now = new Date(), root = DEFAULT_ROOT, jsonPath } = {}) {
+export function promoteCandidate({ candidateId, flags = {}, confirm = false, now = new Date(), root = DEFAULT_ROOT, jsonPath, decisionsPath } = {}) {
   const candidate = findCandidate(candidateId, { jsonPath });
   const venue = loadVenue(root);
 
@@ -144,13 +150,19 @@ export function promoteCandidate({ candidateId, flags = {}, confirm = false, now
   if (errors.length) throw new PromotionError(errors);
 
   const targetPath = path.join(root, "content", built.targetDir, `${built.draft.slug}.json`);
+  const relativeTargetPath = path.relative(root, targetPath);
 
   if (!confirm) {
-    return { status: "dry_run", draft: built.draft, targetPath: path.relative(root, targetPath), provenance: built.provenance };
+    return { status: "dry_run", draft: built.draft, targetPath: relativeTargetPath, provenance: built.provenance };
   }
 
   fs.writeFileSync(targetPath, `${JSON.stringify(built.draft, null, 2)}\n`);
-  return { status: "written", draft: built.draft, targetPath: path.relative(root, targetPath), provenance: built.provenance };
+
+  const decisionsFile = decisionsPath ?? path.join(root, CANDIDATE_DECISIONS_FILE);
+  const decisionState = loadDecisions(decisionsFile);
+  saveDecisions(decisionsFile, recordDecision(decisionState, candidateId, "promoted", { promotedPath: relativeTargetPath, now }));
+
+  return { status: "written", draft: built.draft, targetPath: relativeTargetPath, provenance: built.provenance };
 }
 
 function parseArgs(argv) {

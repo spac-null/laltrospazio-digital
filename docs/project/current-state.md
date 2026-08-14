@@ -108,9 +108,25 @@ Last updated: 2026-08-13
   `publication_status: "draft"`), and only after validating against the
   existing unmodified `validateEvent`/`validateNotice` and requiring
   `--confirm`. A real read against production D1 (200 source records) found
-  143 candidates after duplicate grouping, 0 auto-promotion-ready (title is
+  144 candidates after duplicate grouping, 0 auto-promotion-ready (title is
   always missing by design for events; notices always require explicit
-  `--message`/dates), and no candidate was promoted. Full detail is in
+  `--message`/dates), and no candidate was promoted.
+- Candidate quality was refined: the original date-conflict heuristic's 86
+  flagged conflicts were diagnosed (aggregate-only, no captions committed)
+  down to two root causes — a recurring weekly/monthly post template
+  reused with different real dates each time (not a genuine conflict), and a
+  short-caption similarity false-positive (now fixed). The refined model
+  (`date_state`: single/range/list/ambiguous/conflicting_sources) finds
+  **0** genuine ambiguous-date conflicts against the same real data.
+  Deterministic `title_suggestion`s (39 found), a categorical
+  high/medium/low `review_priority`, near_term/upcoming/future_distant/
+  recurring_or_multi_date time buckets, filterable `candidates:list`
+  (`--upcoming`/`--priority`/`--type`/`--blocked`/`--past`/`--limit`, plus a
+  default unresolved-non-past-non-low review queue of 27), and a private
+  `.local/candidate-decisions.json` review-state file
+  (`candidates:review -- <id> --ignore|--defer|--reviewed`, survives
+  `candidates:refresh`, excludes ignored/promoted candidates from the
+  default queue) are all implemented. Full detail is in
   `docs/project/meta-integration-plan.md`.
 - Real-event proof preparation is implemented in `scripts/candidate-lib.mjs`
   and `scripts/create-event-candidate.mjs`. Candidates are stored separately

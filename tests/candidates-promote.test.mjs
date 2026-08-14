@@ -78,7 +78,7 @@ test("an owner-supplied --date resolves an inferred date and is recorded as owne
   assert.equal(result.draft.start, "2026-08-20T21:00:00+02:00");
 });
 
-test("promotion is blocked when sources disagree on the date (conflicting)", () => {
+test("promotion is blocked when an isolated pair of sources disagree on the date (ambiguous_date)", () => {
   const root = setupRoot();
   const shared = "Serata di beneficenza il 03/09/2026 alle 21:00 con musica dal vivo e buffet per tutti";
   const conflicting = "Serata di beneficenza il 10/09/2026 alle 21:00 con musica dal vivo e buffet per tutti";
@@ -87,16 +87,16 @@ test("promotion is blocked when sources disagree on the date (conflicting)", () 
     d1Row({ network: "instagram", source_id: "ig-1", source_account_id: "17841402902868891", message_or_caption: conflicting, candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }) }),
   ];
   const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
-  const conflictingCandidate = candidates.find((candidate) => candidate.fields.start_date?.status === "conflicting");
-  assert.ok(conflictingCandidate, "expected at least one candidate with a conflicting start_date");
+  const ambiguousCandidate = candidates.find((candidate) => candidate.date_state === "ambiguous_date");
+  assert.ok(ambiguousCandidate, "expected at least one candidate with date_state ambiguous_date");
   const jsonPath = writeReview(root, candidates);
   assert.throws(
-    () => promoteCandidate({ candidateId: conflictingCandidate.candidate_id, flags: { title: "Serata di beneficenza" }, root, jsonPath, now: NOW }),
-    (error) => error instanceof PromotionError && /conflicting across sources/.test(error.message),
+    () => promoteCandidate({ candidateId: ambiguousCandidate.candidate_id, flags: { title: "Serata di beneficenza" }, root, jsonPath, now: NOW }),
+    (error) => error instanceof PromotionError && /ambiguous/.test(error.message),
   );
 });
 
-test("an explicit --date override resolves a conflicting date", () => {
+test("an explicit --date override resolves an ambiguous date", () => {
   const root = setupRoot();
   const shared = "Serata di beneficenza il 03/09/2026 alle 21:00 con musica dal vivo e buffet per tutti";
   const conflicting = "Serata di beneficenza il 10/09/2026 alle 21:00 con musica dal vivo e buffet per tutti";
@@ -105,9 +105,24 @@ test("an explicit --date override resolves a conflicting date", () => {
     d1Row({ network: "instagram", source_id: "ig-1", source_account_id: "17841402902868891", message_or_caption: conflicting, candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }) }),
   ];
   const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
-  const conflictingCandidate = candidates.find((candidate) => candidate.fields.start_date?.status === "conflicting");
+  const ambiguousCandidate = candidates.find((candidate) => candidate.date_state === "ambiguous_date");
   const jsonPath = writeReview(root, candidates);
-  const result = promoteCandidate({ candidateId: conflictingCandidate.candidate_id, flags: { title: "Serata di beneficenza", date: "2026-09-03", time: "21:00" }, confirm: true, root, jsonPath, now: NOW });
+  const result = promoteCandidate({ candidateId: ambiguousCandidate.candidate_id, flags: { title: "Serata di beneficenza", date: "2026-09-03", time: "21:00" }, confirm: true, root, jsonPath, now: NOW });
+  assert.equal(result.status, "written");
+});
+
+test("a recurring-series candidate (not a date conflict) still promotes normally once title is supplied", () => {
+  const root = setupRoot();
+  const base = "Aperitivo del venerdì alle 19:00 con musica dal vivo e drink speciali, vi aspettiamo numerosi il";
+  const rows = [
+    d1Row({ source_id: "fb-1", message_or_caption: `${base} 04/09/2026`, candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }) }),
+    d1Row({ source_id: "fb-2", message_or_caption: `${base} 11/09/2026`, candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }) }),
+    d1Row({ source_id: "fb-3", message_or_caption: `${base} 18/09/2026`, candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }) }),
+  ];
+  const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
+  assert.ok(candidates.every((candidate) => candidate.date_state === "single_explicit_date"));
+  const jsonPath = writeReview(root, candidates);
+  const result = promoteCandidate({ candidateId: candidates[0].candidate_id, flags: { title: "Aperitivo del venerdì" }, confirm: true, root, jsonPath, now: NOW });
   assert.equal(result.status, "written");
 });
 
@@ -180,6 +195,40 @@ test("a duplicate slug is refused rather than silently overwritten", () => {
     () => promoteCandidate({ candidateId: candidate.candidate_id, flags: { title: "Concerto jazz dal vivo" }, confirm: true, root, jsonPath, now: NOW }),
     (error) => error instanceof PromotionError && /already exists/.test(error.message),
   );
+});
+
+test("a title_suggestion alone never satisfies the title requirement, even when present", () => {
+  const root = setupRoot();
+  const candidate = eventCandidate({ row: { message_or_caption: "Serata Jazz\nStasera dalle 21:00, musica dal vivo il 03/09/2026" } });
+  assert.equal(candidate.fields.title_suggestion.value, "Serata Jazz");
+  const jsonPath = writeReview(root, [candidate]);
+  assert.throws(
+    () => promoteCandidate({ candidateId: candidate.candidate_id, flags: {}, confirm: true, root, jsonPath, now: NOW }),
+    (error) => error instanceof PromotionError && /title is missing/.test(error.message),
+    "a title_suggestion must never silently become the promoted title",
+  );
+});
+
+test("an explicit --title (which may echo the suggestion) is recorded as owner_confirmed, not inferred", () => {
+  const root = setupRoot();
+  const candidate = eventCandidate({ row: { message_or_caption: "Serata Jazz\nStasera dalle 21:00, musica dal vivo il 03/09/2026" } });
+  const jsonPath = writeReview(root, [candidate]);
+  const result = promoteCandidate({ candidateId: candidate.candidate_id, flags: { title: "Serata Jazz" }, confirm: true, root, jsonPath, now: NOW });
+  assert.equal(result.status, "written");
+  assert.equal(result.provenance.title, "owner_confirmed");
+});
+
+test("a successful promotion records a 'promoted' decision linking the canonical path, without touching source records", () => {
+  const root = setupRoot();
+  const candidate = eventCandidate();
+  const jsonPath = writeReview(root, [candidate]);
+  const decisionsPath = path.join(root, "candidate-decisions.json");
+  const result = promoteCandidate({ candidateId: candidate.candidate_id, flags: { title: "Concerto jazz dal vivo" }, confirm: true, root, jsonPath, decisionsPath, now: NOW });
+  const decisions = JSON.parse(fs.readFileSync(decisionsPath, "utf8"));
+  const entry = decisions.decisions[candidate.candidate_id];
+  assert.equal(entry.decision, "promoted");
+  assert.equal(entry.promoted_path, result.targetPath);
+  assert.ok(entry.updated_at);
 });
 
 test("an irrelevant/unknown candidate type can never be promoted", () => {
