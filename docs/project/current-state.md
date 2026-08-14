@@ -1,6 +1,6 @@
 # Current state
 
-Last updated: 2026-08-13
+Last updated: 2026-08-14
 
 ## What this repo currently is
 
@@ -95,8 +95,16 @@ Last updated: 2026-08-13
   Rollback/disable is `triggers.crons: []` in `wrangler.jsonc`, committed and
   deployed like any other config change. Full detail and the exact owner
   steps taken are in `docs/project/meta-integration-plan.md`.
-- A private candidate-review pipeline exists only on the unmerged, unpushed
-  `feature/candidate-review-pipeline` branch/worktree:
+- A private candidate-review pipeline was merged (fast-forward, commits
+  `e7e764d`/`d03a618`/`2c6f962`) into canonical `main` and pushed to
+  `origin/main` on 2026-08-14; `main` is at `2c6f962`. Post-merge, `npm test`
+  (154/154), `npm run build`, and focused lint on the new
+  `scripts/candidates-*`/`scripts/candidate-*` files all passed; the only
+  dirty worktree file remained the pre-existing unrelated `package-lock.json`.
+  The subsequent Workers Builds deployment was verified healthy at `/`,
+  `/eventi`, `/robots.txt`, and `/sitemap.xml` (all `200`), and the Cron
+  trigger (`17 5 * * *`) was confirmed unchanged; this feature adds no
+  runtime/Worker/Cron/D1/public-content behavior.
   `npm run candidates:refresh` reads real production `meta_source_records`
   (read-only; a real run confirmed `changed_db: false`), deterministically
   classifies and deduplicates them (`scripts/candidate-detect.mjs`,
