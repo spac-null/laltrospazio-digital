@@ -606,6 +606,160 @@ As of this Cron activation, `meta_source_records` and `meta_feeder_runs`
 still reflect only that one pre-Cron end-to-end test (200 records, 1 run);
 the first automated row is expected after the first `05:17 UTC` firing.
 
+## Private candidate review + controlled promotion (feature branch, not deployed)
+
+`feature/candidate-review-pipeline` (local worktree only; not merged, not
+pushed) implements the missing layer between the scheduled Meta feeder and
+canonical content:
+
+```text
+private meta_source_records (D1, production)
+  -> deterministic candidate detection (scripts/candidate-detect.mjs)
+  -> private review queue (.local/candidate-review.json, .local/candidate-review.md)
+  -> explicit owner promotion (npm run candidates:promote -- <id> --confirm)
+  -> canonical draft (content/events/<slug>.json or content/notices/<slug>.json,
+     publication_status: "draft")
+  -> existing public build (unchanged: only publication_status: "published"
+     records ever reach normalizePublicContent/dist)
+```
+
+This is a read/propose system, not a publisher. No command in this pipeline
+ever sets `publication_status: "published"`, commits, pushes, or deploys.
+
+### Commands
+
+- `npm run candidates:refresh [-- --source <path>] [--all]` — reads
+  `meta_source_records` from the real remote D1 (default) or a local fixture
+  file (for tests), classifies and deduplicates them, and writes only
+  `.local/candidate-review.json` and `.local/candidate-review.md` (mode
+  `0600`, git-ignored). Read-only with respect to D1: it only ever executes a
+  `SELECT`.
+- `npm run candidates:list [-- --all]` — prints id/type/time-relevance/
+  readiness/source-count from the private review file. Past candidates are
+  hidden unless `--all` is given.
+- `npm run candidates:show -- <candidate-id>` — prints full detail for one
+  candidate, including its source caption(s), for owner review. This is the
+  only command that surfaces raw caption text, and only for a single
+  candidate at a time, in a local terminal — never in a public or generated
+  file.
+- `npm run candidates:promote -- <candidate-id> [owner flags...] [--confirm]`
+  — the only command that can write a canonical file, and only after an
+  explicit gate passes (see below). Without `--confirm` it prints a preview
+  and writes nothing.
+
+### Reuse, not a fork
+
+The pipeline reuses the existing normalized shape rather than re-normalizing:
+`scripts/candidate-review-lib.mjs` adapts either a `meta_source_records` D1
+row or an already-normalized `feeders/meta/normalize.mjs` record (as written
+by `scripts/meta-ingest-lib.mjs`) into one common shape. Classification
+reuses the existing deterministic `candidate_signals`
+(`event_like`/`notice_like`/`explicit_date`) computed at ingestion time and
+only adds two further deterministic keyword sets
+(`art_or_exhibition`, `menu_or_product`). Promotion validates against the
+existing, unmodified `validateEvent`/`validateNotice` from
+`scripts/content-lib.mjs` — there is no second public content schema.
+
+### Candidate classification
+
+Deterministic, priority-ordered, no LLM: `operational_notice` (notice_like)
+> `event` (event_like) > `art_or_exhibition` (keyword match) >
+> `menu_or_product` (keyword match) > `unknown` (has content, no signal) >
+> `irrelevant` (no caption, no permalink, no media type at all). Every
+classification carries an explicit, human-readable reason string.
+
+### Field provenance model
+
+Every extractable field on an `event`/`operational_notice` candidate carries
+one of: `extracted` (deterministic, traceable to explicit source text —
+e.g. an ISO or DD/MM/YYYY date, or an HH:MM/`ore HH` time), `inferred`
+(deterministically guessed, e.g. a bare day/month with no year — never
+promotable without an explicit owner override), `missing` (absent), or
+`conflicting` (two source records in the same duplicate-candidate disagree).
+An owner-supplied CLI override always becomes `owner_confirmed` and is
+recorded with a timestamp; it is layered on top of, and never rewrites, the
+original source-derived provenance.
+
+`title` is deliberately always `missing` for every Meta-derived event
+candidate: Facebook/Instagram posts carry no structured title field, and
+inventing one from caption text would be exactly the kind of
+language-sounds-likely inference this system is designed to refuse. It
+always requires an explicit `--title` override.
+
+`location_name` defaults to the venue's own name/address, with status
+`extracted` — its evidence is "derived from posting account identity" (the
+Page/Instagram account is the venue's own), not a guess about post content.
+
+### Duplicate detection and date conflicts
+
+`scripts/candidate-detect.mjs` groups likely-duplicate source records
+(typically the same real post cross-published to Facebook and Instagram)
+when they share the same extracted/inferred date AND their normalized
+caption token sets overlap at or above a fixed Jaccard threshold (0.5) — both
+deterministic, explainable, threshold-based checks, not a probabilistic
+model. A second, stricter check (0.7 threshold) flags likely-same-post pairs
+that disagree on their explicit date without merging them, marking the
+resulting candidate's `start_date` as `conflicting` rather than trusting
+either value.
+
+The real production read (200 source records) found 143 candidates after
+grouping (57 duplicate groups) and 86 flagged date conflicts. The high
+conflict count is a known limitation worth flagging: this venue posts
+recurring weekly formats with a near-identical template but a different real
+date each week, which the 0.7 text-similarity threshold cannot distinguish
+from "the same post, edited." Before relying on the conflict count for real
+review triage, this heuristic likely needs a refinement (e.g. excluding
+recurring-format posts, or a per-series identifier) — noted as a follow-up,
+not fixed in this task.
+
+### Promotion gate
+
+`npm run candidates:promote` builds a draft record, then validates it with
+the unmodified `validateEvent`/`validateNotice`, and only writes a file to
+disk if that validation passes AND `--confirm` was given. Missing,
+`inferred`, or `conflicting` required fields fail loudly with the exact
+field and reason before any file is touched; nothing is silently defaulted
+to a placeholder like "TBD". A duplicate slug is refused rather than
+overwritten.
+
+Because `validateNotice` already hard-requires `source.type ===
+"owner_confirmation"`, an operational-notice promotion can never carry Meta
+provenance directly in its `source` field — every notice promotion requires
+explicit `--message`, `--valid-from`, `--valid-until`, and `--notice-type`
+flags; the source caption is never auto-copied as the final message.
+
+Every promoted record is written with `publication_status: "draft"` — the
+existing schema's own separation between promotion and publication. A draft
+is invisible to `normalizePublicContent`/the public build until a human
+separately edits it to `"published"` (events) or sets
+`owner_confirmed: true` with a real `source.confirmed_at` (already true for
+notice drafts, since the CLI flags themselves are the confirmation) and
+commits/pushes that change — this pipeline does none of that automatically.
+
+### D1 read-only boundary
+
+Candidate review only ever issues `SELECT` against `meta_source_records`
+(verified: the real read against production D1 reported `changed_db: false`,
+`rows_written: 0`). No `meta_candidate_reviews` or other review-state D1
+table was created in this task. If persistent cross-run review state (e.g.
+"already looked at and dismissed") becomes valuable, a minimal table is
+proposed for later, explicit approval:
+
+```sql
+CREATE TABLE meta_candidate_reviews (
+  candidate_id TEXT PRIMARY KEY,
+  decision TEXT NOT NULL,        -- e.g. 'pending' | 'dismissed' | 'promoted'
+  candidate_type TEXT,
+  reviewed_at TEXT,
+  source_refs TEXT,              -- JSON array of {network, source_id}
+  owner_overrides TEXT,          -- JSON of any --flags supplied
+  promoted_path TEXT             -- e.g. content/events/<slug>.json, or null
+);
+```
+
+This is a proposal only — no migration file was added and no remote D1
+schema change was made for it in this task.
+
 References: [Instagram Graph API](https://developers.facebook.com/docs/instagram-api),
 [Instagram content publishing](https://developers.facebook.com/docs/instagram-api/guides/content-publishing),
 [Facebook Graph API](https://developers.facebook.com/docs/graph-api), and

@@ -95,6 +95,23 @@ Last updated: 2026-08-13
   Rollback/disable is `triggers.crons: []` in `wrangler.jsonc`, committed and
   deployed like any other config change. Full detail and the exact owner
   steps taken are in `docs/project/meta-integration-plan.md`.
+- A private candidate-review pipeline exists only on the unmerged, unpushed
+  `feature/candidate-review-pipeline` branch/worktree:
+  `npm run candidates:refresh` reads real production `meta_source_records`
+  (read-only; a real run confirmed `changed_db: false`), deterministically
+  classifies and deduplicates them (`scripts/candidate-detect.mjs`,
+  `scripts/candidate-review-lib.mjs`), and writes only ignored
+  `.local/candidate-review.json`/`.md`. `npm run candidates:list` and
+  `candidates:show` inspect that private file; `npm run candidates:promote`
+  is the only command that can write a canonical draft
+  (`content/events/<slug>.json` or `content/notices/<slug>.json`,
+  `publication_status: "draft"`), and only after validating against the
+  existing unmodified `validateEvent`/`validateNotice` and requiring
+  `--confirm`. A real read against production D1 (200 source records) found
+  143 candidates after duplicate grouping, 0 auto-promotion-ready (title is
+  always missing by design for events; notices always require explicit
+  `--message`/dates), and no candidate was promoted. Full detail is in
+  `docs/project/meta-integration-plan.md`.
 - Real-event proof preparation is implemented in `scripts/candidate-lib.mjs`
   and `scripts/create-event-candidate.mjs`. Candidates are stored separately
   under `content/candidates/`, require owner confirmation, and cannot publish
