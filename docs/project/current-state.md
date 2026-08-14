@@ -72,17 +72,29 @@ Last updated: 2026-08-13
   `scripts/meta-ingest-lib.mjs`/`scripts/meta-ingest.mjs`; it writes only
   ignored `.local/meta-ingest.json` as `public_candidate` source records that
   `assertPublicDataSafe` still rejects from public output.
-- A scheduled-ingestion foundation exists only on the unmerged, unpushed,
-  undeployed `feature/meta-scheduled-ingestion` branch/worktree: a Worker
-  entrypoint (`worker/index.mjs`) that preserves static/SPA serving exactly
-  and adds a `scheduled()` handler reusing `scripts/meta-ingest-lib.mjs`, a D1
-  schema (`migrations/0001_create_meta_source_records.sql`) for private
-  idempotent source records and feeder-run health, and a two-secret contract
-  (`META_PAGE_ACCESS_TOKEN`, `META_SYSTEM_USER_ACCESS_TOKEN`). Verified locally
-  only, including a real `wrangler dev --test-scheduled` run against a local
-  D1 instance; details and exact owner steps for production activation are in
-  `docs/project/meta-integration-plan.md`. No production D1, Cron, Worker
-  secret, or admin surface has been added; `main`/production are unaffected.
+- Scheduled Meta ingestion is now live in production. `main` includes a
+  Worker entrypoint (`worker/index.mjs`) that preserves static/SPA serving
+  exactly and adds a `scheduled()` handler reusing `scripts/meta-ingest-lib.mjs`,
+  a real production D1 database (`laltrospazio-meta`,
+  `d3f2054c-2010-4dbc-9a4e-58d73a821c02`, region EEUR) with the schema in
+  `migrations/0001_create_meta_source_records.sql` for private idempotent
+  source records and feeder-run health, and the two-secret contract
+  (`META_PAGE_ACCESS_TOKEN`, `META_SYSTEM_USER_ACCESS_TOKEN`) — both installed
+  as real Cloudflare Worker secrets, declared as required in `wrangler.jsonc`.
+  One real end-to-end pre-production run (Facebook via Page token, Instagram
+  via system-user token, one page / 100 records per network) populated the
+  baseline: 200 source records, 1 feeder run.
+- A single daily production Cron Trigger is now configured:
+  `triggers.crons: ["17 5 * * *"]` (05:17 UTC — Cloudflare Cron Triggers
+  always use UTC). This is the only automation trigger; no other schedule
+  exists. Source records remain private/candidate-only
+  (`visibility: "public_candidate"`, rejected by `assertPublicDataSafe` from
+  public output) — the scheduled job performs no autonomous
+  classification into events/notices and creates no canonical content; that
+  remains the existing owner-gated `scripts/candidate-lib.mjs` workflow.
+  Rollback/disable is `triggers.crons: []` in `wrangler.jsonc`, committed and
+  deployed like any other config change. Full detail and the exact owner
+  steps taken are in `docs/project/meta-integration-plan.md`.
 - Real-event proof preparation is implemented in `scripts/candidate-lib.mjs`
   and `scripts/create-event-candidate.mjs`. Candidates are stored separately
   under `content/candidates/`, require owner confirmation, and cannot publish

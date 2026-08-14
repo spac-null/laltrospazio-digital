@@ -25,8 +25,14 @@
   // here or in Git; values are installed only via `wrangler secret put`.
   "secrets": {
     "required": ["META_PAGE_ACCESS_TOKEN", "META_SYSTEM_USER_ACCESS_TOKEN"]
+  },
+  // Single daily production Cron: 05:17 UTC (Cloudflare Cron Triggers always
+  // use UTC). Runs worker/index.mjs scheduled(), which reuses the proven
+  // read-only dual-credential ingestion (Facebook via Page token, Instagram
+  // via system-user token, one page / 100 records per network) and writes
+  // only private candidate records to META_DB. To disable, set
+  // "crons": [] and redeploy.
+  "triggers": {
+    "crons": ["17 5 * * *"]
   }
-  // Intentionally no "triggers": { "crons": [...] } yet. Do not add a
-  // production cron cadence until the scheduled handler has been proven with
-  // `wrangler dev --test-scheduled` and an owner-approved cadence is chosen.
 }

@@ -560,28 +560,51 @@ in the scheduled Worker writes to `content/`.
   `meta_source_records`, confirming a failed run cannot corrupt state.
 - No real Meta credential was used at any point in this branch's testing.
 
-### Exact future owner/engineering steps (not performed in this task)
+### Production rollout (completed)
 
-These are the concrete commands needed for the next phase. None were run.
+All of the previously-listed future steps have now been performed for real,
+in this order:
 
-1. `npx wrangler@4.122.0 d1 create laltrospazio-meta` — creates the real
-   production D1 database and prints a `database_id`.
-2. Add that `database_id` to the `d1_databases` entry in `wrangler.jsonc`.
-3. `npx wrangler@4.122.0 d1 migrations apply laltrospazio-meta --remote` —
-   applies `migrations/0001_create_meta_source_records.sql` to the real
+1. `npx wrangler@4.122.0 d1 create laltrospazio-meta` created the real
+   production D1 database, region EEUR:
+   `d3f2054c-2010-4dbc-9a4e-58d73a821c02`. Wired into the existing `META_DB`
+   binding in `wrangler.jsonc` (no second binding, no rename).
+2. `npx wrangler@4.122.0 d1 migrations apply laltrospazio-meta --remote`
+   applied `migrations/0001_create_meta_source_records.sql` to the real
    production database.
-4. `npx wrangler@4.122.0 secret put META_PAGE_ACCESS_TOKEN` and
-   `npx wrangler@4.122.0 secret put META_SYSTEM_USER_ACCESS_TOKEN` — installs
-   the two real Worker secrets (interactive prompt only; never pass the value
-   as a CLI argument or echo it).
-5. `npx wrangler@4.122.0 versions upload` — deploy a non-production Worker
-   version so the real scheduled handler and D1 binding can be tested against
-   production-adjacent infrastructure without shifting live traffic or
-   activating a cron cadence.
-6. Only after the non-production version is verified, choose and add a
-   `triggers.crons` cadence, then `npx wrangler@4.122.0 deploy`.
-7. Merge `feature/meta-scheduled-ingestion` to `main` only after steps 1-6 are
-   verified, since `main` is connected to production Workers Builds.
+3. One controlled real end-to-end test ran the actual `feature/meta-scheduled-
+   ingestion` Worker code locally (`wrangler dev --test-scheduled` with a
+   temporary `remote: true` on `META_DB` and real local Meta credentials in an
+   untracked, mode-600 `.dev.vars`) against the real Meta Graph API and the
+   real remote D1 — before any Worker secret or Cron existed. Result: 100
+   Facebook + 100 Instagram records upserted, one `meta_feeder_runs` row
+   (`success = 1`, `freshness = "fresh"`, both networks `truncated = 1`). The
+   temporary `remote: true` was reverted immediately after and confirmed
+   byte-for-byte identical to the committed config. Credential-pattern checks
+   (`access_token`, `appsecret_proof`, `client_secret`, OAuth-code/paging
+   patterns) against the remote D1 content and schema found zero matches.
+4. `wrangler secret put META_PAGE_ACCESS_TOKEN` and
+   `... secret put META_SYSTEM_USER_ACCESS_TOKEN` installed the two real
+   Worker secrets (interactive prompt only). `wrangler.jsonc` also declares
+   `secrets.required` with just the two names, so wrangler validates their
+   presence — no value ever entered config or Git.
+5. A candidate Worker version (`35802989-f989-4408-b519-68daa71a14aa`) was
+   uploaded and smoke-tested on its preview URL: static/SPA routes
+   (`/`, `/eventi`, `/robots.txt`, `/sitemap.xml`) all returned the expected
+   status/content-type, and private-path smoke tests (`.local/meta-ingest.json`,
+   `/api/meta`, `/meta_source_records`, `/meta_feeder_runs`) found zero
+   matches for credential or table-name leakage.
+6. `feature/meta-scheduled-ingestion` was merged into `main` (which was
+   already connected to production Workers Builds) and pushed, producing the
+   live production deployment `df0ef32e-34b5-4210-abdd-5459cbe2979b`.
+7. A single daily Cron Trigger, `17 5 * * *` (05:17 UTC — Cloudflare Cron
+   Triggers always use UTC), was added to `wrangler.jsonc` on `main` and
+   deployed. This is the only schedule configured. Rollback/disable is
+   `triggers.crons: []`, committed and deployed like any other config change.
+
+As of this Cron activation, `meta_source_records` and `meta_feeder_runs`
+still reflect only that one pre-Cron end-to-end test (200 records, 1 run);
+the first automated row is expected after the first `05:17 UTC` firing.
 
 References: [Instagram Graph API](https://developers.facebook.com/docs/instagram-api),
 [Instagram content publishing](https://developers.facebook.com/docs/instagram-api/guides/content-publishing),
