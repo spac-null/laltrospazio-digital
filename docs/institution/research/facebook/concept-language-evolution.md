@@ -69,3 +69,17 @@ These two registers do not contradict each other, but they do pull in different 
 - Recurring slogan across 2016-17: **"Ciò che sembrava impossibile, oggi è diventato possibile"** ("what seemed impossible has become possible") — used at least three times in different contexts (a beer launch, an anniversary, a follower-count milestone), functioning as an informal institutional motto specific to that period; not seen recurring in later years' posts.
 - 2022: the venue-lineage recap post ("il primo l'Altro Spazio aperto nel 2015… e all'Altro Spazio al Pratello nato nel 2018") is the account's own clearest historical self-narration, useful as a primary source for the institutional timeline.
 - 2024: "Coop L'Altro Spazio" — the only instance of the account naming its own legal/cooperative identity in its own public voice, in a single project-credit line (see `facebook-historical-evidence-register.md`).
+
+## 9. Interpretive hypothesis: practice may run ahead of (or behind) its own language — status: INTERPRETATION TO TEST
+
+**Owner-correction note:** the 2016-17 vocabulary documented above (§1-2, especially the "inspirational disability story" curatorial framing) is preserved deliberately and should **not** be rewritten into current terminology in any future revision. The uncomfortable-by-current-standards findings are part of the evidence, not an error to be smoothed over.
+
+Read together, §1-8 above suggest a hypothesis worth testing rather than treating as proven:
+
+> **Practice may sometimes have developed faster than the language used to describe it; later, institutional/accessibility vocabulary may sometimes have become broader than what any single activity alone could demonstrate.**
+
+Two illustrations already in this document support taking the hypothesis seriously without over-claiming it:
+- The 2016-17 "inspirational disability story" framing (§2) coexists with concrete, operationally precise practice in the same years (subtitling, audiodescription, a Deaf brewer as creative partner) — the *practice* in 2016-17 arguably outran the *language* used to narrate it, which still leaned on older charity/inspiration conventions.
+- The 2024-25 blanket-hashtag pattern (§7) shows the reverse: by this point the *language* ("#Inclusione #Accessibilità" attached to nearly everything) may be claiming more, more generically, than any one specific post demonstrates on its own — even while the underlying practice (Sub_Bar Show, Sensory Dialogues) is simultaneously reaching its most sophisticated point in the archive.
+
+This is offered as an **interpretation to test**, not a proven universal conclusion about the organisation's history — it may hold for some threads (LIS/Deaf programming) more than others (employment policy language, which is comparatively consistent and precise across 2016-2022), and a fuller test would need the interview corpus and current practice observation alongside this archive.

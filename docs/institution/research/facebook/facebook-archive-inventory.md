@@ -1,8 +1,10 @@
 # Facebook Archive Inventory
 
-**Working date:** 14 August 2026
+**Working date:** 14 August 2026 (updated 14 August 2026, owner-correction pass)
 **Archive file:** `facebook-laltrospaziobologna-15_Feb_2014-3_Jan_2026.zip` (484,021,119 bytes, 3,655 files)
 **Purpose:** Methodology and structural inventory supporting the four other research outputs in this folder. This is not an analysis of content — see `facebook-archive-chronology.md`, `programme-history.md`, `concept-language-evolution.md` and `facebook-historical-evidence-register.md` for findings.
+
+**Note on the owner-correction pass (14 Aug 2026):** several conclusions in this folder's files were subsequently refined using owner testimony and additional confidential internal records (an internal chronology/audit for a Pratello-area entity, a historical private-correspondence extraction, and formal proceedings material). These sources are used **only** to confirm safe historical conclusions — dates, entity names, and high-level operational facts. Per explicit instruction, **none of that confidential material has been copied into this repository, quoted, or reproduced in any form**, and no financial amounts, debts, litigation strategy, bank/payment details, or personal contact information from it appears anywhere in these files. Where a claim rests partly on such material, it is labelled **CONFIDENTIAL SUPPORT** in `facebook-historical-evidence-register.md`. This inventory file's own numbers (§3, §6) describe the Facebook archive only and are unaffected by the correction pass.
 
 ---
 
