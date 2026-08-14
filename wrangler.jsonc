@@ -19,7 +19,13 @@
       "database_id": "d3f2054c-2010-4dbc-9a4e-58d73a821c02",
       "migrations_dir": "./migrations"
     }
-  ]
+  ],
+  // Declares the two secret NAMES the scheduled handler requires
+  // (worker/meta-scheduled.mjs requireMetaSecrets()). No value is ever set
+  // here or in Git; values are installed only via `wrangler secret put`.
+  "secrets": {
+    "required": ["META_PAGE_ACCESS_TOKEN", "META_SYSTEM_USER_ACCESS_TOKEN"]
+  }
   // Intentionally no "triggers": { "crons": [...] } yet. Do not add a
   // production cron cadence until the scheduled handler has been proven with
   // `wrangler dev --test-scheduled` and an owner-approved cadence is chosen.
