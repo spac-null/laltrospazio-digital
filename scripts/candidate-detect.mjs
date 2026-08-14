@@ -329,7 +329,10 @@ const MENU_PATTERN = /men[uù]|piatto del giorno|menu del giorno|carta dei vini/
 // ("djset"/"DJSet"), which is a real, deliberate spelling, not an accident —
 // so "dj" alone OR "djset" both count, while still refusing to match "dj"
 // merely as a substring of an unrelated word (e.g. the name "Django").
-export const EVENT_LIKE_PATTERN = /\b(?:concerto|evento|serata|laboratorio|aperitivo|dj(?:set)?|mostra|incontro)\b/i;
+// "live music" is a genuine recurring genre tag in this venue's own
+// captions, almost always as the glued hashtag "#LiveMusic" — matched with
+// or without the internal space/boundary, same reasoning as "djset".
+export const EVENT_LIKE_PATTERN = /\b(?:concerto|evento|serata|laboratorio|aperitivo|dj(?:set)?|mostra|incontro|live\s*music)\b/i;
 
 // Deterministic, explainable classification only. No LLM, no fuzzy scoring:
 // a fixed priority order over the already-deterministic candidate_signals

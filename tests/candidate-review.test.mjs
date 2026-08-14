@@ -306,6 +306,44 @@ test("a menu/product post is not misclassified as an event by a keyword hidden i
   assert.equal(candidates[0].promotion_readiness, "not_applicable");
 });
 
+// --- Event recall regression follow-up: the "dj" boundary fix correctly
+// stopped matching "dj" inside "Django Reinhardt" (a musician's name), but
+// this venue's real live-music posts carry their own genuine, generic,
+// recurring "#LiveMusic" genre hashtag — recovering that real signal
+// without reintroducing any substring match.
+
+test("a real live-music post recovers its event classification via the genuine '#LiveMusic' genre hashtag, not via 'dj'-in-'Django'", () => {
+  const rows = [d1Row({
+    message_or_caption: "Venerdì vi aspetta ROAD TO GIPSY! La nostra rassegna di musica balcanica, gipsy e swing vede un graditissimo ritorno sul nostro palco. I repertori di Django Reinhardt, lo swing americano, e altri classici.\n\nvenerdì 13 dicembre 2024, ore 21:00\n\n#RoadToGipsy #GipsyCaravan #LiveMusic #LAltroSpazioBologna",
+    candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }),
+  })];
+  const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
+  assert.equal(candidates[0].candidate_type, "event");
+  assert.match(candidates[0].classification_reasons.join(" "), /event_like matched/);
+});
+
+test("a real post whose ONLY signal was 'dj' accidentally inside a musician's name correctly stays unknown — no safe generic term exists in it", () => {
+  // The real regression case: no keyword from the event vocabulary — nor
+  // any other safe, generic category — appears anywhere in this caption.
+  // This is an accepted, honest trade-off of removing the substring match,
+  // not something papered over with an artist- or post-specific keyword.
+  const rows = [d1Row({
+    message_or_caption: "Scaramouche è un progetto musicale che nasce nel 2024 tra le vie di Bologna dalla comune passione per il gipsy jazz. Dalle melodie del leggendario chitarrista tzigano Django Reinhardt al ritmo travolgente delle canzoni del jazz degli anni '30 e '40.\n\nFormazione: Dino Caravello, chitarra; Giuseppe Zinfollino, chitarra e voce.\n\n5 dicembre 2025, 21:00 - l'Altro Spazio - via nazario sauro 24F\ningresso gratuito",
+    candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }),
+  })];
+  const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
+  assert.equal(candidates[0].candidate_type, "unknown");
+});
+
+test("unrelated prose containing a 'live'-like substring stays non-event, even with a stale true signal", () => {
+  const rows = [d1Row({
+    message_or_caption: "Oliver ci ha raccontato la sua storia ieri durante la nostra chiacchierata allo staff",
+    candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: false }),
+  })];
+  const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
+  assert.notEqual(candidates[0].candidate_type, "event");
+});
+
 test("an exact-duplicate Facebook/Instagram post with no extractable date is grouped into one candidate (issue 2)", () => {
   const shared = "🔊 THE SUB_BAR SHOW #1 🔊\n\nUn evento immersivo, senza data fissa annunciata qui.\n\n#LAltroSpazio";
   const rows = [

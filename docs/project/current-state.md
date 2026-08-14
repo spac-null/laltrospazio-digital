@@ -171,6 +171,27 @@ Last updated: 2026-08-14
   179/179 tests pass, build passes, focused lint is clean, and all 134 real
   candidates still render through `candidates:show`. No candidate was
   promoted and no D1/Worker/Cron/content change was made.
+- A follow-up fix on the same branch addressed an event-recall regression
+  the queue-quality pass introduced: removing "dj" substring matching
+  correctly stopped matching it inside the name "Django Reinhardt", but that
+  left two genuine real concert posts (one recurring "ROAD TO GIPSY" pair,
+  one "Scaramouche" post) with no other signal. Inspecting only those real
+  captions found one legitimate, generic, recurring signal already present —
+  this venue's own "#LiveMusic" genre hashtag (added to `EVENT_LIKE_PATTERN`,
+  same glued-compound reasoning as `djset`) — which correctly recovers the
+  "ROAD TO GIPSY" pair as `event` without reintroducing any substring match
+  (`Oliver`, `Django` still correctly do not match). The "Scaramouche" post
+  contains no safe generic event term at all (verified) and honestly remains
+  `unknown` rather than being special-cased — its only prior signal was
+  itself the accidental "dj"-in-"Django" match. The `multi_date_event`
+  owner-facing wording no longer prescribes "promote each date separately"
+  as the resolution; it now states the real, undetermined choice (one event
+  spanning both dates, a recurring/multi-date programme, or two separate
+  events) while keeping promotion blocked exactly as before. 185/185 tests
+  pass; the real default review queue is unchanged at 5 items (the
+  recovered "ROAD TO GIPSY" pair is correctly `past`, so it does not enter
+  the active queue). No candidate was promoted and no D1/Worker/Cron/content
+  change was made.
 - Real-event proof preparation is implemented in `scripts/candidate-lib.mjs`
   and `scripts/create-event-candidate.mjs`. Candidates are stored separately
   under `content/candidates/`, require owner confirmation, and cannot publish

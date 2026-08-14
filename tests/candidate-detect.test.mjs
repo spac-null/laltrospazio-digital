@@ -278,6 +278,24 @@ test("classifyCandidateType: a genuine event keyword used as a real word still c
   assert.equal(result.type, "event");
 });
 
+// --- Event recall regression: removing the "dj" substring match correctly
+// stopped matching "dj" inside "Django", but this venue's real live-music
+// posts carry a genuine, generic, recurring signal of their own: the
+// "#LiveMusic" genre hashtag (always glued with no space in real captions).
+
+test("EVENT_LIKE_PATTERN matches this venue's real '#LiveMusic' genre hashtag, glued or spaced", () => {
+  assert.equal(EVENT_LIKE_PATTERN.test("La nostra rassegna di musica balcanica #RoadToGipsy #LiveMusic #LAltroSpazioBologna"), true);
+  assert.equal(EVENT_LIKE_PATTERN.test("una serata di live music imperdibile"), true);
+});
+
+test("EVENT_LIKE_PATTERN does not match 'live' hidden inside an unrelated word", () => {
+  assert.equal(EVENT_LIKE_PATTERN.test("Oliver ci ha raccontato la sua storia"), false);
+});
+
+test("EVENT_LIKE_PATTERN does not match bare 'live' with no 'music' nearby", () => {
+  assert.equal(EVENT_LIKE_PATTERN.test("guarda la nostra diretta live sui social"), false, "bare 'live' alone is not evidenced as a safe generic signal in this venue's real data — only the 'live music' genre tag is");
+});
+
 // --- Issue 2: cross-network exact-duplicate posts with no extractable date ---
 
 test("groupDuplicates merges an exact-match Facebook/Instagram cross-post even when neither has an extractable date", () => {

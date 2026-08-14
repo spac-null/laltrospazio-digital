@@ -156,7 +156,11 @@ function resolveDateState(sourceRecords, { ambiguousSourceIds, recurringSourceId
   // carry one start/end pair (docs/project/event-schema.md), so this still
   // cannot auto-populate a single start_date and still blocks promotion —
   // but the block reason correctly says "two real dates were found", not
-  // "cannot determine which one applies".
+  // "cannot determine which one applies". Which of those two dates SHOULD
+  // become one/two/N canonical records is an owner decision this system
+  // cannot make: it could be one event spanning both dates, a recurring/
+  // multi-date programme, or genuinely separate events — the text alone
+  // does not say which, so the wording must not prescribe one answer.
   if (shape.shape === "multi_date_event") {
     const [first, second] = shape.dates;
     return {
@@ -164,7 +168,7 @@ function resolveDateState(sourceRecords, { ambiguousSourceIds, recurringSourceId
       startDate: field(
         null,
         "missing",
-        `source text describes two separate genuine event dates joined by "e"/"and" (not an unclear reference): ${first.value} and ${second.value}. Canonical event records only support one start/end pair, so this cannot auto-populate a single date — promote each date as its own event with an explicit --date, or extend the schema before combining them.`,
+        `source text describes two separate genuine event dates joined by "e"/"and" (not an unclear reference): ${first.value} and ${second.value}. Canonical event records only support one start/end pair, so this cannot auto-populate a single date. Which canonical shape this should become — one event spanning both dates, a recurring/multi-date programme, or two separate events — is an owner decision this system cannot make from the text alone; promote with an explicit --date once decided (once per date, if the decision is separate events).`,
       ),
       endDate: field(null, "missing", null),
       recurringInfo,
@@ -273,7 +277,7 @@ export function computeReviewPriority(candidate) {
 function nextOwnerAction(candidate) {
   if (candidate.candidate_type === "operational_notice") return "Review with candidates:show, then promote with --message/--valid-from/--valid-until/--notice-type if genuine.";
   if (candidate.candidate_type === "event") {
-    if (candidate.date_state === "multi_date_event") return "Inspect the source with candidates:show: it names two genuine separate dates (a multi-night programme) — promote each date as its own event with an explicit --date, since one canonical record can only hold a single start/end pair.";
+    if (candidate.date_state === "multi_date_event") return "Inspect the source with candidates:show: it names two genuine separate dates, not an unclear reference. Decide the intended shape — one event spanning both dates, a recurring/multi-date programme, or two separate events — then promote with an explicit --date (once per date, if the decision is separate events); one canonical record can only hold a single start/end pair.";
     if (candidate.date_state === "multiple_event_dates") return "Inspect the source with candidates:show: it lists multiple dates — decide which one applies, then promote with --date (and --time).";
     if (candidate.date_state === "ambiguous_date") return "Inspect the disagreeing sources with candidates:show, then promote with an explicit --date to resolve.";
     if (candidate.missing_fields.length === 1 && candidate.missing_fields[0] === "title") return `Confirm a title${candidate.fields.title_suggestion ? ` (suggestion: "${candidate.fields.title_suggestion.value}")` : ""} and promote with --title.`;

@@ -60,7 +60,7 @@ function buildEventDraft(candidate, flags, now, root) {
   const startDate = resolvedField(candidate.fields.start_date, flags.date, "start date");
   if (startDate.status === "missing") {
     const hint = candidate.date_state === "multi_date_event"
-      ? " (the source describes two separate genuine dates joined by \"e\"/\"and\"; promote each date separately with --date, or extend the schema to support multi-date events)"
+      ? " (the source describes two separate genuine dates joined by \"e\"/\"and\"; decide whether this is one event spanning both dates, a recurring/multi-date programme, or two separate events, then pass --date accordingly — once per date if promoting separate events)"
       : candidate.date_state === "multiple_event_dates" ? " (the source lists multiple dates with no recognized range; pick the correct one)" : "";
     throw new PromotionError([`start date is missing${hint}: pass --date YYYY-MM-DD`]);
   }
