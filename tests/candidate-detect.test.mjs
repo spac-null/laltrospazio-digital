@@ -5,6 +5,7 @@ import {
   classifyCandidateType,
   classifyDateShape,
   classifyTimeRelevance,
+  EVENT_LIKE_PATTERN,
   extractAllDates,
   extractExplicitDate,
   extractExplicitTime,
@@ -235,4 +236,149 @@ test("candidateIdForGroup is deterministic and stable regardless of input order"
   const b = { source_network: "instagram", source_id: "2" };
   assert.equal(candidateIdForGroup([a, b]), candidateIdForGroup([b, a]));
   assert.equal(candidateIdForGroup([a]), "meta-facebook-1");
+});
+
+// --- Issue 1: false event classification from a hashtag substring match ---
+
+test("EVENT_LIKE_PATTERN does not match a keyword hidden inside an unrelated hashtag", () => {
+  const text = "novità di menu: veg melt, mezza tasca #streetfoodbolognese #aperitivoabologna";
+  assert.equal(EVENT_LIKE_PATTERN.test(text), false, "\"aperitivo\" inside the compound hashtag \"aperitivoabologna\" must not count as the standalone word");
+});
+
+test("EVENT_LIKE_PATTERN still matches the same keyword when it is a real standalone word", () => {
+  assert.equal(EVENT_LIKE_PATTERN.test("l'aperitivo giusto è solo da noi"), true);
+  assert.equal(EVENT_LIKE_PATTERN.test("stasera dj set dalle 22"), true);
+});
+
+test("EVENT_LIKE_PATTERN matches this venue's real 'djset'/'DJSet' compound spelling", () => {
+  // Real production captions consistently write it as one glued word
+  // ("Il djset by @massi_electropoprock", "ATOMIC Night DJSet"), not "dj set"
+  // — a plain \bdj\b boundary would wrongly miss every one of these.
+  assert.equal(EVENT_LIKE_PATTERN.test("Il djset by @massi_electropoprock ti farà ballare"), true);
+  assert.equal(EVENT_LIKE_PATTERN.test("ATOMIC Night DJSet RadioAttive Leggende"), true);
+});
+
+test("EVENT_LIKE_PATTERN does not match 'dj' hidden inside an unrelated word like the name 'Django'", () => {
+  assert.equal(EVENT_LIKE_PATTERN.test("i repertori di Django Reinhardt, lo swing americano"), false);
+});
+
+test("classifyCandidateType: a menu/product post is not misclassified as an event merely because a keyword hides inside a hashtag", () => {
+  const result = classifyCandidateType({
+    message_or_caption: "Nuova ossessione da noi: le tasche di chapati.\n\nNovità di menu: Veg Melt, Mezza Tasca.\n\n#streetfoodbolognese #aperitivoabologna",
+    candidate_signals: { event_like: true, notice_like: false, explicit_date: false },
+  });
+  assert.equal(result.type, "menu_or_product");
+});
+
+test("classifyCandidateType: a genuine event keyword used as a real word still classifies as an event", () => {
+  const result = classifyCandidateType({
+    message_or_caption: "Stasera aperitivo e dj set dalle 21:00, vi aspettiamo!",
+    candidate_signals: { event_like: true, notice_like: false, explicit_date: false },
+  });
+  assert.equal(result.type, "event");
+});
+
+// --- Issue 2: cross-network exact-duplicate posts with no extractable date ---
+
+test("groupDuplicates merges an exact-match Facebook/Instagram cross-post even when neither has an extractable date", () => {
+  const shared = "🔊 THE SUB_BAR SHOW #1 🔊\n\nUn evento immersivo su misura, senza data fissa annunciata qui.\n\n#LAltroSpazio";
+  const facebook = { source_network: "facebook", source_id: "fb-1", message_or_caption: shared };
+  const instagram = { source_network: "instagram", source_id: "ig-1", message_or_caption: shared };
+  const groups = groupDuplicates([facebook, instagram], { referenceDate: "2026-08-14" });
+  assert.equal(groups.length, 1, "byte-identical cross-posted captions must merge even with no shared date to key off");
+  assert.deepEqual(groups[0].map((record) => record.source_id).sort(), ["fb-1", "ig-1"]);
+});
+
+test("groupDuplicates still never merges two dateless posts that are merely similar, not identical", () => {
+  const a = { source_network: "facebook", source_id: "fb-1", message_or_caption: "Un evento speciale vi aspetta questo weekend, non mancate per nessun motivo!" };
+  const b = { source_network: "instagram", source_id: "ig-1", message_or_caption: "Un evento speciale vi aspetta questo weekend, ma stavolta con un ospite diverso!" };
+  const groups = groupDuplicates([a, b], { referenceDate: "2026-08-14" });
+  assert.equal(groups.length, 2, "similar-but-not-identical dateless captions must stay separate candidates");
+});
+
+// --- Issue 3: source-relative temporal language ("stasera"/"oggi"/"domani") ---
+
+test("extractAllDates resolves 'stasera' against the record's own anchor date, never today", () => {
+  const results = extractAllDates("Stasera aperitivo e dj set, vi aspettiamo!", { anchorDate: "2025-09-13" });
+  assert.equal(results.length, 1);
+  assert.equal(results[0].value, "2025-09-13");
+  assert.equal(results[0].status, "inferred", "a source-relative reading is inferred, never claimed as an extracted absolute date");
+});
+
+test("extractAllDates resolves 'domani' as the day after the anchor date", () => {
+  const results = extractAllDates("Ci vediamo domani sera per l'evento", { anchorDate: "2025-09-13" });
+  assert.equal(results[0].value, "2025-09-14");
+  assert.equal(results[0].status, "inferred");
+});
+
+test("extractAllDates leaves conflicting relative-day words unresolved rather than guessing", () => {
+  const results = extractAllDates("Oggi prove, domani il grande evento", { anchorDate: "2025-09-13" });
+  assert.equal(results.length, 1);
+  assert.equal(results[0].status, "ambiguous");
+  assert.equal(results[0].value, null);
+});
+
+test("an explicit absolute date takes priority over relative-day language when both are present", () => {
+  const results = extractAllDates("Stasera vi aspettiamo, ma segnatevi già il 20/09/2026 per il prossimo", { anchorDate: "2025-09-13" });
+  assert.equal(results.length, 1, "the absolute date wins; 'stasera' is only a fallback when no absolute date is found at all");
+  assert.equal(results[0].status, "extracted");
+  assert.equal(results[0].value, "2026-09-20");
+});
+
+// --- Issue 4: Capodanno / San Silvestro year-boundary idiom ---
+
+test("classifyDateShape resolves 'Capodanno YYYY' to the New Year's Eve night range, not a guess", () => {
+  const shape = classifyDateShape("Capodanno 2025 al L'Altro Spazio, festeggia con noi! #Capodanno2025");
+  assert.equal(shape.shape, "range");
+  assert.equal(shape.dates.length, 2);
+  assert.equal(shape.dates[0].value, "2024-12-31");
+  assert.equal(shape.dates[0].status, "inferred");
+  assert.equal(shape.dates[1].value, "2025-01-01");
+  assert.equal(shape.dates[1].status, "inferred");
+});
+
+test("classifyDateShape resolves the 'San Silvestro YYYY' synonym the same way", () => {
+  const shape = classifyDateShape("San Silvestro 2027: prenota il tuo tavolo!");
+  assert.equal(shape.shape, "range");
+  assert.equal(shape.dates[0].value, "2026-12-31");
+  assert.equal(shape.dates[1].value, "2027-01-01");
+});
+
+test("'Capodanno' with no year stated is left undated rather than guessed", () => {
+  const shape = classifyDateShape("Festeggia Capodanno con noi, dettagli in arrivo!");
+  assert.equal(shape.shape, "none");
+});
+
+// --- Issue 5a: the same date restated in two formats is ONE date, not two ---
+
+test("classifyDateShape: a weekday-implied date and an explicit-year restatement of the SAME day collapse to a single date", () => {
+  // Real pattern: "Sabato 21 marzo ... 📅 21 marzo 2026" — the same calendar
+  // day stated twice in different formats must not be miscounted as
+  // "multiple_event_dates".
+  const shape = classifyDateShape("Sabato 21 marzo si suona live! 📅 21 marzo 2026 🕙 Ore 22:00", { anchorDate: "2026-03-18" });
+  assert.equal(shape.shape, "single");
+  assert.equal(shape.dates.length, 1);
+  assert.equal(shape.dates[0].value, "2026-03-21");
+  assert.equal(shape.dates[0].status, "extracted", "the explicit-year mention is the stronger provenance and must win over the weekday-implied inference of the same day");
+});
+
+// --- Issue 5b: two genuinely different joined dates are a distinct, non-ambiguous shape ---
+
+test("classifyDateShape: two dates joined by 'e' (and an intervening weekday) are 'multi_date_event', not an unclear list", () => {
+  const shape = classifyDateShape("Venerdì 31 ottobre e sabato 1 novembre, due notti di festa!", { anchorDate: "2025-10-30" });
+  assert.equal(shape.shape, "multi_date_event");
+  assert.equal(shape.dates.length, 2);
+  assert.equal(shape.dates[0].value, "2025-10-31");
+  assert.equal(shape.dates[1].value, "2025-11-01");
+});
+
+test("classifyDateShape: three or more unconnected dates remain 'list' (multiple_event_dates), not multi_date_event", () => {
+  const shape = classifyDateShape("Aperitivo il 04/09/2026, il 11/09/2026, il 18/09/2026 e il 25/09/2026, tutti i venerdì di settembre", { referenceDate: "2026-08-14" });
+  assert.equal(shape.shape, "list");
+  assert.equal(shape.dates.length, 4);
+});
+
+test("classifyDateShape: two dates with unrelated text in between (no direct conjunction) remain 'list', not multi_date_event", () => {
+  const shape = classifyDateShape("Il primo incontro è il 04/09/2026. Per qualsiasi domanda scriveteci. Il secondo incontro è il 11/09/2026.", { referenceDate: "2026-08-14" });
+  assert.equal(shape.shape, "list");
 });

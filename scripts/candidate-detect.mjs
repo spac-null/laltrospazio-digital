@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 export const CANDIDATE_TYPES = ["event", "operational_notice", "art_or_exhibition", "menu_or_product", "venue_generic", "irrelevant", "unknown"];
 export const TIME_RELEVANCE = ["past", "near_term", "upcoming", "future_distant", "recurring_or_multi_date", "ambiguous", "undated"];
-export const DATE_STATES = ["single_explicit_date", "explicit_date_range", "multiple_event_dates", "ambiguous_date", "conflicting_sources", "undated"];
+export const DATE_STATES = ["single_explicit_date", "explicit_date_range", "multi_date_event", "multiple_event_dates", "ambiguous_date", "conflicting_sources", "undated"];
 
 const MONTHS_IT = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
 
@@ -25,15 +25,33 @@ function weekdayIndexOf(dateStr) {
   return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
 }
 
-function extractStatedWeekdayIndex(text) {
-  if (!text) return null;
+// Finds the weekday name occurrence CLOSEST (in either direction) to a given
+// date match's position. A caption naming two different dates each with its
+// own weekday ("Venerdì 31 ottobre e sabato 1 novembre") must resolve each
+// date against the weekday actually adjacent to IT, not against whichever
+// weekday happens to appear first anywhere in the whole text.
+function nearestWeekdayIndex(text, matchIndex) {
   const normalized = text.toLowerCase();
+  let bestIndex = null;
+  let bestDistance = Infinity;
   for (let index = 0; index < WEEKDAYS_IT.length; index += 1) {
     const withAccent = WEEKDAYS_IT[index];
     const noAccent = withAccent.replace(/ì/g, "i");
-    if (normalized.includes(withAccent) || normalized.includes(noAccent)) return index;
+    for (const form of [withAccent, noAccent]) {
+      let searchFrom = 0;
+      let pos = normalized.indexOf(form, searchFrom);
+      while (pos !== -1) {
+        const distance = Math.abs(pos - matchIndex);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIndex = index;
+        }
+        searchFrom = pos + form.length;
+        pos = normalized.indexOf(form, searchFrom);
+      }
+    }
   }
-  return null;
+  return bestIndex;
 }
 
 // Anchors a bare (yearless) day/month to the calendar year temporally
@@ -81,16 +99,31 @@ function resolveAnchoredYear(day, month, anchorDateStr, statedWeekdayIndex) {
 // - If the year cannot be safely resolved (weekday mismatch, or a genuine
 //   tie with no weekday stated), the match yields status "ambiguous" with a
 //   null value rather than a guess.
+const DATE_STATUS_RANK = { extracted: 2, inferred: 1, ambiguous: 0 };
+
 export function extractAllDates(text, { anchorDate, referenceDate } = {}) {
   if (!text) return [];
   const anchor = anchorDate ?? referenceDate ?? new Date().toISOString().slice(0, 10);
-  const statedWeekdayIndex = extractStatedWeekdayIndex(text);
   const claimed = [];
   const results = [];
 
+  // The SAME calendar date is often stated twice in one post, in different
+  // formats (e.g. a weekday-implied "Sabato 21 marzo" earlier, and an
+  // explicit-year "21 marzo 2026" later in the same caption). That is ONE
+  // distinct date, not two — collapsing by value (keeping whichever mention
+  // has the strongest/most-authoritative status) prevents a single-date post
+  // from being miscounted as "multiple_event_dates" merely because it
+  // restates its own date in a second format.
   function record(value, status, evidence, start, end) {
     claimed.push([start, end]);
-    if (!results.some((existing) => existing.value === value && existing.status === status)) results.push({ value, status, evidence });
+    const existingIndex = results.findIndex((existing) => existing.value === value);
+    if (existingIndex === -1) {
+      results.push({ value, status, evidence, start, end });
+      return;
+    }
+    if (DATE_STATUS_RANK[status] > DATE_STATUS_RANK[results[existingIndex].status]) {
+      results[existingIndex] = { value, status, evidence, start, end };
+    }
   }
 
   for (const match of text.matchAll(/\b(20\d{2})[-/](\d{1,2})[-/](\d{1,2})\b/g)) {
@@ -113,7 +146,7 @@ export function extractAllDates(text, { anchorDate, referenceDate } = {}) {
     if (year) {
       record(`${year}-${pad2(month)}-${pad2(day)}`, "extracted", raw, match.index, match.index + raw.length);
     } else {
-      const resolved = resolveAnchoredYear(Number(day), month, anchor, statedWeekdayIndex);
+      const resolved = resolveAnchoredYear(Number(day), month, anchor, nearestWeekdayIndex(text, match.index));
       record(resolved, resolved ? "inferred" : "ambiguous", raw, match.index, match.index + raw.length);
     }
   }
@@ -122,12 +155,62 @@ export function extractAllDates(text, { anchorDate, referenceDate } = {}) {
     const [raw, day, month] = match;
     if (dateRangeOverlaps(claimed, match.index, match.index + raw.length)) continue;
     if (validDayMonth(Number(day), Number(month))) {
-      const resolved = resolveAnchoredYear(Number(day), Number(month), anchor, statedWeekdayIndex);
+      const resolved = resolveAnchoredYear(Number(day), Number(month), anchor, nearestWeekdayIndex(text, match.index));
       record(resolved, resolved ? "inferred" : "ambiguous", raw, match.index, match.index + raw.length);
     }
   }
 
+  // Fallback only: no absolute date-shaped token was found at all, but the
+  // text may still state an explicit SOURCE-RELATIVE day word ("stasera",
+  // "oggi", "domani"). Resolved against this record's own anchor date
+  // (its source_timestamp's local calendar date) — never against "today"
+  // when this pipeline happens to run — and always "inferred" (the absolute
+  // date is derived from relative language + the post's own timestamp, not
+  // literally stated in the source).
+  if (results.length === 0) {
+    for (const relative of extractRelativeDate(text, anchor)) {
+      record(relative.value, relative.status, relative.evidence, relative.start, relative.end);
+    }
+  }
+
   return results;
+}
+
+const RELATIVE_DAY_OFFSETS_IT = { oggi: 0, stasera: 0, stanotte: 0, domani: 1 };
+const RELATIVE_DAY_PATTERN = new RegExp(`\\b(${Object.keys(RELATIVE_DAY_OFFSETS_IT).join("|")})\\b`, "gi");
+
+function addDaysToDateStr(dateStr, days) {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + days);
+  return `${date.getUTCFullYear()}-${pad2(date.getUTCMonth() + 1)}-${pad2(date.getUTCDate())}`;
+}
+
+// Resolves an explicit source-relative day word against `anchorDate` (the
+// record's own source-timestamp-derived local date). Only used when no
+// absolute date-shaped token exists at all. If more than one DISTINCT
+// relative meaning is referenced (e.g. both "oggi" and "domani" in the same
+// post), the reading is left unresolved rather than guessed which one the
+// post's own date field should use.
+function extractRelativeDate(text, anchorDate) {
+  if (!text || !anchorDate) return [];
+  const matches = [...text.matchAll(RELATIVE_DAY_PATTERN)];
+  if (matches.length === 0) return [];
+  const distinctOffsets = new Set(matches.map((match) => RELATIVE_DAY_OFFSETS_IT[match[1].toLowerCase()]));
+  if (distinctOffsets.size > 1) {
+    const [first] = matches;
+    return [{ value: null, status: "ambiguous", evidence: matches.map((match) => match[1]).join(", "), start: first.index, end: first.index + first[0].length }];
+  }
+  const [offset] = distinctOffsets;
+  const [first] = matches;
+  const value = addDaysToDateStr(anchorDate, offset);
+  return [{
+    value,
+    status: "inferred",
+    evidence: `"${first[1]}" resolved relative to this post's own timestamp (${anchorDate}); not an absolute date stated in the source`,
+    start: first.index,
+    end: first.index + first[0].length,
+  }];
 }
 
 // Convenience wrapper for callers that only want the first/primary date.
@@ -138,6 +221,43 @@ export function extractExplicitDate(text, { anchorDate, referenceDate } = {}) {
 
 const RANGE_CONNECTOR_PATTERN = /\bdal\b[\s\S]{0,40}\bal\b|\bda\b[\s\S]{0,25}\ba\b[\s\S]{0,5}(?:20\d{2}|\d{1,2}[./-]|gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)/i;
 
+// "Capodanno 2025" / "San Silvestro 2025" is a fixed, unambiguous Italian
+// idiom for the New Year's Eve night: it always spans 31 December of the
+// PREVIOUS year into 1 January of the STATED year. This is a calendar fact,
+// not a guess — the year is read directly from the source text, and the
+// resulting dates are "inferred" (derived from the idiom + stated year, not
+// literally spelled out as "31 dicembre"/"1 gennaio" in the source).
+const YEAR_BOUNDARY_PATTERN = /\b(?:capodanno|san silvestro)\s*(\d{4})\b/i;
+
+function extractYearBoundaryRange(text) {
+  if (!text) return null;
+  const match = text.match(YEAR_BOUNDARY_PATTERN);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const evidence = match[0].trim();
+  return {
+    shape: "range",
+    dates: [
+      { value: `${year - 1}-12-31`, status: "inferred", evidence: `"${evidence}" — New Year's Eve idiom: the night begins 31 December ${year - 1}` },
+      { value: `${year}-01-01`, status: "inferred", evidence: `"${evidence}" — New Year's Eve idiom: the night ends 1 January ${year}` },
+    ],
+  };
+}
+
+const WEEKDAY_ALTERNATION = WEEKDAYS_IT.flatMap((weekday) => [weekday, weekday.replace(/ì/g, "i")]).join("|");
+// The gap between two date matches contains nothing but a joining word (and
+// optionally a weekday name) — e.g. "31 ottobre e sabato 1 novembre". This is
+// deliberately narrow: it only fires on the exact textual shape of two dates
+// directly joined by "e"/"ed"/"&"/",", never on loose textual similarity.
+const CONJUNCTION_GAP_PATTERN = new RegExp(`^\\s*(?:e|ed|&|,)\\s*(?:${WEEKDAY_ALTERNATION})?\\s*$`, "i");
+
+function isJoinedDatePair(text, resolved) {
+  if (resolved.length !== 2) return false;
+  const [a, b] = resolved[0].start <= resolved[1].start ? resolved : [resolved[1], resolved[0]];
+  if (a.end == null || b.start == null || b.start < a.end) return false;
+  return CONJUNCTION_GAP_PATTERN.test(text.slice(a.end, b.start));
+}
+
 // Classifies what a SINGLE record's own text implies about its date(s):
 // - "ambiguous": at least one date-shaped match could not be safely
 //   resolved to a year (weekday mismatch or a genuine tie) — never
@@ -146,18 +266,29 @@ const RANGE_CONNECTOR_PATTERN = /\bdal\b[\s\S]{0,40}\bal\b|\bda\b[\s\S]{0,25}\ba
 // - "none": no date-shaped text at all.
 // - "single": exactly one distinct resolved date.
 // - "range": exactly two dates joined by an explicit "dal...al..."/"da...a..."
-//   range connector — e.g. an exhibition or closure spanning several days.
-//   Not ambiguous: the two dates are start and end of one known span.
-// - "list": two or more dates with no recognized range connector — e.g. a
-//   programme listing several separate occasions. We cannot deterministically
-//   pick a single date for a "list" shape.
+//   range connector, or the fixed Capodanno/San Silvestro year-boundary
+//   idiom — e.g. an exhibition or closure (or a New Year's Eve night)
+//   spanning a known start/end. Not ambiguous: the two dates are the start
+//   and end of one known span.
+// - "multi_date_event": exactly two dates directly joined by "e"/"ed"/"&"/","
+//   (optionally with a weekday in between) — e.g. "venerdì 31 ottobre e
+//   sabato 1 novembre". This is a genuine multi-night programme with two
+//   real, known dates, NOT an unresolved ambiguity — but it is still not a
+//   single date, so it is tracked distinctly from "list".
+// - "list": two or more dates with no recognized range/conjunction shape —
+//   e.g. a programme listing several separate occasions with no connector.
+//   We cannot deterministically pick a single date for a "list" shape.
 export function classifyDateShape(text, { anchorDate, referenceDate } = {}) {
+  const yearBoundary = extractYearBoundaryRange(text);
+  if (yearBoundary) return yearBoundary;
+
   const dates = extractAllDates(text, { anchorDate, referenceDate });
   if (dates.some((entry) => entry.status === "ambiguous")) return { shape: "ambiguous", dates };
   const resolved = dates.filter((entry) => entry.value !== null);
   if (resolved.length === 0) return { shape: "none", dates: resolved };
   if (resolved.length === 1) return { shape: "single", dates: resolved };
   if (resolved.length === 2 && RANGE_CONNECTOR_PATTERN.test(text ?? "")) return { shape: "range", dates: resolved };
+  if (resolved.length === 2 && isJoinedDatePair(text, resolved)) return { shape: "multi_date_event", dates: resolved };
   return { shape: "list", dates: resolved };
 }
 
@@ -190,6 +321,16 @@ export function extractExplicitTime(text) {
 const ART_PATTERN = /mostra|vernissage|esposizione|inaugurazione|opening|galleria/i;
 const MENU_PATTERN = /men[uù]|piatto del giorno|menu del giorno|carta dei vini/i;
 
+// Single source of truth for the "event_like" keyword set, shared with
+// feeders/meta/normalize.mjs. Word-bounded: these are whole Italian nouns, so
+// a compound hashtag like "#aperitivoabologna" must not trip "aperitivo" —
+// only a standalone occurrence of the word counts. "dj" is a special case:
+// this venue's own captions routinely write it glued to "set" as one token
+// ("djset"/"DJSet"), which is a real, deliberate spelling, not an accident —
+// so "dj" alone OR "djset" both count, while still refusing to match "dj"
+// merely as a substring of an unrelated word (e.g. the name "Django").
+export const EVENT_LIKE_PATTERN = /\b(?:concerto|evento|serata|laboratorio|aperitivo|dj(?:set)?|mostra|incontro)\b/i;
+
 // Deterministic, explainable classification only. No LLM, no fuzzy scoring:
 // a fixed priority order over the already-deterministic candidate_signals
 // plus two additional keyword sets. Reasons list exactly which rule matched.
@@ -207,8 +348,15 @@ export function classifyCandidateType(record) {
     return { type: "operational_notice", reasons };
   }
 
-  if (signals.event_like) {
-    reasons.push("candidate_signals.event_like matched (event-format keyword)");
+  // The stored candidate_signals.event_like hint is an ingest-time regex
+  // over the whole caption, including hashtags. Re-checking the same
+  // keyword set with word boundaries against the live text is a strictly
+  // narrower filter (it can only turn a stored true into false, never the
+  // reverse), so this only removes false positives — e.g. a compound
+  // hashtag like "#aperitivoabologna" on an otherwise unrelated menu post —
+  // and can never introduce a new one.
+  if (signals.event_like && EVENT_LIKE_PATTERN.test(text)) {
+    reasons.push("candidate_signals.event_like matched (event-format keyword) and confirmed as a standalone word in the caption");
     return { type: "event", reasons };
   }
 
@@ -316,11 +464,15 @@ function anchorForRecord(record, referenceDate, timezone) {
 }
 
 // Deterministic, threshold-based duplicate assistance (no probabilistic
-// model): two records are grouped only if they share the same extracted
-// explicit date AND their normalized caption token sets overlap at or above
-// DEDUP_JACCARD_THRESHOLD. Records without a shared explicit date are never
-// merged, even if the text is similar, to avoid false grouping across
-// unrelated posts that happen to share generic phrasing.
+// model): two records are grouped when EITHER (a) their raw captions are a
+// byte-for-byte exact match (case/whitespace-insensitive) — safe regardless
+// of whether a date was extracted, since identical text can carry no
+// conflicting date digits — OR (b) they share the same extracted explicit
+// date AND their normalized caption token sets overlap at or above
+// DEDUP_JACCARD_THRESHOLD. Records with neither an exact match nor a shared
+// explicit date are never merged, even if the text is similar, to avoid
+// false grouping across unrelated posts that happen to share generic
+// phrasing.
 export function groupDuplicates(records, { referenceDate, timezone = "Europe/Rome" } = {}) {
   const withMeta = records.map((record) => ({
     record,
@@ -335,17 +487,16 @@ export function groupDuplicates(records, { referenceDate, timezone = "Europe/Rom
     if (assigned.has(i)) continue;
     const group = [i];
     assigned.add(i);
-    if (withMeta[i].date) {
-      for (let j = i + 1; j < withMeta.length; j += 1) {
-        if (assigned.has(j)) continue;
-        if (withMeta[j].date !== withMeta[i].date) continue;
+    for (let j = i + 1; j < withMeta.length; j += 1) {
+      if (assigned.has(j)) continue;
+      const exactMatch = exactCaptionMatch(withMeta[i].record.message_or_caption, withMeta[j].record.message_or_caption);
+      if (!exactMatch) {
+        if (!withMeta[i].date || withMeta[j].date !== withMeta[i].date) continue;
         const similarity = jaccard(withMeta[i].tokens, withMeta[j].tokens);
-        const exactMatch = exactCaptionMatch(withMeta[i].record.message_or_caption, withMeta[j].record.message_or_caption);
-        if (similarity >= DEDUP_JACCARD_THRESHOLD || exactMatch) {
-          group.push(j);
-          assigned.add(j);
-        }
+        if (similarity < DEDUP_JACCARD_THRESHOLD) continue;
       }
+      group.push(j);
+      assigned.add(j);
     }
     groups.push(group.map((index) => withMeta[index].record));
   }

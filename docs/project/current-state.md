@@ -145,6 +145,32 @@ Last updated: 2026-08-14
   `inferred` and blocking without an explicit `--location` override. Detail
   and the corrected real-data numbers are in
   `docs/project/meta-integration-plan.md`.
+- A follow-up queue-quality pass (local branch
+  `feature/candidate-queue-quality-pass`, not merged/pushed) fixed five
+  deterministic weaknesses found by inspecting the real 12-item default
+  review queue, without weakening any publication-safety gate: (1)
+  `event_like` classification is word-bounded (a compound hashtag like
+  `#aperitivoabologna` no longer falsely triggers "event" over a menu post),
+  with a `dj(?:set)?` exception since this venue genuinely spells it as one
+  word; (2) `groupDuplicates` now merges an exact byte-for-byte
+  cross-network duplicate even when neither side has an extractable date
+  (previously only same-date duplicates could merge); (3) explicit
+  source-relative words ("stasera"/"oggi"/"domani") resolve against the
+  record's own `source_timestamp`, always `inferred`, never `extracted`;
+  (4) the fixed Italian idiom "Capodanno YYYY"/"San Silvestro YYYY" resolves
+  to the 31-Dec/1-Jan `explicit_date_range`; (5) the same date restated
+  twice in one caption (e.g. a weekday-implied mention plus an explicit-year
+  mention) collapses to one `single_explicit_date` instead of a false
+  `multiple_event_dates`, and a genuine two-night programme joined by
+  "e"/"and" is now its own `multi_date_event` date_state — still blocked
+  from promotion (canonical event records only hold one start/end pair) but
+  no longer described as an unclear reference. Against the same real 200
+  source records, the default review queue fell from 12 to 5 items (4
+  dropped for deterministic reasons — reclassified, or now correctly dated
+  into the past — and 3 pairs merged as genuine cross-network duplicates);
+  179/179 tests pass, build passes, focused lint is clean, and all 134 real
+  candidates still render through `candidates:show`. No candidate was
+  promoted and no D1/Worker/Cron/content change was made.
 - Real-event proof preparation is implemented in `scripts/candidate-lib.mjs`
   and `scripts/create-event-candidate.mjs`. Candidates are stored separately
   under `content/candidates/`, require owner confirmation, and cannot publish

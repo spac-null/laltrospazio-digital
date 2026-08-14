@@ -82,7 +82,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       `By priority: high=${summary.by_priority.high} medium=${summary.by_priority.medium} low=${summary.by_priority.low}`,
       `By time relevance: past=${summary.by_time_relevance.past} near_term=${summary.by_time_relevance.near_term} upcoming=${summary.by_time_relevance.upcoming} future_distant=${summary.by_time_relevance.future_distant} recurring_or_multi_date=${summary.by_time_relevance.recurring_or_multi_date} ambiguous=${summary.by_time_relevance.ambiguous} undated=${summary.by_time_relevance.undated}`,
       `Title suggestions available: ${summary.title_suggestions}`,
-      `Ambiguous-date: ${summary.ambiguous_date_count} | Multiple-event-dates: ${summary.multiple_event_dates_count} | Recurring/multi-date: ${summary.recurring_or_multi_date_count}`,
+      `Ambiguous-date: ${summary.ambiguous_date_count} | Multiple-event-dates: ${summary.multiple_event_dates_count} | Multi-date-event: ${summary.multi_date_event_count} | Recurring/multi-date: ${summary.recurring_or_multi_date_count}`,
       `Promotion-ready: ${summary.promotion_ready} | Blocked: ${summary.promotion_blocked} (blocked only by title: ${summary.blocked_only_by_title})`,
       `Private output: ${CANDIDATE_REVIEW_JSON}, ${CANDIDATE_REVIEW_MARKDOWN}`,
       "No candidate was promoted or written to canonical content by this command.",

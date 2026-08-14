@@ -150,6 +150,27 @@ function resolveDateState(sourceRecords, { ambiguousSourceIds, recurringSourceId
     };
   }
 
+  // Two dates directly joined by "e"/"ed"/"&"/"," (e.g. "venerdì 31 ottobre e
+  // sabato 1 novembre") are a genuine two-night programme with two real,
+  // known dates — not an unresolved ambiguity. Canonical event records only
+  // carry one start/end pair (docs/project/event-schema.md), so this still
+  // cannot auto-populate a single start_date and still blocks promotion —
+  // but the block reason correctly says "two real dates were found", not
+  // "cannot determine which one applies".
+  if (shape.shape === "multi_date_event") {
+    const [first, second] = shape.dates;
+    return {
+      dateState: "multi_date_event",
+      startDate: field(
+        null,
+        "missing",
+        `source text describes two separate genuine event dates joined by "e"/"and" (not an unclear reference): ${first.value} and ${second.value}. Canonical event records only support one start/end pair, so this cannot auto-populate a single date — promote each date as its own event with an explicit --date, or extend the schema before combining them.`,
+      ),
+      endDate: field(null, "missing", null),
+      recurringInfo,
+    };
+  }
+
   if (shape.shape === "list") {
     return {
       dateState: "multiple_event_dates",
@@ -237,7 +258,8 @@ export function computeReviewPriority(candidate) {
 
   if (isEventOrNotice) {
     const why = [`${candidate.candidate_type} signal present`];
-    if (["multiple_event_dates", "ambiguous_date", "conflicting_sources"].includes(candidate.date_state)) why.push(`date_state is "${candidate.date_state}", needs clarification`);
+    if (candidate.date_state === "multi_date_event") why.push("date_state is \"multi_date_event\" — two genuine separate dates found, not an unclear reference");
+    else if (["multiple_event_dates", "ambiguous_date", "conflicting_sources"].includes(candidate.date_state)) why.push(`date_state is "${candidate.date_state}", needs clarification`);
     if (candidate.time_relevance === "future_distant") why.push("date is more than 60 days out");
     if (candidate.time_relevance === "recurring_or_multi_date") why.push(`part of a likely recurring series (${candidate.recurring_series?.cluster_size ?? "?"} related posts found)`);
     if (substantiveMissing.length) why.push(`missing substantive field(s): ${substantiveMissing.join(", ")}`);
@@ -251,6 +273,7 @@ export function computeReviewPriority(candidate) {
 function nextOwnerAction(candidate) {
   if (candidate.candidate_type === "operational_notice") return "Review with candidates:show, then promote with --message/--valid-from/--valid-until/--notice-type if genuine.";
   if (candidate.candidate_type === "event") {
+    if (candidate.date_state === "multi_date_event") return "Inspect the source with candidates:show: it names two genuine separate dates (a multi-night programme) — promote each date as its own event with an explicit --date, since one canonical record can only hold a single start/end pair.";
     if (candidate.date_state === "multiple_event_dates") return "Inspect the source with candidates:show: it lists multiple dates — decide which one applies, then promote with --date (and --time).";
     if (candidate.date_state === "ambiguous_date") return "Inspect the disagreeing sources with candidates:show, then promote with an explicit --date to resolve.";
     if (candidate.missing_fields.length === 1 && candidate.missing_fields[0] === "title") return `Confirm a title${candidate.fields.title_suggestion ? ` (suggestion: "${candidate.fields.title_suggestion.value}")` : ""} and promote with --title.`;
@@ -339,6 +362,7 @@ export function buildCandidates(rawRecords, { now = new Date(), timezone = VENUE
     title_suggestions: candidates.filter((candidate) => candidate.fields.title_suggestion).length,
     ambiguous_date_count: candidates.filter((candidate) => candidate.date_state === "ambiguous_date").length,
     multiple_event_dates_count: candidates.filter((candidate) => candidate.date_state === "multiple_event_dates").length,
+    multi_date_event_count: candidates.filter((candidate) => candidate.date_state === "multi_date_event").length,
     recurring_or_multi_date_count: candidates.filter((candidate) => Boolean(candidate.recurring_series)).length,
     generated_at: now.toISOString(),
   };
@@ -425,7 +449,7 @@ export function renderReviewMarkdown({ candidates, summary }, { includePast = fa
     `By priority: high=${summary.by_priority.high} medium=${summary.by_priority.medium} low=${summary.by_priority.low}`,
     `By time relevance: past=${summary.by_time_relevance.past} near_term=${summary.by_time_relevance.near_term} upcoming=${summary.by_time_relevance.upcoming} future_distant=${summary.by_time_relevance.future_distant} recurring_or_multi_date=${summary.by_time_relevance.recurring_or_multi_date} ambiguous=${summary.by_time_relevance.ambiguous} undated=${summary.by_time_relevance.undated}`,
     `Title suggestions available: ${summary.title_suggestions}`,
-    `Ambiguous-date count: ${summary.ambiguous_date_count} | Multiple-event-dates count: ${summary.multiple_event_dates_count} | Recurring/multi-date count: ${summary.recurring_or_multi_date_count}`,
+    `Ambiguous-date count: ${summary.ambiguous_date_count} | Multiple-event-dates count: ${summary.multiple_event_dates_count} | Multi-date-event count: ${summary.multi_date_event_count} | Recurring/multi-date count: ${summary.recurring_or_multi_date_count}`,
     `Promotion-ready: ${summary.promotion_ready} | Blocked: ${summary.promotion_blocked} (of which blocked only by title confirmation: ${summary.blocked_only_by_title})`,
     "",
     includePast ? "Showing all candidates, including past." : "Past candidates are hidden by default (pass --all to candidates:list to see them).",

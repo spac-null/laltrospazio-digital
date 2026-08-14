@@ -1,12 +1,20 @@
 import { META_ASSETS } from "./client.mjs";
 import { makeFeederHealth } from "../../scripts/feeder-health.mjs";
+import { EVENT_LIKE_PATTERN } from "../../scripts/candidate-detect.mjs";
 
 const signalText = (record) => `${record.caption ?? ""} ${record.message ?? ""}`.toLowerCase();
 
+// event_like reuses the single shared, word-bounded pattern from
+// scripts/candidate-detect.mjs so ingest-time signals and review-time
+// classification can never drift apart: a hashtag like "#aperitivoabologna"
+// contains the substring "aperitivo" but is not the standalone word, and
+// must not trigger a false event classification for an otherwise unrelated
+// post (e.g. a menu/product announcement whose hashtags happen to end with
+// something like "...bolognafood...aperitivoabologna").
 function candidateSignals(record) {
   const text = signalText(record);
   return {
-    event_like: /concerto|evento|serata|laboratorio|aperitivo|dj|mostra|incontro/.test(text),
+    event_like: EVENT_LIKE_PATTERN.test(text),
     notice_like: /chius|riapert|pausa|orari|sold.?out|annull|posticip/.test(text),
     explicit_date: /\b(?:20\d{2}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[./-]\d{1,2}(?:[./-]\d{2,4})?)\b/.test(text),
   };

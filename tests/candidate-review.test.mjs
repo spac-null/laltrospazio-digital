@@ -172,7 +172,7 @@ test("regression: a yearless date is anchored to the post's own source_timestamp
       network: "facebook",
       source_id: "fb-6ad6",
       source_timestamp: "2025-09-28T07:00:53+0000",
-      message_or_caption: "Lunedì 29 settembre – ore 19.00",
+      message_or_caption: "Lunedì 29 settembre – ore 19.00, vi aspettiamo per la nostra serata",
       candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }),
     }),
     d1Row({
@@ -180,7 +180,7 @@ test("regression: a yearless date is anchored to the post's own source_timestamp
       source_id: "ig-6ad6",
       source_account_id: "17841402902868891",
       source_timestamp: "2025-09-28T07:01:06+0000",
-      message_or_caption: "Lunedì 29 settembre – ore 19.00",
+      message_or_caption: "Lunedì 29 settembre – ore 19.00, vi aspettiamo per la nostra serata",
       candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }),
     }),
   ];
@@ -196,7 +196,7 @@ test("regression: a yearless date is anchored to the post's own source_timestamp
 test("location is EXTRACTED (not merely contextual) when the caption explicitly restates the venue name/address", () => {
   const rows = [d1Row({
     source_timestamp: "2025-09-28T07:00:53+0000",
-    message_or_caption: "Lunedì 29 settembre – ore 19.00\nL’Altro Spazio – Via Nazario Sauro 24/F, Bologna",
+    message_or_caption: "Lunedì 29 settembre – ore 19.00, vi aspettiamo per la nostra serata\nL’Altro Spazio – Via Nazario Sauro 24/F, Bologna",
     candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }),
   })];
   const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
@@ -294,6 +294,91 @@ test("candidates:refresh alone never writes to content/events or content/notices
   assert.equal(fs.existsSync(mdPath), true);
   assert.equal(result.summary.total_source_records, 1);
   assert.equal(fs.statSync(jsonPath).mode & 0o777, 0o600);
+});
+
+test("a menu/product post is not misclassified as an event by a keyword hidden inside a hashtag (issue 1)", () => {
+  const rows = [d1Row({
+    message_or_caption: "Nuova ossessione: le tasche di chapati.\n\nNovità di menu: Veg Melt, Mezza Tasca.\n\n#streetfoodbolognese #aperitivoabologna",
+    candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: false }),
+  })];
+  const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
+  assert.equal(candidates[0].candidate_type, "menu_or_product");
+  assert.equal(candidates[0].promotion_readiness, "not_applicable");
+});
+
+test("an exact-duplicate Facebook/Instagram post with no extractable date is grouped into one candidate (issue 2)", () => {
+  const shared = "🔊 THE SUB_BAR SHOW #1 🔊\n\nUn evento immersivo, senza data fissa annunciata qui.\n\n#LAltroSpazio";
+  const rows = [
+    d1Row({ network: "facebook", source_id: "fb-subbar", message_or_caption: shared, candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: false }) }),
+    d1Row({ network: "instagram", source_id: "ig-subbar", source_account_id: "17841402902868891", message_or_caption: shared, candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: false }) }),
+  ];
+  const { candidates, summary } = buildCandidates(rows.map(fromD1Row), { now: NOW });
+  assert.equal(candidates.length, 1);
+  assert.equal(candidates[0].sources.length, 2);
+  assert.equal(summary.duplicate_groups, 1);
+});
+
+test("'stasera' is resolved against the record's own source_timestamp, reducing an undated block to an inferred date (issue 3)", () => {
+  const rows = [d1Row({
+    source_timestamp: "2025-09-13T06:01:02+0000",
+    message_or_caption: "Stasera\nOre 19:00\nAperitivo e DJ Set Live",
+    candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: false }),
+  })];
+  const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
+  const [candidate] = candidates;
+  assert.equal(candidate.date_state, "single_explicit_date");
+  assert.equal(candidate.fields.start_date.value, "2025-09-13");
+  assert.equal(candidate.fields.start_date.status, "inferred");
+  assert.equal(candidate.inferred_fields.includes("start_date"), true);
+  assert.equal(candidate.time_relevance, "past", "2025-09-13 is long past relative to NOW (2026-08-14)");
+  // Still requires explicit owner confirmation before promotion — reducing
+  // owner friction must never mean auto-publishing a guessed date.
+  assert.equal(candidate.promotion_readiness, "blocked");
+});
+
+test("'Capodanno YYYY' resolves to an explicit_date_range, still blocked pending owner confirmation (issue 4)", () => {
+  const rows = [d1Row({
+    source_timestamp: "2024-12-24T18:53:31+0000",
+    message_or_caption: "Capodanno 2025 al nostro locale: una serata unica, dalle 23:30 alle 3:30! #Capodanno2025",
+    candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: false }),
+  })];
+  const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
+  const [candidate] = candidates;
+  assert.equal(candidate.date_state, "explicit_date_range");
+  assert.equal(candidate.fields.start_date.value, "2024-12-31");
+  assert.equal(candidate.fields.end_date.value, "2025-01-01");
+  assert.equal(candidate.fields.start_date.status, "inferred");
+  assert.equal(candidate.time_relevance, "past");
+  assert.equal(candidate.promotion_readiness, "blocked");
+});
+
+test("the same date restated twice (weekday-implied then explicit-year) is a single_explicit_date, not multiple_event_dates (issue 5a)", () => {
+  const rows = [d1Row({
+    source_timestamp: "2026-03-18T19:06:28+0000",
+    message_or_caption: "Sabato 21 marzo si suona live con Induo Band! Una serata di energia pura. 📅 21 marzo 2026 🕙 Ore 22:00",
+    candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }),
+  })];
+  const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
+  const [candidate] = candidates;
+  assert.equal(candidate.date_state, "single_explicit_date");
+  assert.equal(candidate.fields.start_date.value, "2026-03-21");
+  assert.equal(candidate.fields.start_date.status, "extracted");
+  assert.deepEqual(candidate.missing_fields, ["title"], "the date is now fully resolved; only the always-required title remains");
+});
+
+test("two dates joined by 'e' are classified as a genuine multi_date_event and remain blocked (issue 5b)", () => {
+  const rows = [d1Row({
+    source_timestamp: "2025-10-30T17:58:11+0000",
+    message_or_caption: "Venerdì 31 ottobre e sabato 1 novembre, due notti di pura magia con DJ set imperdibile!",
+    candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: false }),
+  })];
+  const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
+  const [candidate] = candidates;
+  assert.equal(candidate.date_state, "multi_date_event");
+  assert.equal(candidate.fields.start_date.status, "missing");
+  assert.match(candidate.fields.start_date.evidence, /two separate genuine event dates/);
+  assert.equal(candidate.promotion_readiness, "blocked");
+  assert.match(candidate.blocked_reasons.join(" "), /start_date/);
 });
 
 test("an ignored candidate's decision survives a subsequent candidates:refresh and is excluded from the default queue", () => {
