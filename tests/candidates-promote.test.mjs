@@ -39,7 +39,7 @@ function writeReview(root, candidates) {
 
 function eventCandidate(overrides = {}) {
   const rows = [d1Row({
-    message_or_caption: "Concerto jazz dal vivo il 03/09/2026 alle ore 21:00, ingresso libero!",
+    message_or_caption: "Concerto jazz dal vivo il 03/09/2026 alle ore 21:00, ingresso libero! L'Altro Spazio, Via Nazario Sauro 24/F",
     candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }),
     ...overrides.row,
   })];
@@ -72,7 +72,7 @@ test("an owner-supplied --date resolves an inferred date and is recorded as owne
   const root = setupRoot();
   const candidate = eventCandidate({ row: { message_or_caption: "Concerto speciale il 20/08, non mancate!", candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }) } });
   const jsonPath = writeReview(root, [candidate]);
-  const result = promoteCandidate({ candidateId: candidate.candidate_id, flags: { title: "Concerto speciale", date: "2026-08-20", time: "21:00" }, confirm: true, root, jsonPath, now: NOW });
+  const result = promoteCandidate({ candidateId: candidate.candidate_id, flags: { title: "Concerto speciale", date: "2026-08-20", time: "21:00", location: "L'Altro Spazio" }, confirm: true, root, jsonPath, now: NOW });
   assert.equal(result.status, "written");
   assert.equal(result.provenance.start_date, "owner_confirmed");
   assert.equal(result.draft.start, "2026-08-20T21:00:00+02:00");
@@ -107,7 +107,7 @@ test("an explicit --date override resolves an ambiguous date", () => {
   const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
   const ambiguousCandidate = candidates.find((candidate) => candidate.date_state === "ambiguous_date");
   const jsonPath = writeReview(root, candidates);
-  const result = promoteCandidate({ candidateId: ambiguousCandidate.candidate_id, flags: { title: "Serata di beneficenza", date: "2026-09-03", time: "21:00" }, confirm: true, root, jsonPath, now: NOW });
+  const result = promoteCandidate({ candidateId: ambiguousCandidate.candidate_id, flags: { title: "Serata di beneficenza", date: "2026-09-03", time: "21:00", location: "L'Altro Spazio" }, confirm: true, root, jsonPath, now: NOW });
   assert.equal(result.status, "written");
 });
 
@@ -122,7 +122,7 @@ test("a recurring-series candidate (not a date conflict) still promotes normally
   const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
   assert.ok(candidates.every((candidate) => candidate.date_state === "single_explicit_date"));
   const jsonPath = writeReview(root, candidates);
-  const result = promoteCandidate({ candidateId: candidates[0].candidate_id, flags: { title: "Aperitivo del venerdì" }, confirm: true, root, jsonPath, now: NOW });
+  const result = promoteCandidate({ candidateId: candidates[0].candidate_id, flags: { title: "Aperitivo del venerdì", location: "L'Altro Spazio" }, confirm: true, root, jsonPath, now: NOW });
   assert.equal(result.status, "written");
 });
 
@@ -209,11 +209,28 @@ test("a title_suggestion alone never satisfies the title requirement, even when 
   );
 });
 
+test("an inferred (contextual, not explicit) location blocks promotion without an explicit --location override", () => {
+  const root = setupRoot();
+  // eventCandidate()'s default caption explicitly restates the venue, so
+  // build a candidate whose caption does NOT — location must come back
+  // "inferred" and block until the owner confirms it.
+  const candidate = eventCandidate({ row: { message_or_caption: "Concerto jazz dal vivo il 03/09/2026 alle ore 21:00, ingresso libero! Non un indirizzo qui." } });
+  assert.equal(candidate.fields.location_name.status, "inferred");
+  const jsonPath = writeReview(root, [candidate]);
+  assert.throws(
+    () => promoteCandidate({ candidateId: candidate.candidate_id, flags: { title: "Concerto jazz dal vivo" }, confirm: true, root, jsonPath, now: NOW }),
+    (error) => error instanceof PromotionError && /location.*only inferred\/guessed/.test(error.message),
+  );
+  const result = promoteCandidate({ candidateId: candidate.candidate_id, flags: { title: "Concerto jazz dal vivo", location: "L'Altro Spazio" }, confirm: true, root, jsonPath, now: NOW });
+  assert.equal(result.status, "written");
+  assert.equal(result.provenance.location, "owner_confirmed");
+});
+
 test("an explicit --title (which may echo the suggestion) is recorded as owner_confirmed, not inferred", () => {
   const root = setupRoot();
   const candidate = eventCandidate({ row: { message_or_caption: "Serata Jazz\nStasera dalle 21:00, musica dal vivo il 03/09/2026" } });
   const jsonPath = writeReview(root, [candidate]);
-  const result = promoteCandidate({ candidateId: candidate.candidate_id, flags: { title: "Serata Jazz" }, confirm: true, root, jsonPath, now: NOW });
+  const result = promoteCandidate({ candidateId: candidate.candidate_id, flags: { title: "Serata Jazz", location: "L'Altro Spazio" }, confirm: true, root, jsonPath, now: NOW });
   assert.equal(result.status, "written");
   assert.equal(result.provenance.title, "owner_confirmed");
 });

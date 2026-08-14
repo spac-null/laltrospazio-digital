@@ -860,6 +860,48 @@ confirmation; 29 are blocked by a more substantive missing/ambiguous fact.
 The default review queue (unresolved, non-past, non-low-priority) contains
 27 candidates. No candidate was promoted.
 
+### Owner-reported bug fixes: source-anchored dates, null-safe show, location provenance
+
+A subsequent owner review of the real output found three defects, all fixed:
+
+1. **Yearless dates were anchored to "today" instead of the post's own
+   timestamp.** A 2025-09-28 post reading "Lunedì 29 settembre" was rolled
+   into "2026-09-29 / upcoming" — wrong on two counts: it ignored that the
+   post itself said which Monday it meant, and it let elapsed pipeline time
+   turn an old post into a fabricated future event. Fixed by anchoring every
+   yearless day/month to the calendar year closest to that specific record's
+   own `source_timestamp` (never a shared "today"), with a stated weekday
+   (e.g. "lunedì") acting as a hard deterministic constraint — it overrides
+   the naively-closest year if they disagree, and a text-wide tie or
+   weekday mismatch now correctly yields `ambiguous` (never a guess).
+   `groupDuplicates`/`findDateRelationships` anchor each record
+   independently the same way. One more short-caption similarity edge case
+   was found and fixed in the same pass: two records differing only in a
+   generic short caption's date/time digits could become byte-for-byte
+   identical after numeric-token stripping (from the earlier short-caption
+   fix) and were merged correctly for identical captions only via a new,
+   separate exact-raw-text check — never by loosening the token-similarity
+   threshold, which would have reopened the original bug it fixed. Re-running
+   the real read after this fix reclassified all 15 previously
+   near_term/upcoming/future_distant/recurring candidates to `past` (the
+   correct, source-anchored answer) — none were genuinely misdated the
+   other way; the default review queue shrank from 27 to 12 as a result.
+   `meta-group-6ad6a98b39e0` (the specifically reported candidate) is now
+   `2025-09-29` / `past`, correctly excluded from the default queue.
+2. **`candidates:show` crashed on any candidate with a bare `null` in
+   `fields`** (e.g. `title_suggestion: null` for a notice) because the
+   renderer assumed every field entry was a populated `{value,status}`
+   object. Fixed by rendering any non-object/null field entry as
+   `(none) [missing]`; verified against all 143 real candidates with zero
+   crashes.
+3. **Location provenance was always claimed as "extracted" even when only
+   derived from which account posted it**, never from the caption text
+   itself. Fixed: location is only `extracted` when the caption verbatim
+   restates the already-known canonical venue name and/or street address
+   (apostrophe-normalized); otherwise it is `inferred` (contextual) and now
+   correctly blocks promotion without an explicit `--location` override,
+   exactly like any other inferred field.
+
 References: [Instagram Graph API](https://developers.facebook.com/docs/instagram-api),
 [Instagram content publishing](https://developers.facebook.com/docs/instagram-api/guides/content-publishing),
 [Facebook Graph API](https://developers.facebook.com/docs/graph-api), and

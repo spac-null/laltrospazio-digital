@@ -122,11 +122,20 @@ Last updated: 2026-08-13
   high/medium/low `review_priority`, near_term/upcoming/future_distant/
   recurring_or_multi_date time buckets, filterable `candidates:list`
   (`--upcoming`/`--priority`/`--type`/`--blocked`/`--past`/`--limit`, plus a
-  default unresolved-non-past-non-low review queue of 27), and a private
+  default unresolved-non-past-non-low review queue), and a private
   `.local/candidate-decisions.json` review-state file
   (`candidates:review -- <id> --ignore|--defer|--reviewed`, survives
   `candidates:refresh`, excludes ignored/promoted candidates from the
   default queue) are all implemented. Full detail is in
+  `docs/project/meta-integration-plan.md`.
+- A subsequent owner review found and fixed three defects: yearless dates
+  are now anchored to each record's own `source_timestamp` (never "today"),
+  fixing archived posts that were incorrectly rolled into fabricated future
+  events; `candidates:show` no longer crashes on a null optional field
+  (verified against all real candidates); and location provenance is only
+  `extracted` when the caption itself restates the venue, otherwise
+  `inferred` and blocking without an explicit `--location` override. Detail
+  and the corrected real-data numbers are in
   `docs/project/meta-integration-plan.md`.
 - Real-event proof preparation is implemented in `scripts/candidate-lib.mjs`
   and `scripts/create-event-candidate.mjs`. Candidates are stored separately

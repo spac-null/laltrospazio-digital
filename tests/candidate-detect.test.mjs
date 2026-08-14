@@ -39,16 +39,60 @@ test("extractExplicitDate infers a year for a bare day/month, never claiming it 
   assert.equal(result.value, "2026-08-20");
 });
 
-test("extractExplicitDate infers next year when the bare day/month has already passed", () => {
+test("extractExplicitDate picks the calendar year closest to the anchor, even if that means the recent past relative to the anchor", () => {
+  // The anchor represents when the post itself was made — a post from
+  // 2026-09-01 mentioning "20/08" almost certainly means 12 days earlier
+  // that same year, not a roll forward to next year's 20/08.
   const result = extractExplicitDate("Ci vediamo il 20/08", { referenceDate: "2026-09-01" });
   assert.equal(result.status, "inferred");
-  assert.equal(result.value, "2027-08-20");
+  assert.equal(result.value, "2026-08-20");
 });
 
 test("extractExplicitDate returns missing when there is no date-shaped text", () => {
   const result = extractExplicitDate("Buongiorno a tutti dallo staff!");
   assert.equal(result.value, null);
   assert.equal(result.status, "missing");
+});
+
+test("a yearless date is anchored to the post's OWN source timestamp, not to today — the real reported bug", () => {
+  // Real case: posted 2025-09-28, caption "Lunedì 29 settembre – ore 19.00".
+  // The old (buggy) today-anchored logic rolled this to 2026-09-29 and
+  // called it "upcoming". The correct reading is 2025-09-29 (the Monday
+  // right after the post), which is in the past by 2026.
+  const result = extractExplicitDate("Lunedì 29 settembre – ore 19.00", { anchorDate: "2025-09-28" });
+  assert.equal(result.status, "inferred");
+  assert.equal(result.value, "2025-09-29");
+});
+
+test("an old social post never becomes a future event merely because the current date is later", () => {
+  // The anchor (post date) is years in the past relative to any realistic
+  // "today"; the resolved date must stay anchored near the post, not near
+  // whenever this pipeline happens to run.
+  const result = extractExplicitDate("Vi aspettiamo il 12 marzo per la presentazione", { anchorDate: "2019-03-01" });
+  assert.equal(result.status, "inferred");
+  assert.equal(result.value, "2019-03-12", "must stay anchored to the 2019 post, never rolled toward the pipeline's real run date");
+});
+
+test("a post made in late December mentioning an early-January date resolves into the following year", () => {
+  const result = extractExplicitDate("Vi aspettiamo il 3 gennaio per il primo evento del nuovo anno", { anchorDate: "2025-12-30" });
+  assert.equal(result.status, "inferred");
+  assert.equal(result.value, "2026-01-03");
+});
+
+test("a stated weekday overrides the naively-closest year when they disagree", () => {
+  // 1 January is naively closest to 2021 (78 days from the 2020-10-15
+  // anchor), but the caption states "martedì" (Tuesday), which only
+  // 2019-01-01 satisfies within the 3-year window — so that must win even
+  // though it is numerically much farther from the anchor.
+  const result = extractExplicitDate("Ci vediamo martedì 1 gennaio per il brindisi di fine anno", { anchorDate: "2020-10-15" });
+  assert.equal(result.status, "inferred");
+  assert.equal(result.value, "2019-01-01");
+});
+
+test("a genuinely tied yearless date (no weekday, two equally-plausible years) is marked ambiguous, never guessed", () => {
+  const result = extractExplicitDate("Vi aspettiamo il 1 marzo per il grande evento", { anchorDate: "2023-08-31" });
+  assert.equal(result.status, "ambiguous");
+  assert.equal(result.value, null);
 });
 
 test("extractAllDates does not double-count a full DD/MM/YYYY as also a bare DD/MM match", () => {

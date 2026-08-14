@@ -14,14 +14,56 @@ function validDayMonth(day, month) {
   return day >= 1 && day <= 31 && month >= 1 && month <= 12;
 }
 
-function inferYear(day, month, referenceDate) {
-  const [refYear, refMonth, refDay] = referenceDate.split("-").map(Number);
-  const hasPassedThisYear = month < refMonth || (month === refMonth && day < refDay);
-  return hasPassedThisYear ? refYear + 1 : refYear;
-}
-
 function dateRangeOverlaps(claimed, start, end) {
   return claimed.some(([s, e]) => start < e && end > s);
+}
+
+const WEEKDAYS_IT = ["domenica", "lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato"]; // index matches Date#getUTCDay()
+
+function weekdayIndexOf(dateStr) {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
+function extractStatedWeekdayIndex(text) {
+  if (!text) return null;
+  const normalized = text.toLowerCase();
+  for (let index = 0; index < WEEKDAYS_IT.length; index += 1) {
+    const withAccent = WEEKDAYS_IT[index];
+    const noAccent = withAccent.replace(/ì/g, "i");
+    if (normalized.includes(withAccent) || normalized.includes(noAccent)) return index;
+  }
+  return null;
+}
+
+// Anchors a bare (yearless) day/month to the calendar year temporally
+// CLOSEST TO THE POST'S OWN TIMESTAMP — never to "today". An archived
+// social post's yearless date describes something near when it was posted;
+// interpreting it relative to whenever this pipeline happens to run would
+// roll a years-old post's date into a future year merely because time has
+// passed, which is exactly the bug this guards against.
+//
+// If an explicit weekday is stated in the text, it must match the actual
+// weekday of exactly one of the three candidate years (anchorYear-1,
+// anchorYear, anchorYear+1); that match wins even if a different year is
+// numerically closer. If zero or more than one candidate year matches the
+// stated weekday, or (with no weekday stated) the two closest candidates
+// are equally close, the result is unresolvable — returns null rather than
+// guessing.
+function resolveAnchoredYear(day, month, anchorDateStr, statedWeekdayIndex) {
+  const anchorYear = Number(anchorDateStr.slice(0, 4));
+  const candidates = [anchorYear - 1, anchorYear, anchorYear + 1].map((year) => {
+    const dateStr = `${year}-${pad2(month)}-${pad2(day)}`;
+    return { dateStr, distance: Math.abs(daysBetween(dateStr, anchorDateStr)) };
+  });
+
+  if (statedWeekdayIndex !== null) {
+    const matching = candidates.filter((candidate) => weekdayIndexOf(candidate.dateStr) === statedWeekdayIndex);
+    return matching.length === 1 ? matching[0].dateStr : null;
+  }
+
+  candidates.sort((a, b) => a.distance - b.distance);
+  return candidates[0].distance === candidates[1].distance ? null : candidates[0].dateStr;
 }
 
 // Deterministic date extraction: scans the WHOLE text and returns every
@@ -31,18 +73,24 @@ function dateRangeOverlaps(claimed, start, end) {
 // is never double-counted as also a bare "20/08" match.
 //
 // - An explicit year in the source text yields status "extracted".
-// - A bare day/month with NO year yields status "inferred": the year is
-//   guessed deterministically as the nearest same-or-future occurrence
-//   relative to referenceDate. Never treated as a verified fact.
-export function extractAllDates(text, { referenceDate } = {}) {
+// - A bare day/month with NO year yields status "inferred", with the year
+//   resolved by resolveAnchoredYear against `anchorDate` (the record's OWN
+//   source timestamp, converted to venue-local date — never "today"/
+//   referenceDate, which is only a last-resort fallback when no anchor is
+//   available at all).
+// - If the year cannot be safely resolved (weekday mismatch, or a genuine
+//   tie with no weekday stated), the match yields status "ambiguous" with a
+//   null value rather than a guess.
+export function extractAllDates(text, { anchorDate, referenceDate } = {}) {
   if (!text) return [];
-  const today = referenceDate ?? new Date().toISOString().slice(0, 10);
+  const anchor = anchorDate ?? referenceDate ?? new Date().toISOString().slice(0, 10);
+  const statedWeekdayIndex = extractStatedWeekdayIndex(text);
   const claimed = [];
   const results = [];
 
   function record(value, status, evidence, start, end) {
     claimed.push([start, end]);
-    if (!results.some((existing) => existing.value === value)) results.push({ value, status, evidence });
+    if (!results.some((existing) => existing.value === value && existing.status === status)) results.push({ value, status, evidence });
   }
 
   for (const match of text.matchAll(/\b(20\d{2})[-/](\d{1,2})[-/](\d{1,2})\b/g)) {
@@ -62,42 +110,55 @@ export function extractAllDates(text, { referenceDate } = {}) {
     if (dateRangeOverlaps(claimed, match.index, match.index + raw.length)) continue;
     const month = MONTHS_IT.indexOf(monthName.toLowerCase()) + 1;
     if (!validDayMonth(Number(day), month)) continue;
-    if (year) record(`${year}-${pad2(month)}-${pad2(day)}`, "extracted", raw, match.index, match.index + raw.length);
-    else record(`${inferYear(Number(day), month, today)}-${pad2(month)}-${pad2(day)}`, "inferred", raw, match.index, match.index + raw.length);
+    if (year) {
+      record(`${year}-${pad2(month)}-${pad2(day)}`, "extracted", raw, match.index, match.index + raw.length);
+    } else {
+      const resolved = resolveAnchoredYear(Number(day), month, anchor, statedWeekdayIndex);
+      record(resolved, resolved ? "inferred" : "ambiguous", raw, match.index, match.index + raw.length);
+    }
   }
 
   for (const match of text.matchAll(/\b(\d{1,2})[./-](\d{1,2})\b/g)) {
     const [raw, day, month] = match;
     if (dateRangeOverlaps(claimed, match.index, match.index + raw.length)) continue;
-    if (validDayMonth(Number(day), Number(month))) record(`${inferYear(Number(day), Number(month), today)}-${pad2(month)}-${pad2(day)}`, "inferred", raw, match.index, match.index + raw.length);
+    if (validDayMonth(Number(day), Number(month))) {
+      const resolved = resolveAnchoredYear(Number(day), Number(month), anchor, statedWeekdayIndex);
+      record(resolved, resolved ? "inferred" : "ambiguous", raw, match.index, match.index + raw.length);
+    }
   }
 
   return results;
 }
 
 // Convenience wrapper for callers that only want the first/primary date.
-export function extractExplicitDate(text, { referenceDate } = {}) {
-  const [first] = extractAllDates(text, { referenceDate });
+export function extractExplicitDate(text, { anchorDate, referenceDate } = {}) {
+  const [first] = extractAllDates(text, { anchorDate, referenceDate });
   return first ?? { value: null, status: "missing", evidence: null };
 }
 
 const RANGE_CONNECTOR_PATTERN = /\bdal\b[\s\S]{0,40}\bal\b|\bda\b[\s\S]{0,25}\ba\b[\s\S]{0,5}(?:20\d{2}|\d{1,2}[./-]|gennaio|febbraio|marzo|aprile|maggio|giugno|luglio|agosto|settembre|ottobre|novembre|dicembre)/i;
 
 // Classifies what a SINGLE record's own text implies about its date(s):
+// - "ambiguous": at least one date-shaped match could not be safely
+//   resolved to a year (weekday mismatch or a genuine tie) — never
+//   downgraded to "none"/"single"/etc.; the whole record's date reading is
+//   untrustworthy until an owner resolves it.
 // - "none": no date-shaped text at all.
-// - "single": exactly one distinct date.
+// - "single": exactly one distinct resolved date.
 // - "range": exactly two dates joined by an explicit "dal...al..."/"da...a..."
 //   range connector — e.g. an exhibition or closure spanning several days.
 //   Not ambiguous: the two dates are start and end of one known span.
 // - "list": two or more dates with no recognized range connector — e.g. a
 //   programme listing several separate occasions. We cannot deterministically
 //   pick a single date for a "list" shape.
-export function classifyDateShape(text, { referenceDate } = {}) {
-  const dates = extractAllDates(text, { referenceDate });
-  if (dates.length === 0) return { shape: "none", dates };
-  if (dates.length === 1) return { shape: "single", dates };
-  if (dates.length === 2 && RANGE_CONNECTOR_PATTERN.test(text ?? "")) return { shape: "range", dates };
-  return { shape: "list", dates };
+export function classifyDateShape(text, { anchorDate, referenceDate } = {}) {
+  const dates = extractAllDates(text, { anchorDate, referenceDate });
+  if (dates.some((entry) => entry.status === "ambiguous")) return { shape: "ambiguous", dates };
+  const resolved = dates.filter((entry) => entry.value !== null);
+  if (resolved.length === 0) return { shape: "none", dates: resolved };
+  if (resolved.length === 1) return { shape: "single", dates: resolved };
+  if (resolved.length === 2 && RANGE_CONNECTOR_PATTERN.test(text ?? "")) return { shape: "range", dates: resolved };
+  return { shape: "list", dates: resolved };
 }
 
 // Deterministic time extraction. Returns null unless an explicit HH:MM (or
@@ -229,7 +290,30 @@ function jaccard(setA, setB) {
   return union === 0 ? 0 : intersection / union;
 }
 
+// Deliberately NOT folded into jaccard() as a "similarity === 1 bypass":
+// normalizeForDedup strips numeric tokens, so two SHORT captions that differ
+// only in their date/time digits (e.g. two different real occurrences of a
+// generic template) can become byte-for-byte identical token sets even
+// though the original text differs — a perfect-token-match bypass would
+// silently merge exactly the short-caption false positive fixed above.
+// Comparing the RAW text (digits included) is the only safe way to detect
+// a genuine exact duplicate (e.g. the identical caption cross-posted to
+// Facebook and Instagram seconds apart) regardless of length.
+function exactCaptionMatch(textA, textB) {
+  const a = `${textA ?? ""}`.trim().toLowerCase();
+  const b = `${textB ?? ""}`.trim().toLowerCase();
+  return a.length > 0 && a === b;
+}
+
 const DEDUP_JACCARD_THRESHOLD = 0.5;
+
+// Each record is anchored to ITS OWN source_timestamp (converted to the
+// venue's local calendar date) for yearless-date resolution — never to a
+// single shared "today". Falls back to referenceDate only when a record has
+// no source_timestamp at all.
+function anchorForRecord(record, referenceDate, timezone) {
+  return record.source_timestamp ? todayInTimezone(new Date(record.source_timestamp), timezone) : referenceDate;
+}
 
 // Deterministic, threshold-based duplicate assistance (no probabilistic
 // model): two records are grouped only if they share the same extracted
@@ -237,10 +321,10 @@ const DEDUP_JACCARD_THRESHOLD = 0.5;
 // DEDUP_JACCARD_THRESHOLD. Records without a shared explicit date are never
 // merged, even if the text is similar, to avoid false grouping across
 // unrelated posts that happen to share generic phrasing.
-export function groupDuplicates(records, { referenceDate } = {}) {
+export function groupDuplicates(records, { referenceDate, timezone = "Europe/Rome" } = {}) {
   const withMeta = records.map((record) => ({
     record,
-    date: extractExplicitDate(record.message_or_caption, { referenceDate }).value,
+    date: extractExplicitDate(record.message_or_caption, { anchorDate: anchorForRecord(record, referenceDate, timezone) }).value,
     tokens: tokenSet(normalizeForDedup(record.message_or_caption)),
   }));
 
@@ -256,7 +340,8 @@ export function groupDuplicates(records, { referenceDate } = {}) {
         if (assigned.has(j)) continue;
         if (withMeta[j].date !== withMeta[i].date) continue;
         const similarity = jaccard(withMeta[i].tokens, withMeta[j].tokens);
-        if (similarity >= DEDUP_JACCARD_THRESHOLD) {
+        const exactMatch = exactCaptionMatch(withMeta[i].record.message_or_caption, withMeta[j].record.message_or_caption);
+        if (similarity >= DEDUP_JACCARD_THRESHOLD || exactMatch) {
           group.push(j);
           assigned.add(j);
         }
@@ -306,10 +391,10 @@ const recordKey = (record) => `${record.source_network}:${record.source_id}`;
 //   records — treated as separate legitimate occurrences of a recurring
 //   format, not blocking; each member keeps its own single extracted/inferred
 //   date, annotated with the cluster for owner context.
-export function findDateRelationships(records, { referenceDate, recurringClusterMinSize = RECURRING_CLUSTER_MIN_SIZE } = {}) {
+export function findDateRelationships(records, { referenceDate, recurringClusterMinSize = RECURRING_CLUSTER_MIN_SIZE, timezone = "Europe/Rome" } = {}) {
   const withMeta = records.map((record) => ({
     record,
-    date: extractExplicitDate(record.message_or_caption, { referenceDate }).value,
+    date: extractExplicitDate(record.message_or_caption, { anchorDate: anchorForRecord(record, referenceDate, timezone) }).value,
     tokens: tokenSet(normalizeForDedup(record.message_or_caption)),
   }));
 

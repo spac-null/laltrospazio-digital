@@ -7,29 +7,62 @@ export function findCandidate(candidateId, { jsonPath } = {}) {
   return candidate;
 }
 
-function render(candidate) {
+// Never assumes any optional field is a populated object: title,
+// title_suggestion, per-field date/location entries, recurring_series, and
+// similar fields may legitimately be null/undefined/missing depending on
+// candidate type and available evidence. Every one of them is rendered as
+// "(none) [missing]" rather than throwing.
+function renderFieldEntry(name, entry) {
+  if (entry === null || entry === undefined || typeof entry !== "object") return `  - ${name}: (none) [missing]`;
+  const shown = entry.value === null || entry.value === undefined ? "(none)" : JSON.stringify(entry.value);
+  const status = entry.status ?? "missing";
+  const note = entry.evidence ?? entry.reason ?? null;
+  return `  - ${name}: ${shown} [${status}]${note ? ` — evidence: ${note}` : ""}`;
+}
+
+function renderList(label, items) {
+  return `${label}: ${Array.isArray(items) && items.length ? items.join(", ") : "(none)"}`;
+}
+
+export function render(candidate) {
+  const sources = Array.isArray(candidate.sources) ? candidate.sources : [];
+  const fields = candidate.fields && typeof candidate.fields === "object" ? candidate.fields : {};
+  const classificationReasons = Array.isArray(candidate.classification_reasons) ? candidate.classification_reasons : [];
+  const blockedReasons = Array.isArray(candidate.blocked_reasons) ? candidate.blocked_reasons : [];
+  const priorityWhy = Array.isArray(candidate.review_priority_why) ? candidate.review_priority_why : [];
+
   const lines = [
-    `Candidate: ${candidate.candidate_id}`,
-    `Type: ${candidate.candidate_type}`,
-    `Time relevance: ${candidate.time_relevance}`,
-    `Classification reason(s): ${candidate.classification_reasons.join("; ")}`,
+    `Candidate: ${candidate.candidate_id ?? "(unknown)"}`,
+    `Type: ${candidate.candidate_type ?? "(unknown)"}`,
+    `Date state: ${candidate.date_state ?? "(none)"} | Time relevance: ${candidate.time_relevance ?? "(none)"}`,
+    `Review priority: ${candidate.review_priority ?? "(none)"}${priorityWhy.length ? ` — ${priorityWhy.join("; ")}` : ""}`,
+    `Classification reason(s): ${classificationReasons.join("; ") || "(none)"}`,
     "",
     "Sources:",
-    ...candidate.sources.map((source) => `  - ${source.network} ${source.source_id}\n    timestamp: ${source.source_timestamp ?? "(none)"}\n    permalink: ${source.permalink ?? "(none)"}`),
+    ...(sources.length
+      ? sources.map((source) => `  - ${source?.network ?? "(unknown)"} ${source?.source_id ?? "(unknown)"}\n    timestamp: ${source?.source_timestamp ?? "(none)"}\n    permalink: ${source?.permalink ?? "(none)"}`)
+      : ["  (none)"]),
   ];
-  if (Object.keys(candidate.fields).length) {
+
+  const fieldEntries = Object.entries(fields);
+  if (fieldEntries.length) {
     lines.push("", "Fields:");
-    for (const [name, value] of Object.entries(candidate.fields)) {
-      lines.push(`  - ${name}: ${value.value === null ? "(none)" : JSON.stringify(value.value)} [${value.status}]${value.evidence ? ` — evidence: ${value.evidence}` : ""}`);
-    }
+    for (const [name, entry] of fieldEntries) lines.push(renderFieldEntry(name, entry));
   }
+
+  if (candidate.recurring_series) {
+    lines.push("", `Recurring series: ${candidate.recurring_series.cluster_size ?? "?"} related posts (${(candidate.recurring_series.related_candidate_ids ?? []).join(", ") || "none listed"})`);
+  }
+
   lines.push(
     "",
-    `Missing fields: ${candidate.missing_fields.join(", ") || "(none)"}`,
-    `Conflicting fields: ${candidate.conflicting_fields.join(", ") || "(none)"}`,
-    `Promotion readiness: ${candidate.promotion_readiness}`,
+    renderList("Missing fields", candidate.missing_fields),
+    renderList("Conflicting fields", candidate.conflicting_fields),
+    renderList("Ambiguous fields", candidate.ambiguous_fields),
+    `Promotion readiness: ${candidate.promotion_readiness ?? "(unknown)"}`,
   );
-  if (candidate.blocked_reasons.length) lines.push(`Blocked because: ${candidate.blocked_reasons.join("; ")}`);
+  if (blockedReasons.length) lines.push(`Blocked because: ${blockedReasons.join("; ")}`);
+  if (candidate.next_owner_action) lines.push(`Next owner action: ${candidate.next_owner_action}`);
   return lines.join("\n");
 }
 

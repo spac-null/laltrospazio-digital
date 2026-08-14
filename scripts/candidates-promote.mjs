@@ -69,7 +69,9 @@ function buildEventDraft(candidate, flags, now, root) {
   const description = resolvedField(candidate.fields.description, flags.description, "description");
   if (description.status === "missing") throw new PromotionError(["description is missing: the source record has no caption/message, and no --description override was given"]);
 
-  const locationName = flags.location ?? candidate.fields.location_name?.value ?? VENUE_NAME;
+  const location = resolvedField(candidate.fields.location_name, flags.location, "location");
+  if (location.status === "missing") throw new PromotionError(["location is missing: pass --location \"...\""]);
+  const locationName = location.value;
   const locationAddress = flags.address ?? VENUE_ADDRESS;
 
   const primarySource = candidate.sources[0];
@@ -100,7 +102,7 @@ function buildEventDraft(candidate, flags, now, root) {
     updated_at: now.toISOString(),
   };
 
-  return { draft, targetDir: "events", provenance: { title: title.status, start_date: startDate.status, start_time: startTime.status, description: description.status } };
+  return { draft, targetDir: "events", provenance: { title: title.status, start_date: startDate.status, start_time: startTime.status, description: description.status, location: location.status } };
 }
 
 function buildNoticeDraft(candidate, flags, now, root) {

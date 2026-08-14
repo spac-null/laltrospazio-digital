@@ -166,6 +166,58 @@ test("a historic event candidate is recognized as past", () => {
   assert.equal(candidates[0].time_relevance, "past");
 });
 
+test("regression: a yearless date is anchored to the post's own source_timestamp, not to today (the real meta-group-6ad6a98b39e0 bug)", () => {
+  const rows = [
+    d1Row({
+      network: "facebook",
+      source_id: "fb-6ad6",
+      source_timestamp: "2025-09-28T07:00:53+0000",
+      message_or_caption: "Lunedì 29 settembre – ore 19.00",
+      candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }),
+    }),
+    d1Row({
+      network: "instagram",
+      source_id: "ig-6ad6",
+      source_account_id: "17841402902868891",
+      source_timestamp: "2025-09-28T07:01:06+0000",
+      message_or_caption: "Lunedì 29 settembre – ore 19.00",
+      candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }),
+    }),
+  ];
+  const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW }); // NOW is 2026-08-14
+  assert.equal(candidates.length, 1);
+  const [candidate] = candidates;
+  assert.equal(candidate.fields.start_date.value, "2025-09-29");
+  assert.equal(candidate.fields.start_date.status, "inferred");
+  assert.equal(candidate.time_relevance, "past");
+  assert.notEqual(candidate.time_relevance, "upcoming");
+});
+
+test("location is EXTRACTED (not merely contextual) when the caption explicitly restates the venue name/address", () => {
+  const rows = [d1Row({
+    source_timestamp: "2025-09-28T07:00:53+0000",
+    message_or_caption: "Lunedì 29 settembre – ore 19.00\nL’Altro Spazio – Via Nazario Sauro 24/F, Bologna",
+    candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }),
+  })];
+  const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
+  const [candidate] = candidates;
+  assert.equal(candidate.fields.location_name.status, "extracted");
+  assert.match(candidate.fields.location_name.evidence, /explicit source text contains/);
+  assert.equal(candidate.inferred_fields.includes("location_name"), false);
+});
+
+test("location is INFERRED/contextual (not extracted) when the caption never restates the venue identity", () => {
+  const rows = [d1Row({
+    message_or_caption: "Concerto jazz dal vivo il 03/09/2026 alle ore 21:00, ingresso libero!",
+    candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }),
+  })];
+  const { candidates } = buildCandidates(rows.map(fromD1Row), { now: NOW });
+  const [candidate] = candidates;
+  assert.equal(candidate.fields.location_name.status, "inferred");
+  assert.match(candidate.fields.location_name.evidence, /posting account identity/);
+  assert.equal(candidate.inferred_fields.includes("location_name"), true);
+});
+
 test("priority is high/medium/low deterministically and near-term/upcoming/future-distant are distinguished", () => {
   const near = d1Row({ source_id: "near", message_or_caption: "Concerto il 20/08/2026 alle 21:00", candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }) });
   const upcoming = d1Row({ source_id: "upcoming", message_or_caption: "Concerto il 10/09/2026 alle 21:00", candidate_signals: JSON.stringify({ event_like: true, notice_like: false, explicit_date: true }) });

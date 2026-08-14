@@ -73,6 +73,29 @@ function field(value, status, evidence = null) {
   return { value, status, evidence };
 }
 
+function normalizeQuotes(text) {
+  return `${text ?? ""}`.replace(/[’‘]/g, "'");
+}
+
+// Deterministic and conservative: this does NOT guess a new location from
+// arbitrary text. It only checks whether the ALREADY-KNOWN canonical venue
+// name and/or street address appears verbatim (apostrophe-normalized) in
+// the post's own text. If so, the location is genuinely EXTRACTED — traced
+// to explicit source text, exactly like a date or time. If neither appears,
+// there is no textual evidence for the location in this specific post; the
+// venue-identity default is available only as INFERRED/contextual (derived
+// from which account posted it), never as a verified fact.
+function extractExplicitLocation(text, venueName, venueAddress) {
+  if (!text) return null;
+  const normalized = normalizeQuotes(text);
+  const streetPart = venueAddress.split(",")[0].trim();
+  const nameMatch = normalized.includes(venueName);
+  const addressMatch = normalized.includes(streetPart);
+  if (!nameMatch && !addressMatch) return null;
+  const evidence = [nameMatch && venueName, addressMatch && streetPart].filter(Boolean).join(" / ");
+  return { evidence };
+}
+
 const recordKey = (record) => `${record.source_network}:${record.source_id}`;
 
 // Determines this candidate's date_state and the resulting start_date/
@@ -84,18 +107,30 @@ const recordKey = (record) => `${record.source_network}:${record.source_id}`;
 // because of date conflict; "multiple_event_dates" blocks separately
 // because no single date field value can be chosen, not because of a
 // cross-source disagreement.
-function resolveDateState(sourceRecords, { ambiguousSourceIds, recurringSourceIds, recurringClusterInfo, referenceDate }) {
+function resolveDateState(sourceRecords, { ambiguousSourceIds, recurringSourceIds, recurringClusterInfo, referenceDate, timezone }) {
   const primary = sourceRecords[0];
   const text = primary.message_or_caption;
-  const shape = classifyDateShape(text, { referenceDate });
-  const isAmbiguous = sourceRecords.some((record) => ambiguousSourceIds.has(recordKey(record)));
+  // Anchor yearless-date resolution to the record's OWN source timestamp
+  // (converted to venue-local date) — never to "today" — so an archived
+  // post's date is never rolled into the future merely because time has
+  // passed since it was posted. referenceDate is only a last-resort
+  // fallback for the rare record with no source_timestamp at all.
+  const anchor = primary.source_timestamp ? todayInTimezone(new Date(primary.source_timestamp), timezone) : referenceDate;
+  const shape = classifyDateShape(text, { anchorDate: anchor });
+  const isAmbiguousCrossSource = sourceRecords.some((record) => ambiguousSourceIds.has(recordKey(record)));
   const isRecurring = sourceRecords.some((record) => recurringSourceIds.has(recordKey(record)));
   const recurringInfo = isRecurring ? sourceRecords.map((record) => recurringClusterInfo.get(recordKey(record))).find(Boolean) : null;
 
-  if (isAmbiguous) {
+  if (isAmbiguousCrossSource || shape.shape === "ambiguous") {
     return {
       dateState: "ambiguous_date",
-      startDate: field(null, "ambiguous", "this candidate's date disagrees with a highly similar, but not clearly recurring, other source — see the related candidate"),
+      startDate: field(
+        null,
+        "ambiguous",
+        shape.shape === "ambiguous"
+          ? "the source states a day/month (and possibly a weekday) that does not resolve to exactly one plausible year near the post's own timestamp"
+          : "this candidate's date disagrees with a highly similar, but not clearly recurring, other source — see the related candidate",
+      ),
       endDate: field(null, "missing", null),
       recurringInfo: null,
     };
@@ -127,7 +162,7 @@ function resolveDateState(sourceRecords, { ambiguousSourceIds, recurringSourceId
   const [only] = shape.dates;
   return {
     dateState: "single_explicit_date",
-    startDate: field(only.value, only.status, only.status === "inferred" ? `${only.evidence} (year not stated in source; guessed as the nearest same-or-future occurrence — never publishable without owner confirmation)` : only.evidence),
+    startDate: field(only.value, only.status, only.status === "inferred" ? `${only.evidence} (year not stated in source; resolved to the calendar year closest to this post's own timestamp — never publishable without owner confirmation)` : only.evidence),
     endDate: field(null, "missing", null),
     recurringInfo,
   };
@@ -138,6 +173,7 @@ function buildEventOrNoticeFields(sourceRecords, dateResolution) {
   const text = primary.message_or_caption;
   const { value: timeValue, evidence: timeEvidence } = extractExplicitTime(text);
   const titleSuggestion = suggestTitle(sourceRecords);
+  const explicitLocation = extractExplicitLocation(text, VENUE_NAME, VENUE_ADDRESS);
 
   const fields = {
     title: field(null, "missing", null),
@@ -145,7 +181,9 @@ function buildEventOrNoticeFields(sourceRecords, dateResolution) {
     start_date: dateResolution.startDate,
     end_date: dateResolution.endDate,
     start_time: timeValue ? field(timeValue, "extracted", timeEvidence) : field(null, "missing", null),
-    location_name: field(VENUE_NAME, "extracted", "derived from posting account identity (the venue's own Facebook Page / Instagram account)"),
+    location_name: explicitLocation
+      ? field(VENUE_NAME, "extracted", `explicit source text contains: ${explicitLocation.evidence}`)
+      : field(VENUE_NAME, "inferred", "derived from posting account identity (the venue's own Facebook Page / Instagram account), not explicitly restated in this post's own text — confirm before publishing"),
   };
 
   const missing = Object.entries(fields).filter(([name, entry]) => entry.status === "missing" && name !== "end_date").map(([name]) => name);
@@ -224,7 +262,7 @@ function nextOwnerAction(candidate) {
 
 export function buildCandidates(rawRecords, { now = new Date(), timezone = VENUE_TIMEZONE, recurringClusterMinSize } = {}) {
   const today = todayInTimezone(now, timezone);
-  const { ambiguousPairs, recurringClusters } = findDateRelationships(rawRecords, { referenceDate: today, recurringClusterMinSize });
+  const { ambiguousPairs, recurringClusters } = findDateRelationships(rawRecords, { referenceDate: today, recurringClusterMinSize, timezone });
 
   const ambiguousSourceIds = new Set();
   for (const pair of ambiguousPairs) for (const record of pair) ambiguousSourceIds.add(recordKey(record));
@@ -239,7 +277,7 @@ export function buildCandidates(rawRecords, { now = new Date(), timezone = VENUE
     }
   }
 
-  const groups = groupDuplicates(rawRecords, { referenceDate: today });
+  const groups = groupDuplicates(rawRecords, { referenceDate: today, timezone });
 
   const candidates = groups.map((sourceRecords) => {
     const primary = sourceRecords[0];
@@ -249,7 +287,7 @@ export function buildCandidates(rawRecords, { now = new Date(), timezone = VENUE
     let dateState = "undated";
     let recurringInfo = null;
     if (["event", "operational_notice"].includes(candidateType)) {
-      const dateResolution = resolveDateState(sourceRecords, { ambiguousSourceIds, recurringSourceIds, recurringClusterInfo, referenceDate: today });
+      const dateResolution = resolveDateState(sourceRecords, { ambiguousSourceIds, recurringSourceIds, recurringClusterInfo, referenceDate: today, timezone });
       dateState = dateResolution.dateState;
       recurringInfo = dateResolution.recurringInfo;
       fieldsResult = buildEventOrNoticeFields(sourceRecords, dateResolution);
