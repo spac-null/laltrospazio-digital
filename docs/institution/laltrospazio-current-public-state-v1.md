@@ -10,7 +10,22 @@
 
 **The future website is a greenfield system. Existing frontend and public content architecture are legacy and are not implementation constraints.**
 
-Per the owner's direction superseding all prior implicit assumptions: the current production frontend (`src/pages/Index.tsx`, its navigation, sections, components, copy, and route structure), and the current content schemas (`content/venue.json`, `content/events/`, `content/notices/`, `content/candidates/`) have **zero design authority** over the new site. They were inspected in this session only to establish present-tense public facts and to reach one specific, limited conclusion, stated here once and not revisited: **existing public-facing content is non-canonical and must not be migrated without independent verification.** Nothing about the old page's navigation, layout, wording, or component choices should inform the new institutional architecture, content model, or design system. Where this document lists a currently-live fact (a phone number, an active notice, a social handle), that fact may carry forward *as a verified data point* through the migration path the owner specified (verified fact → new content model → migration of useful data), never as an inherited design or schema.
+Per the owner's direction superseding all prior implicit assumptions: the current production frontend (`src/pages/Index.tsx`, its navigation, sections, components, copy, and route structure), old routes, the old visual system, old components, the old content architecture, old JSON schemas, the old information architecture, and old copy are **not constraints** on the new site — none of them carry design authority. The current content schemas (`content/venue.json`, `content/events/`, `content/notices/`, `content/candidates/`) were inspected in this session only to establish present-tense public facts and to reach one specific, limited conclusion, stated here once and not revisited: **existing public-facing content is non-canonical and must not be migrated without independent verification.** Nothing about the old page's navigation, layout, wording, or component choices should inform the new institutional architecture, content model, or design system.
+
+The direction is:
+
+```
+VERIFIED FACTS
+    -> NEW CONTENT MODEL
+    -> NEW CREATIVE/DESIGN SYSTEM
+    -> NEW UX / INFORMATION DESIGN
+    -> NEW TECHNICAL ARCHITECTURE
+    -> GREENFIELD IMPLEMENTATION
+    -> SELECTIVE VERIFIED DATA MIGRATION
+    -> CUTOVER
+```
+
+Useful old *data* (a phone number, an active notice, a social handle) may carry forward only as a verified data point, at the "selective verified data migration" step above — after it passes the new content model and its provenance rules — never as an inherited design, schema, route, or piece of copy.
 
 This document's implementation-readiness section (§14) is written entirely on that basis.
 
@@ -18,7 +33,7 @@ This document's implementation-readiness section (§14) is written entirely on t
 
 ## 1. Executive status
 
-The venue is **currently closed** as of the working date (16 August 2026), reopening 27 August 2026 — this is the single most important present-tense fact and it is well supported. Beyond that, current public truth is thin: hours, accessibility conditions, current staff composition, current programme cadence, and several organisational facts are either unverified, conflicting, or simply absent from any authoritative current source reviewed in this session. Parco 11 Settembre is owner-confirmed as currently open/active for the summer 2026 programme, which is new, useful, present-tense information this session adds.
+The venue is **currently closed**, OWNER-CONFIRMED CURRENT: 12 through 26 August 2026 inclusive, reopening 27 August 2026 — this is the single most important present-tense fact, and it is no longer treated as uncertain. Beyond that, current public truth is thin: hours, accessibility conditions, current staff composition, current programme cadence, and several organisational facts are either unverified, conflicting, or simply absent from any authoritative current source reviewed in this session. Parco 11 Settembre is owner-confirmed as currently open/active for the summer 2026 programme, which is new, useful, present-tense information this session adds.
 
 The legacy production website currently asserts several claims that must not be treated as current truth by any new system: "completely accessible," a self-reported 50% disabled-staff figure (a *third* number, distinct from the working paper's 2022 self-reported 80% figure — neither is verified), fabricated-looking impact statistics, and three named testimonials with no provenance anywhere in this repository. None of this is usable. That is the full extent of what this session concludes from the legacy site; per the greenfield notice above, no further analysis of it was performed.
 
@@ -30,23 +45,25 @@ This document does not resolve most of what it finds unverified — it makes the
 
 | Fact | Value | Status | Authority | Last verified | Recheck rule | Public-safe? |
 |---|---|---|---|---|---|---|
-| Venue name | L'Altro Spazio | CURRENT VERIFIED | Repository canonical (`content/venue.json`) + live production site | 16 Aug 2026 (this session) | On rebrand only | YES |
-| Address | Via Nazario Sauro 24/F, 40121 Bologna, Italy | CURRENT VERIFIED | Repository canonical + live production site + live Facebook Page "Intro" field ("via Nazario Sauro 24F, Bologna, Italy") | 16 Aug 2026 (this session, cross-checked against a second live public source) | On operational change | YES |
+| Venue name | L'Altro Spazio | CURRENT VERIFIED | Repository canonical (`content/venue.json`), independently consistent with the organisation's own live Instagram/Facebook handles (§2 below) — the legacy production site is not counted as authority | 16 Aug 2026 (this session) | On rebrand only | YES |
+| Address | Via Nazario Sauro 24/F, 40121 Bologna, Italy | CURRENT VERIFIED | Repository canonical + live Facebook Page "Intro" field ("via Nazario Sauro 24F, Bologna, Italy") — the legacy production site is not counted as authority, per the greenfield boundary | 16 Aug 2026 (this session, cross-checked against a live public source independent of the legacy site) | On operational change | YES |
 | Map/arrival info | Google Maps short link resolves to the correct coordinates (44.4977164, 11.3394358) | REPOSITORY-CANONICAL BUT NEEDS CURRENT CHECK | Repository canonical | Link resolution confirmed 16 Aug 2026; the destination page itself sat behind a Google cookie-consent wall this session did not click through | Recheck if the short link ever 404s | YES (link only; no hours/status claim was extracted from Maps this session) |
-| Open/closed status (right now) | **CLOSED**, reopens 27 August 2026 | CURRENT VERIFIED | Canonical operational notice (`content/notices/temporary-closure-august-2026.json`), owner-confirmed, and independently confirmed live on the production homepage this session | 16 Aug 2026 (live browser check) | Notice has an explicit expiry; recheck automatically at expiry | YES |
-| Closure exact start date | Notice record says `valid_from: 2026-08-13`; the owner's direction in this same session states "temporarily closed 12–26 August 2026 inclusive" | **CONFLICTING (minor, one day)** | Notice record vs. owner statement, same session | 16 Aug 2026 | Reconcile the notice record's start date with the owner directly; does not change the reopening date | CONDITIONAL — safe to say "closed until 27 August," not safe to assert the exact first day of closure until reconciled |
+| Open/closed status (right now) | **CLOSED**, reopens 27 August 2026 | CURRENT VERIFIED | Canonical operational notice (`content/notices/temporary-closure-august-2026.json`) + owner-confirmed | 16 Aug 2026 | Notice has an explicit expiry; recheck automatically at expiry | YES |
+| Closure dates | **12 August 2026 through 26 August 2026, inclusive**; reopens 27 August 2026 | **OWNER-CONFIRMED CURRENT** | Direct owner confirmation, this session — resolves the prior conflicting reading | 16 Aug 2026 | Notice has an explicit expiry; recheck automatically at expiry | YES — state the closure period plainly, no qualification needed |
 | Regular opening hours | Not established. Facebook's own public "Intro" field currently reads **"Always open"** | CONFLICTING / effectively UNKNOWN | Live Facebook Page listing (LIVE-PUBLIC-SOURCE, but implausible on its face — no physical venue is "always open," and it directly conflicts with the very same page's normal operating pattern) | 16 Aug 2026 | Recheck after any owner-confirmed hours are set | NO — do not publish "always open," and do not publish any specific hours without owner confirmation |
-| Phone (booking/WhatsApp) | +39 351 704 8064 | CURRENT VERIFIED | Repository canonical + live production site + live Facebook Page ("Prenotazioni 🛎️ 3517048064 (Whatsapp)") — three independent current sources agree | 16 Aug 2026 | On operational change | YES |
+| Phone (booking/WhatsApp) | +39 351 704 8064 | CURRENT VERIFIED | Repository canonical + live Facebook Page ("Prenotazioni 🛎️ 3517048064 (Whatsapp)") — two independent current sources agree; the legacy production site's matching number is not counted as a third source | 16 Aug 2026 | On operational change | YES |
 | Phone (info/collaborations) | +39 347 327 6768 | LIVE-PUBLIC-SOURCE VERIFIED (new to this repository) | Live Facebook Page "Intro" field only ("📞 Info & collaborazioni 📞 3473276768") | 16 Aug 2026 | Confirm with owner before adding to any canonical record; not previously in repo | CONDITIONAL — real and current on a live public channel, but not yet owner-confirmed as a channel the organisation wants published on a new site |
 | Email | nazariosauro@altrospazio.org | LIVE-PUBLIC-SOURCE VERIFIED | Repository (`venue-record.json`, previously `unverified`) is now independently corroborated by the live Facebook Page listing the identical address | 16 Aug 2026 | On operational change | YES — upgraded from `unverified` to `live-public-source verified` by this session's cross-check |
 | Instagram | instagram.com/laltrospazio (8,630 followers at check time) | CURRENT VERIFIED | Repository canonical + live check | 16 Aug 2026 | Rare | YES |
 | Facebook | facebook.com/laltrospazio.bologna (17K followers, 92% recommend / 274 reviews at check time) | CURRENT VERIFIED | Repository canonical + live check | 16 Aug 2026 | Rare | YES |
 | TripAdvisor | Listed in repository; not re-checked live this session (no broad web research) | REPOSITORY-CANONICAL BUT NEEDS CURRENT CHECK | Repository canonical only | Not rechecked this session | Low priority | CONDITIONAL |
-| Reservation/contact process | WhatsApp to the booking number is the only confirmed current process | CURRENT VERIFIED (for that one channel only) | Live Facebook Page + live production site agree | 16 Aug 2026 | On process change | YES |
+| Reservation/contact process | WhatsApp to the booking number is the only confirmed current process | CURRENT VERIFIED (for that one channel only) | Live Facebook Page (the legacy production site's matching claim is not counted as authority) | 16 Aug 2026 | On process change | YES |
 | Temporary closures | The August 2026 closure is the only one currently recorded | CURRENT VERIFIED | Canonical notice | 16 Aug 2026 | Notice-driven, already has expiry | YES |
 | Seasonal conditions at Via Nazario itself | Not established — no evidence Via Nazario (as distinct from Parco) has seasonal variation beyond the single recorded closure | UNKNOWN | — | — | Ask the owner if relevant | N/A |
 
 **Note on the second phone number:** this is a genuine finding, not something to silently fold into the existing single-phone model — a live public source shows the organisation itself distinguishes a booking channel from an info/collaboration channel. This is useful signal for the new content model's contact structure (a decision for a later phase, per the greenfield notice) but is not yet owner-confirmed as intended for a new public site.
+
+**Migration warning on the closure notice record:** the canonical notice record (`content/notices/temporary-closure-august-2026.json`) states `valid_from: 2026-08-13` — one day later than the owner-confirmed 12 August start date. This is a legacy-record discrepancy, not a current-fact uncertainty: the owner-confirmed date range above is authoritative for every present-tense use in this document and any new system. The notice record itself is not modified in this session; its `valid_from` field should not be carried into any new system as-is without correcting it to 12 August first.
 
 ---
 
@@ -96,7 +113,7 @@ Structured on the nine-dimension model from Institutional Architecture v1 §9. T
 
 ## 4. On-site accessibility verification checklist
 
-Designed to be completed by the owner or a trusted staff member at Via Nazario in approximately 30–60 minutes, without specialist equipment except a basic tape measure.
+**Terminology, stated precisely once:** what follows is **current practical access verification** — an owner or trusted-staff walk-through, designed to be completed at Via Nazario in approximately 30–60 minutes without specialist equipment except a basic tape measure, producing honest, dated, practical visitor information. It is **not** a professional accessibility audit or a formal accessibility certification. Items that genuinely require specialist assessment are kept separately identified below, and are out of scope for this checklist. The new website can publish precise, verified practical conditions from this checklist without claiming formal accessibility certification.
 
 | # | What to check | How to check it | What to record | Photo useful? | Measurement needed? | Public claim it could support |
 |---|---|---|---|---|---|---|
@@ -243,18 +260,18 @@ Reviewing all 10 decisions from Institutional Architecture v1 §21 against what 
 
 | # | Decision (short) | Classification | Basis for classification |
 |---|---|---|---|
-| 1 | Name a current legal representative on the ORGANISATION page? | **C — owner decision needed before content draft** | Still genuinely unresolved (Working Paper v0.3 §16); this session did not check a current Chamber-of-Commerce registry extract, which is the only thing that could resolve it without the owner |
+| 1 | Name a current legal representative on the ORGANISATION page? | **B — safe default, no owner decision needed yet** | Owner-set default: do not publish a named legal representative unless a specific legal/institutional reason later requires it. This resolves the question without waiting on the unresolved March 2026 board-record conflict (Working Paper v0.3 §16) |
 | 2 | Public team/staff page at all? | **B — safe default, no owner decision needed yet** | Current-state verification confirms no workforce composition is available to publish; the architecture's "no team page at v1" default is directly supported, not just assumed |
-| 3 | How much origin-narrative material becomes public copy? | **C — owner decision needed before content draft** | This is a consent question about personal material, not a factual one; nothing in current-state verification resolves it |
+| 3 | How much origin-narrative material becomes public copy? | **E — can defer** | Owner-set default: the existence of source material does not itself require a publication-consent decision before content-model design. Consent can be requested later, if and when specific passages or stories are selected for actual public use — not a precondition for proceeding now |
 | 4 | Assert Cena al Buio's current cadence? | **B — safe default, no owner decision needed yet** | This session's limited live check found no 2026 evidence either way; the architecture's default (describe as a decade-old current format, no asserted cadence) remains exactly correct and requires no owner input to proceed |
 | 5 | Credit Associazione Farm publicly for Parco? | **B — safe default, no owner decision needed yet** | The architecture's default ("a seasonal cultural programme run in collaboration with Associazione Farm and the Comune di Bologna") is safe and does not require owner sign-off to draft with; can be refined later |
-| 6 | Standing answer for the 80% figure if asked | **C — owner decision needed before content draft** | Unchanged; this is a reputational/communications judgment call only the owner can make, and current-state work adds a complication rather than resolving it — a *third*, different, unverified figure (50%) is now live on the current production site, making a clear standing answer more urgent, not less |
+| 6 | Standing answer for workforce-composition percentages (80%, 50%, or any other figure) if asked | **B — safe default, no owner decision needed yet** | Resolved without owner input: do not publish 50%, 80%, or any other workforce-composition percentage unless a new, dated, current, verifiable workforce fact is intentionally established later. Historical self-reported figures (the working paper's 2022 80% figure) remain historical evidence only; the legacy production site's 50% figure is DO-NOT-MIGRATE |
 | 7 | Build Research & Evidence layer now or later? | **E — can defer** | Already effectively resolved by the architecture's own recommended default (defer); nothing in current-state verification changes that |
 | 8 | Framing for Via Nazario S.r.l. → cooperative relationship | **A — already resolvable from evidence/architecture** | Working Paper v0.3 §13's affitto d'azienda account is clear enough to state plainly: "operated by Cooperativa L'Altro Spazio" |
 | 9 | CripMinds link at all? | **E — can defer** | No urgency; nothing currently depends on it |
-| 10 | Commission the current accessibility audit? | **D — owner decision needed before launch** (elevated from a content-draft dependency to an explicit launch-blocking one) | This session's accessibility matrix (§3) confirms the gap is exactly as large as the architecture predicted — this is now the clearest single blocker to real Visit/Accessibility content, and it requires an owner *action* (commissioning it), not just a decision |
+| 10 | Complete the current practical access verification (§4)? | **D — owner action needed before launch** (elevated from a content-draft dependency to an explicit launch-blocking one) | This session's accessibility matrix (§3) confirms the gap is exactly as large as the architecture predicted — this is now the clearest single blocker to real Visit/Accessibility content. Precision matters here: this is an owner/trusted-staff walk-through (§4), not a professional accessibility audit — the latter is a separate, larger, specialist undertaking, not what is being asked for now (§4's own list of items requiring specialist assessment) |
 
-**Result: the list of 10 shrinks to 4 items genuinely requiring immediate owner input** (1, 3, 6, 10) — see §15. Items 2, 4, 5, 7, 8, 9 are resolved or safely defaulted without further owner involvement.
+**Result: of the original 10 architecture decisions, only item 10 (the current practical access verification, §4) remains a genuine immediate owner dependency.** Items 1, 3 and 6 are now resolved to safe defaults per the owner's direction above, joining 2, 4, 5, 7, 8 and 9. Combined with regular Via Nazario opening hours — a current-state fact gap, not one of the original 10 decisions, but genuinely blocking (§13) — the genuinely immediate owner dependencies reduce to exactly two: **(A) regular Via Nazario opening hours, and (B) current physical/sensory accessibility verification.** See §15.
 
 ---
 
@@ -262,9 +279,9 @@ Reviewing all 10 decisions from Institutional Architecture v1 §21 against what 
 
 | Information family | Authority for a CURRENT claim | Note |
 |---|---|---|
-| Venue address | Live operational/current formal evidence — corroborated this session by two independent live public sources (production site + Facebook Page) | |
+| Venue address | Repository canonical, corroborated this session by a current reliable external profile (live Facebook Page) | The legacy production site carries no authority for this or any current fact — per the greenfield boundary, it may only be cited for DO-NOT-MIGRATE findings |
 | Current hours | Owner/operations, once confirmed — **not** the live Facebook "Always open" field, which is treated as unreliable, not authoritative, despite being live | This is the clearest instance in this document of "a live public source is not automatically authoritative" |
-| Current closure | Canonical notice (`content/notices/`) + owner confirmation | Minor date discrepancy noted in §2 |
+| Current closure | Owner confirmation (OWNER-CONFIRMED CURRENT), cross-referenced against the canonical notice (`content/notices/`) | The notice record's one-day-earlier start date (13 vs. 12 August) is a legacy migration warning, not a current-fact conflict — see §2 |
 | Current access condition | Current on-site verification only (§3, §4) | Historical accessibility evidence is never authority for a current claim |
 | Current programme status | Programme owner/current schedule; live social posts may corroborate but do not themselves establish canonical status | Used cautiously in §6 |
 | Current event | Canonical event record (none currently exist) | Live Facebook event mentions (§5, §6) are evidence a canonical record *could* be created from, not a substitute for one |
@@ -274,6 +291,8 @@ Reviewing all 10 decisions from Institutional Architecture v1 §21 against what 
 | Historical fact | Institutional evidence base (Working Paper v0.3 and its registers) | Unchanged from the architecture's own model |
 
 **Standing rule applied throughout this document, restated once here:** old Facebook posts, old press, and historical interviews are never authority for a current condition. Where this document used a *recent* (June–July 2026) live Facebook post as corroborating evidence, it did so only for present-tense facts within days or weeks of the working date — not as a substitute for canonical records, and always labelled LIVE-PUBLIC-SOURCE rather than CURRENT VERIFIED where no second source agreed.
+
+**Legacy-authority rule, applied throughout this document and corrected where it had not been:** the existing production website (the legacy public frontend) has **zero authority** to establish any current canonical fact — address, coordinates, email, phone, opening hours, accessibility, programme status, organisation facts, or service status. It is mentioned only where it produces a DO-NOT-MIGRATE finding (an unsupported legacy claim such as the 50% workforce figure or the "completely accessible" line, §1). Every row in §2 that previously cited the production site as part of a fact's authority has been corrected: each retained CURRENT VERIFIED status now rests only on repository canonical data and/or a live public source independent of the legacy site (most often the Facebook Page); no new research was performed to backfill support that the legacy site's removal left missing.
 
 ---
 
@@ -330,31 +349,25 @@ Per the greenfield notice: every item below is evaluated as a **new, from-scratc
 
 ## 15. Questions requiring owner input
 
-Reduced to the smallest useful set, per §10's analysis.
+Reduced to the smallest useful set, per §10's analysis. Only two items now genuinely require immediate owner input; everything else previously listed here has been resolved to a safe default or explicitly deferred (see "Resolved without further owner input," below).
 
 **QUESTION 1:**
-Is the owner ready to commission the on-site accessibility check (§4's 30–60 minute checklist) in the near term, and if so, who will complete it?
-**WHY IT MATTERS:** This is the single largest concrete blocker to real Visit/Accessibility copy (§13), and the checklist is now ready to hand to someone.
-**RECOMMENDED DEFAULT:** Owner or a trusted staff member completes §4 within the next few weeks, scoped to Via Nazario first.
-**BLOCKS:** Public launch of any specific accessibility claim (not architecture, schema, or most copy drafting).
+What are Via Nazario's regular opening hours, once the venue reopens on 27 August 2026?
+**WHY IT MATTERS:** No current authoritative source establishes this — the live Facebook Page's "Always open" field is implausible on its face and explicitly not treated as authority (§2, §11), and the legacy production site carries no authority for this or any current fact (§11). This is one of only two genuine launch blockers (§13).
+**RECOMMENDED DEFAULT:** None — this cannot be safely defaulted; it requires a direct owner statement of the actual regular hours.
+**BLOCKS:** Visit-page operational copy (§14, item C); public launch of any specific hours claim.
 
 **QUESTION 2:**
-Should the current legal representative be named anywhere on a future Organisation page, given the unresolved March 2026 board-record conflict (Working Paper v0.3 §16)?
-**WHY IT MATTERS:** Publishing a guess risks being wrong; omitting looks incomplete to a funder/Comune reader; only the owner (or a fresh registry check the owner authorizes) can resolve this.
-**RECOMMENDED DEFAULT:** Omit a named individual; state only the cooperative's name and registration date until resolved.
-**BLOCKS:** Organisation-page copy draft only; not architecture, schema, or launch.
+Is the owner ready to have the current practical access verification completed in the near term (§4's 30–60 minute checklist, owner or a trusted staff member, scoped to Via Nazario first)?
+**WHY IT MATTERS:** This is the single largest concrete blocker to real Visit/Accessibility copy (§13). To be precise about what is and is not being asked: this is **current practical access verification** — an owner/staff walk-through producing honest, dated, practical visitor information — not a professional accessibility audit or certification. Items genuinely requiring specialist assessment are listed separately in §4 and are not part of this question.
+**RECOMMENDED DEFAULT:** Owner or a trusted staff member completes §4 within the next few weeks.
+**BLOCKS:** Public launch of any specific accessibility claim (not architecture, schema, or most copy drafting).
 
-**QUESTION 3:**
-How much of the personal origin-narrative material (Nunzia's and Jascha's own stories) is the owner comfortable seeing used in future public copy, and in what form?
-**WHY IT MATTERS:** This is genuinely distinctive material, but it involves personal biographical content prepared for internal research, not cleared public use.
-**RECOMMENDED DEFAULT:** Reserve for compressed, owner-reviewed use only; no verbatim publication without explicit sign-off.
-**BLOCKS:** Depth of Our-approach copy only; a workable version exists without it.
+**Resolved without further owner input (no longer active questions):**
 
-**QUESTION 4:**
-Given that the currently-live production site already states a third, different, unverified disabled-staff figure (50%, distinct from the working paper's 2022 self-reported 80%), what should the standing answer be if a visitor or journalist asks about workforce composition before any new figure is verified?
-**WHY IT MATTERS:** Two different unverified numbers are now circulating in public (80% historically claimed, 50% currently live); a consistent, honest standing line prevents a third accidental one from appearing when the new site launches.
-**RECOMMENDED DEFAULT:** A short, honest line acknowledging past figures were self-reported and not re-measured, declining to repeat either number as current fact.
-**BLOCKS:** Services/organisation copy tone only; not launch-critical on its own, but increasingly urgent given the live discrepancy.
+- **Legal representative:** do not publish a named legal representative unless a specific legal/institutional reason later requires it (§10, item 1). The underlying board-record conflict (Working Paper v0.3 §16) remains factually unresolved, but that no longer blocks anything — the default settles the publication question regardless.
+- **Origin-narrative publication:** deferred. The existence of source material does not require a publication-consent decision before content-model design; consent can be requested later, if and when specific passages or stories are selected for actual public use (§10, item 3).
+- **Workforce-composition percentage:** do not publish 50%, 80%, or any other percentage unless a new, dated, current, verifiable workforce fact is intentionally established later. Historical self-reported figures remain historical evidence only; the legacy production site's 50% figure is DO-NOT-MIGRATE (§10, item 6).
 
 ---
 
@@ -363,7 +376,6 @@ Given that the currently-live production site already states a third, different,
 - Regular opening hours (Via Nazario).
 - Full current physical/visual/Deaf-communication/hearing/cognitive accessibility conditions at Via Nazario (§3, §4 pending).
 - Parco's own accessibility profile, distinct from Via Nazario's.
-- The exact first day of the current closure (12 vs. 13 August — a one-day discrepancy between the owner's statement and the committed notice record).
 - Current Parco season end date.
 - Current legal representative / board composition (Working Paper v0.3 §16, unresolved, not addressed further this session).
 - Current cadence of Cena al Buio, Aperitivo dal Mondo, and most named historical programmes beyond what a narrow recent-post check could confirm.
@@ -378,7 +390,7 @@ None of the above blocks architecture, schema design, or the bulk of copy drafti
 
 ## 17. Recommended immediate next step
 
-Begin **A (content schema/model design)** and **B (durable page copy for Our approach and History)** now, in parallel with the owner completing the on-site accessibility check (§4) and answering the four questions in §15. Do not begin visual design or frontend implementation (G, H) — those remain properly sequenced after a new content model and new creative direction, per the owner's greenfield direction, neither of which this document produces.
+Begin **A (content schema/model design)** and **B (durable page copy for Our approach and History)** now, in parallel with the owner stating Via Nazario's regular opening hours and completing the current practical access verification (§4) — the two remaining questions in §15. Do not begin visual design or frontend implementation (G, H) — those remain properly sequenced after a new content model and new creative direction, per the owner's greenfield direction, neither of which this document produces.
 
 ---
 
