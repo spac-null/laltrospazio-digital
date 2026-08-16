@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en" data-palette="1" data-type="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study 6 — Measure + Encounter (composition/rhythm) · disposable prototype</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/type.css">
+<link rel="stylesheet" href="../shared/base.css">
+<style>
+  .study-header { padding: var(--space-8) var(--space-4) var(--space-4); max-width: 68rem; margin: 0 auto; }
+  .study-header p { max-width: 42rem; color: var(--color-ink-muted); }
+  .image-note {
+    max-width: 68rem; margin: 0 auto var(--space-8); padding: var(--space-4) var(--space-4);
+    border: 1px dashed var(--color-accent-notice); border-radius: var(--radius-md);
+    font-size: 0.9rem; color: var(--color-ink-muted);
+  }
+  .image-note strong { color: var(--color-ink); }
+
+  .beat { margin: 0 auto; padding: 0 var(--space-4); }
+  .beat-label {
+    max-width: 68rem; margin: var(--space-16) auto var(--space-2); padding: 0 var(--space-4);
+    display: flex; align-items: baseline; gap: var(--space-3);
+  }
+  .beat-label .v-label { color: var(--color-ink-muted); }
+
+  /* ---- placeholder "image" primitive: composition stands in for photography ---- */
+  figure.imgph { margin: 0; position: relative; background: var(--color-surface); border-radius: var(--radius-sm); }
+  figure.imgph .imgph__box {
+    position: relative; overflow: hidden; border-radius: var(--radius-sm);
+    background:
+      repeating-linear-gradient(135deg, var(--color-line) 0, var(--color-line) 1px, transparent 1px, transparent 13px),
+      var(--color-surface-raised);
+  }
+  figure.imgph .imgph__flag {
+    position: absolute; bottom: var(--space-1); right: var(--space-1);
+    font-family: var(--font-mono-stack); font-size: 0.6rem; letter-spacing: 0.02em;
+    color: var(--color-ink-muted); background: var(--color-surface-raised);
+    padding: 0.1rem 0.4rem; border-radius: 2px; opacity: 0.85;
+  }
+  figure.imgph figcaption { padding-top: var(--space-2); }
+  figure.imgph figcaption .v-label { display: block; margin-bottom: 0.2rem; }
+  figure.imgph figcaption .imgph__cap { margin: 0.1rem 0 0; }
+  figure.imgph figcaption .v-metadata { display: block; margin-top: 0.2rem; color: var(--color-ink-muted); }
+
+  .imgph--current .imgph__box { aspect-ratio: 4 / 3; }
+  .imgph--current { border-left: 3px solid var(--color-accent-current); padding-left: var(--space-3); }
+
+  .imgph--archival .imgph__box { aspect-ratio: 3 / 4; border: 1px solid var(--color-line-strong); }
+  .imgph--archival { border-left: 3px dashed var(--color-accent-archive); padding-left: var(--space-3); }
+
+  .imgph--process .imgph__box { aspect-ratio: 16 / 10; }
+  .imgph--process { border-left: 3px solid var(--color-ink-muted); padding-left: var(--space-3); }
+
+  .imgph--proposal .imgph__box { aspect-ratio: 5 / 4; opacity: 0.9; }
+  .imgph--proposal { border-left: 3px dotted var(--color-accent-notice); padding-left: var(--space-3); }
+
+  /* ---- BEAT 1 — quiet / orientation ---- */
+  .beat--quiet1 {
+    max-width: 40rem; padding-top: var(--space-10); padding-bottom: var(--space-10);
+  }
+  .beat--quiet1 .status-line { display: flex; align-items: baseline; gap: var(--space-2); margin-bottom: var(--space-2); }
+  .beat--quiet1 h2 { margin: 0 0 var(--space-3) 0; }
+  .beat--quiet1 .cta-row { margin-top: var(--space-6); display: flex; gap: var(--space-3); flex-wrap: wrap; }
+  .cta {
+    display: inline-block; border: 1px solid var(--color-ink); color: var(--color-ink);
+    padding: 0.5rem 1rem; border-radius: var(--radius-sm); text-decoration: none; font-weight: 600;
+  }
+  .cta--quiet { border-color: var(--color-line-strong); color: var(--color-ink-muted); font-weight: 400; }
+
+  /* ---- BEAT 2 — social / current density (mosaic) ---- */
+  .beat--dense { max-width: 68rem; }
+  .mosaic {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-4);
+    align-items: start;
+  }
+  .mosaic .m-a { grid-column: span 4; }
+  .mosaic .m-b { grid-column: span 2; }
+  .mosaic .m-c { grid-column: span 2; padding-top: var(--space-8); }
+  .mosaic .m-d { grid-column: span 2; padding-top: var(--space-4); }
+  .mosaic .m-e { grid-column: span 2; }
+  @media (max-width: 760px) {
+    .mosaic { grid-template-columns: 1fr; }
+    .mosaic .m-a, .mosaic .m-b, .mosaic .m-c, .mosaic .m-d, .mosaic .m-e { grid-column: 1; padding-top: 0; }
+  }
+
+  /* ---- BEAT 3 — work / process ---- */
+  .beat--process { max-width: 68rem; }
+  .process-layout {
+    display: grid; grid-template-columns: 1.1fr 1fr; gap: var(--space-8); align-items: center;
+  }
+  .process-layout .process-text { max-width: 34rem; }
+  @media (max-width: 760px) {
+    .process-layout { grid-template-columns: 1fr; }
+  }
+
+  /* ---- BEAT 4 — archival interruption ---- */
+  .beat--archive {
+    max-width: 68rem; background: var(--color-surface); padding: var(--space-10) var(--space-4);
+    margin-top: var(--space-16); margin-bottom: 0;
+  }
+  .archive-inner {
+    max-width: 68rem; margin: 0 auto; display: grid; grid-template-columns: 260px 1fr; gap: var(--space-8); align-items: start;
+  }
+  .archive-inner .imgph--archival { justify-self: start; }
+  .archive-inner .imgph--archival .imgph__box { width: 220px; }
+  @media (max-width: 760px) {
+    .archive-inner { grid-template-columns: 1fr; }
+    .archive-inner .imgph--archival .imgph__box { width: 55vw; max-width: 220px; }
+  }
+
+  /* ---- BEAT 5 — quiet again ---- */
+  .beat--quiet2 {
+    max-width: 40rem; padding-top: var(--space-16); padding-bottom: var(--space-16);
+  }
+  .beat--quiet2 .fact-line { border-bottom: none; padding: var(--space-2) 0; }
+</style>
+</head>
+<body>
+<nav class="lab-bar" aria-label="Prototype lab controls">
+  <strong>Lab:</strong>
+  <div class="lab-group"><span>Palette</span>
+    <button class="lab-switch-btn" data-palette-btn="1" aria-pressed="true">1 Warm</button>
+    <button class="lab-switch-btn" data-palette-btn="2">2 Ink</button>
+    <button class="lab-switch-btn" data-palette-btn="3">3 Signal</button>
+  </div>
+  <div class="lab-group"><span>Type</span>
+    <button class="lab-switch-btn" data-type-btn="1" aria-pressed="true">1 Pair</button>
+    <button class="lab-switch-btn" data-type-btn="2">2 Modulated</button>
+    <button class="lab-switch-btn" data-type-btn="3">3 Spacing</button>
+  </div>
+  <a class="lab-switch-btn lab-home-link" href="../index.html">← Lab home</a>
+</nav>
+
+<header class="study-header">
+  <p class="v-label">Study 6 of 6 — added on final review</p>
+  <h1>Measure + Encounter — a rhythm/composition test</h1>
+  <p>Studies 1–5 validated MEASURE (honest, dated, provisional facts) but under-tested ENCOUNTER: no image presence, no density gradient, no interruption, no coexistence of current and archival material. This is not a homepage design. It is one vertical sequence — quiet → dense → process → archival interruption → quiet — testing whether density, scale, cropping and interruption can carry ENCOUNTER while MEASURE's honesty discipline (dated facts, visible status, no invented cadence) keeps running underneath every beat.</p>
+</header>
+
+<div class="image-note">
+  <strong>No photographs in this study.</strong> Real venue/event photography exists in the legacy production site's upload assets, but those are professionally-lit, generic-hospitality-bar imagery (backlit bottle walls, artificial greenery, string lights) — exactly the bar-reduction/hospitality-cliché risk the direction warns against — and reusing them would also smuggle legacy-site material back in as design authority, which the greenfield rule forbids. The owner-supplied book PDF was reviewed for the sibling-relationship test but is not copied into this repository. So every image slot below is an honestly-labelled <strong>placeholder</strong> (a textured box, never a photograph, never a fake-photo filter) carrying only what production images would carry: a kind-marker, a date where relevant, and a real caption. What is under test is composition — scale, crop, density, proximity, interruption — not pixel content. This mirrors the direction's own honesty discipline: an unknown fact is shown as unknown; a missing photograph is shown as missing, not faked.
+</div>
+
+<!-- BEAT 1 — QUIET / ORIENTATION -->
+<section class="beat beat--quiet1" aria-labelledby="beat1-h">
+  <div class="beat-label" style="max-width:none;margin:0 0 var(--space-4);padding:0;"><span class="v-label">Beat 1 — quiet / orientation</span></div>
+  <div class="status-line">
+    <span class="status-dot status-dot--notice" aria-hidden="true"></span>
+    <span class="v-metadata">Currently closed · checked 16 Aug 2026</span>
+  </div>
+  <h2 id="beat1-h">L'Altro Spazio — Via Nazario Sauro 24/F, Bologna</h2>
+  <p>Temporarily closed 12–26 August 2026 (inclusive). Reopens 27 August.</p>
+  <div class="cta-row">
+    <a class="cta" href="#">Message us on WhatsApp</a>
+    <a class="cta cta--quiet" href="#">See current access information</a>
+  </div>
+</section>
+
+<!-- BEAT 2 — SOCIAL / CURRENT DENSITY -->
+<section class="beat beat--dense" aria-labelledby="beat2-h">
+  <div class="beat-label"><span class="v-label">Beat 2 — social / current activity</span><span class="v-metadata">density rises</span></div>
+  <p style="max-width:42rem;color:var(--color-ink-muted);margin-top:0;">Real current-state facts only — no invented events, no stock crowd photography. Density here comes from scale variation and proximity, not from a photograph of people having fun.</p>
+  <div class="mosaic">
+    <figure class="imgph imgph--current m-a">
+      <div class="imgph__box"><span class="imgph__flag">placeholder</span></div>
+      <figcaption>
+        <span class="v-label">Current documentary</span>
+        <p class="imgph__cap">Parco 11 Settembre — active for the summer 2026 season: concerts, poetry evenings, general programming recur through the season.</p>
+        <span class="v-metadata">Owner-confirmed · checked 16 Aug 2026</span>
+      </figcaption>
+    </figure>
+    <figure class="imgph imgph--current m-b">
+      <div class="imgph__box"><span class="imgph__flag">placeholder</span></div>
+      <figcaption>
+        <span class="v-label">Current documentary</span>
+        <p class="imgph__cap">Via Nazario Sauro 24/F, between events.</p>
+        <span class="v-metadata">Daily hours not yet established</span>
+      </figcaption>
+    </figure>
+    <figure class="imgph imgph--proposal m-c">
+      <div class="imgph__box"><span class="imgph__flag">placeholder</span></div>
+      <figcaption>
+        <span class="v-label">Proposal — not yet delivered</span>
+        <p class="imgph__cap">SEGNI DI PACE: a research/experimental collaboration, submitted March 2026.</p>
+        <span class="v-metadata">Outcome not yet known</span>
+      </figcaption>
+    </figure>
+    <figure class="imgph imgph--current m-d">
+      <div class="imgph__box"><span class="imgph__flag">placeholder</span></div>
+      <figcaption>
+        <span class="v-label">Current documentary</span>
+        <p class="imgph__cap">Poetry evening, Parco 11 Settembre.</p>
+        <span class="v-metadata">Season active, dates not itemised here</span>
+      </figcaption>
+    </figure>
+    <figure class="imgph imgph--current m-e">
+      <div class="imgph__box"><span class="imgph__flag">placeholder</span></div>
+      <figcaption>
+        <span class="v-label">Current documentary</span>
+        <p class="imgph__cap">A concert night, same season.</p>
+        <span class="v-metadata">Checked 16 Aug 2026</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- BEAT 3 — WORK / PROCESS -->
+<section class="beat beat--process" aria-labelledby="beat3-h">
+  <div class="beat-label"><span class="v-label">Beat 3 — work / process</span><span class="v-metadata">Cena al Buio, unchanged since Dec 2015</span></div>
+  <div class="process-layout">
+    <figure class="imgph imgph--process">
+      <div class="imgph__box"><span class="imgph__flag">placeholder</span></div>
+      <figcaption>
+        <span class="v-label">Process</span>
+        <p class="imgph__cap">The mechanism, not a table setting: sighted guests are served and guided by staff who are blind or low-vision.</p>
+      </figcaption>
+    </figure>
+    <div class="process-text">
+      <h3 style="margin-top:0;">Cena al Buio</h3>
+      <p class="v-editorial-statement">A decade-old format, unchanged in mechanism since December 2015 — who does the guiding, and who is assumed to see, is the entire idea.</p>
+      <p class="v-metadata">Last confirmed public date: 31 October 2025 · current cadence not yet confirmed</p>
+    </div>
+  </div>
+</section>
+
+<!-- BEAT 4 — ARCHIVAL INTERRUPTION -->
+<section class="beat beat--archive" aria-labelledby="beat4-h">
+  <div class="beat-label" style="margin-top:0;"><span class="v-label">Beat 4 — archival interruption</span></div>
+  <div class="archive-inner">
+    <figure class="imgph imgph--archival">
+      <div class="imgph__box"><span class="imgph__flag">placeholder</span></div>
+      <figcaption>
+        <span class="v-label">Archival — closed</span>
+        <p class="imgph__cap">Via Polese 7</p>
+        <span class="v-metadata">2014</span>
+      </figcaption>
+    </figure>
+    <div>
+      <h3 id="beat4-h" class="v-editorial-statement" style="margin-top:0;">Via Polese 7 operated February–April 2014.</h3>
+      <p>Closed after water damage; did not reopen under the same association. It is told here plainly, inside the same current-activity flow, not quarantined on a separate "history" page nobody would find it on — and not smoothed into a continuous "since 2014..." story it never had.</p>
+    </div>
+  </div>
+</section>
+
+<!-- BEAT 5 — QUIET AGAIN -->
+<section class="beat beat--quiet2" aria-labelledby="beat5-h">
+  <div class="beat-label" style="max-width:none;margin:0 0 var(--space-4);padding:0;"><span class="v-label">Beat 5 — quiet again</span></div>
+  <h2 id="beat5-h">Planning a visit</h2>
+  <div class="fact-line">
+    <span class="status-dot status-dot--unknown fact-line__dot" aria-hidden="true"></span>
+    <div class="fact-line__body">
+      <p class="fact-line__statement">We can't yet confirm step-free access or door width for the current building.</p>
+      <p class="v-metadata fact-line__meta">Ask us before you visit if this matters for you.</p>
+    </div>
+  </div>
+  <div class="fact-line">
+    <span class="status-dot status-dot--current fact-line__dot" aria-hidden="true"></span>
+    <div class="fact-line__body">
+      <p class="fact-line__statement">Text or WhatsApp works right now and is checked regularly.</p>
+    </div>
+  </div>
+  <div class="cta-row">
+    <a class="cta" href="#">Message us on WhatsApp</a>
+  </div>
+</section>
+
+<div class="image-note" style="margin-top: var(--space-16);">
+  <strong>Reviewer note.</strong> Read this study at 1440 / 768 / 390px. Watch specifically whether: (a) Beat 2's mosaic reads as density without becoming visual noise; (b) Beat 3's process pairing reads as mechanism, not a menu card; (c) Beat 4's interruption is legible as historical without any sepia/aged-paper treatment — scale, dashed edge and section background carry it instead; (d) Beat 5 genuinely returns to Beat 1's quiet register rather than just stopping.
+</div>
+
+</body>
+<script src="../shared/lab.js"></script>
+</html>

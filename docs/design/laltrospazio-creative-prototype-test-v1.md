@@ -200,3 +200,114 @@ Within that limit: the prototypes contain **none** of the book-specific mechanis
 ## 16. Recommendation to the reviewing session
 
 **NOT READY FOR FINAL CREATIVE REVIEW — but close, and the direction itself is validated.** The prototypes confirm the direction's core claims (current/archive clarity, honest freshness, accessibility-as-method, two-voice typography, relationship-out-of-launch). The reasons not to call it ready: (a) Encounter's compositional half is under-tested (no images, no density gradient), which is the direction's own Territory-B graft; (b) a final palette and font decision still require the visual phase, with the two concrete findings above (System 1's logic, Palette 1/3 combination with a darkened signal); (c) the book-mimicry sibling test needs the PDF and a human eye, which this report could not and must not perform. The reviewing session should treat this report as validated evidence attached to the direction, not as a sign-off.
+
+---
+
+## 17. Final visual review (Claude, session 3) — scope and method
+
+Everything in §1–§16 above is the **continuation-model technical finding**: numerical/computed-style QA, no screenshots viewed. This section is the **final visual finding**: the lab was actually rendered and looked at (headless Chromium via Playwright, screenshots read as images — the Chrome extension was unavailable this session, so rendering was scripted rather than interactive, but every image below was genuinely viewed, not inferred from computed styles). The owner-supplied book dummy ("L'Altro Spazio V2.4.pdf", 70 pages) was read in full and viewed visually for the sibling-relationship test; it is not copied into this repository, not committed, and is described, never reproduced, below. The legacy production website was not inspected. Where this section's visual judgment confirms the continuation model's numerical finding, that is stated plainly; where actual pixels change the verdict, that is called out as a **correction**, not a refinement.
+
+## 18. Visual pass of Studies 1–5 — the four flagged issues
+
+**A. Study 1, Treatment B (density/framing) year-watermark.** FINAL VISUAL FINDING: legible and reads as intentional — a large, pale (`opacity: 0.08`), right-aligned numeral behind the historical card's title, closer to a museum wall-label convention than a decorative flourish. It does not by itself say the word "historical" (confirmed by prior computed-style finding), so on its own it is atmosphere, not the discriminator — consistent with the existing recommendation that Treatment A carries the actual now/archive signal and Treatment B supplies the historical register's feel. No correction; confirms §4's finding.
+
+**B. Study 3, System 1 typography.** FINAL VISUAL FINDING: the Georgia-italic editorial voice genuinely reads as warmer and more testimonial than the functional voice, even set against long Italian strings and a placeholder oral-history quote — confirmed visually, not just via computed font metrics. System 3 ("Grotesk + Spacing") was also viewed directly: its "editorial voice" sample is visually almost indistinguishable from the functional voice one section above it (500-weight, +0.03em tracking, no italic, no serif) — a visitor would not notice a second voice exists. Confirms §6's numerical finding with direct visual agreement; no correction.
+
+**C. Study 5 spatial connectors near 768px.** FINAL VISUAL FINDING: viewed at 1440, 820 and 770px. The hub-and-spoke lines stay a plain, thin, single-weight functional line at every width down to the 760px collapse threshold — they do not thicken, multiply, or start reading as decoration before the linear collapse. They also do not add legible relationship information beyond what the eyebrow labels ("The format (WORK)", "Historical occurrence") already state in words. Confirms §8's judgment (accessible, markup-invariant, but not proven to beat the linear list) with no new evidence either way; no correction to the "out of launch" default.
+
+**D. Study 4 accessibility display.** FINAL VISUAL FINDING: viewed directly — it uses the exact same fact-line/card/status-dot visual language as Studies 1–2 and (see §19 below) Study 6, with no wheelchair iconography, no green/red ticks, no separate visual "mode." It reads as a normal page in the same system, not a compliance microsite. Confirms §7; no correction.
+
+## 19. Study 6 — Measure + Encounter (new prototype)
+
+The continuation model correctly identified that Studies 1–5 validate MEASURE but do not test ENCOUNTER compositionally (no images, no density gradient, no interruption, no current/archival coexistence — §10). A sixth study, `prototypes/creative-direction-v1/study-6-measure-encounter/`, was added this session to close exactly that gap. It is a single vertical rhythm sequence, not a homepage: **quiet (orientation) → dense (social/current) → process (Cena al Buio) → archival interruption (Via Polese) → quiet (visit/access)**.
+
+**Image-source decision, recorded for the audit trail:** the repository's own `public/uploads/` and `public/lovable-uploads/` directories contain what looks like genuine venue photography, but inspection showed every usable file is either (a) legacy marketing photography with the old `l'Altro spazi::` wordmark composited directly into the pixels (`altrospazio_parco.png`, `altrospazio_nazario.png` — literal legacy design authority, unusable) or (b) professionally-lit, backlit-bottle-wall, artificial-greenery, string-light bar photography (`DSC01704-scaled.jpg`, `LAltro_Spazio_PV-*.jpg`) — exactly the generic-hospitality/bar-reduction risk the direction names as Territory B's highest risk (§17 of the direction document). Reusing either would fail this study's own purpose. So every image slot in Study 6 is an honestly-labelled **placeholder** (a neutral diagonal-hatch box, never a photograph, never a fake-photo filter, marked "placeholder" in small type) carrying only what a production image would carry: a kind-marker (CURRENT DOCUMENTARY / PROCESS / PROPOSAL / ARCHIVAL), a date or status where relevant, and a real, fact-checked caption. This is a deliberate methodological choice, not a workaround: it keeps the test honest about what it is testing (composition — scale, crop, density, proximity, interruption) versus what it cannot yet test (actual photographic warmth), exactly mirroring the direction's own honesty discipline that a missing fact is shown as missing, not guessed.
+
+**A real bug was found and fixed during this work**, worth recording as QA evidence in its own right: the study's base CSS used `section.beat { margin: 0 auto; padding: 0 var(--space-4); }`. Because an element+class selector (`section.beat`) has higher specificity than a single-class modifier (`.beat--archive`, `.beat--quiet1`, `.beat--quiet2`), the generic rule silently overrode every per-beat spacing override, collapsing all intended breathing room between beats to zero — confirmed by DOM measurement (`getBoundingClientRect`), not just by eye. Fixed by dropping the element qualifier (`.beat { ... }`), re-measured, and re-screenshotted to confirm the fix. Re-verified clean (zero horizontal overflow, zero console/page errors) at 1440/768/390/200px via headless Chromium, matching the rigor of §1's original QA pass.
+
+**Visual findings, Beat by Beat:**
+- **Beat 1 (quiet):** a single status line, one heading, one fact, two CTAs (one solid, one quiet/outline). Genuinely spare — closest visual analogue to the direction's Visit-page description (§14).
+- **Beat 2 (dense/social):** a five-image mosaic with real scale variation (one 4-of-6-column image, four smaller ones at varied vertical offsets) and real facts only — Parco 11 Settembre's active summer season, a plainly-marked SEGNI DI PACE **proposal, not yet delivered** sitting directly beside confirmed current activity. Density here comes from scale/proximity/quantity, not from a photograph of a crowd. It reads as denser and more socially active than Beat 1 without any image actually depicting people socialising — confirming that ENCOUNTER's density half can be carried by composition alone, as the direction's §7/§11 argued but Studies 1–5 never demonstrated.
+- **Beat 3 (process):** Cena al Buio is expressed as an image+mechanism pairing ("the mechanism, not a table setting: sighted guests are served and guided by staff who are blind or low-vision"), not a generic event card — a different compositional register from Beat 2's mosaic, itself a demonstration of variable density/register within one page.
+- **Beat 4 (archival interruption):** Via Polese 7 (closed 2014) appears inside the same current-activity flow, not quarantined on a separate page — a materially smaller image, a dotted border-left (vs. Beat 2's solid current / dashed proposal edges), and a distinct section background (`--color-surface` vs. the page's `--color-bg`) together mark it as historical. **No sepia, no aged-paper texture, no fake tape was used anywhere**, and it did not need to be — scale, edge style and section framing carried the distinction on their own, confirmed by direct viewing at three widths. This is a genuine test of §21's "no sepia-nostalgia" floor under real interruption, which Studies 1–5 never attempted.
+- **Beat 5 (quiet again):** returns to Beat 1's exact register (fact-lines, one CTA, generous space) — the rhythm genuinely closes rather than just stopping.
+
+**Correction to record (see §27 below):** every image caption in Beat 2, including ordinary current-documentary photos, carries a `v-metadata` verification line ("Owner-confirmed · checked 16 Aug 2026"). Viewed directly, this makes the *dense/social* beat — the one place the direction wants ENCOUNTER's warmth to lead — look procedurally thorough rather than socially warm; the same honesty discipline that makes Studies 1–2 and 4 feel trustworthy starts to feel like a provenance interface once it is stamped on every photograph, not just on facts a visitor is about to act on. This is exactly Task Step 12's concern, now demonstrated rather than merely described, and is corrected in the direction document (§27).
+
+## 20. Book / website sibling test (now performable)
+
+The owner-supplied "L'Altro Spazio V2.4.pdf" (70 pages) was read and viewed in full this session. It is not copied, committed, or quoted at length here; specific mechanisms are described, not reproduced.
+
+**What feels related (shared institutional logic, confirmed by direct comparison):** the book's plain, first-person testimony ("Non tutto doveva passare dalla voce") set in a calm serif register beside loud, compressed display headlines is the same *logic* (not the same typeface) as the prototype's two-voice system — the prototype never adopts the book's compression, rotation, or specific display face, so this is genuine shared DNA, not borrowed skin. The book's own habit of stating discontinuity plainly ("IL POSTO NON RESTÒ FERMO") parallels Study 1/6's plain treatment of Via Polese's 2014 closure. The book's tape-marked floor mockups sitting beside a dimensioned wheelchair-ramp drawing is the same PRECISE↔PROVISIONAL tension the prototypes carry through dated, "not yet confirmed" states.
+
+**What feels too close — a real finding, not a hedge:** seen directly next to actual book spreads, **Palette 1's warm cream field and dark-charcoal ink reads as the same paper as the book, not as an independently-arrived-at convergence.** The direction document's own argument for keeping it (§14/§19/§25, Owner Decision 3) — that cream/charcoal is unbranded, print-agnostic good design "not because the book uses it" — does not survive being looked at beside the book. This is the single most important correction this review makes; see §21 and the direction-document edit in §27.
+
+**What feels productively different, confirmed:** the entire MEASURE apparatus — status dots, dated verification lines, kind-markers, the "to be confirmed" convention — has **no analogue anywhere in the book**. The book performs honesty through narrative (showing its own drafts, its own "hahahahia" name-testing sheet, unresolved sketches) rather than through a systematic, interface-level status apparatus. This is the strongest evidence yet that Measure is a genuinely web-native contribution, not a digitised print habit. The book is also visually far more maximalist and collage-like (mixed hand lettering, spray-paint-style wordmark tests, taped photo fragments, a wall of tote bags and drink-signage on one spread) than anything in the prototype lab, which stays disciplined and grid-aligned throughout — read side by side, the prototypes feel calmer and more precise than the book, which is the correct sibling relationship (Walkthrough F, §23 of the direction document): the same institution, a deliberately calmer medium, not a digital reprint.
+
+**Verdict: related by logic, not by skin — except for the palette, which is corrected below.**
+
+## 21. Current/archive — minimum reliable grammar (final)
+
+Beyond confirming §4's Treatment A/B/C findings, Study 6 tested the specific question the direction leaves open in §27: how many simultaneous archive signals are actually needed? Beat 4 used only three: (1) a materially smaller image scale, (2) a dotted border-left (vs. solid current / dashed proposal), (3) a distinct section background. No year-watermark, no italic editorial voice, no separate heading region were added, and the interruption still read clearly as historical on first viewing at 1440/768/390px. **Finding: the full stack of signals catalogued across Studies 1 and 6 (edge style, scale, section framing, watermark, editorial voice, heading separation) is more than any single page needs at once** — a visitor does not need the system to "shout" archival status through four channels simultaneously. This refines (does not overturn) §19/§21 of the direction document: the requirement is that current/archival stay distinguishable via **at least one structural signal plus one text signal**, not that every available signal be stacked everywhere. See the direction-document edit in §27.
+
+## 22. Palette — final visual judgment (correction)
+
+**Palette 1 (warm-neutral) is downgraded from "legitimate convergence hypothesis" to "too close to the book once seen beside it" (§20).** Palette 2 (white/ink) was the coolest and least warm of the three but bought the most real distance from the book on direct visual comparison; Palette 3's single-signal discipline (one strong accent reserved for status) remains the strongest *logic* of the three but its accent must be darkened for AA text contrast, as the continuation model already found (§3, §9). **Recommendation, superseding §14/§19/§25/Owner Decision 3's "proceed with warm-cream as starting hypothesis":** the visual-design phase should start from a cooler, whiter-than-Palette-1 neutral base (Palette 2's register, not Palette 1's), paired with Palette 3's one-signal discipline (accent darkened to ≥4.5:1), and should source ENCOUNTER's warmth from photography and per-section accent variation (§19's "modest per-section warmth" graft) rather than from a warm base tone that itself risks reading as borrowed. This is a judgment call made on new visual evidence (the book), not a subjective toss-up, so it is recorded as a correction rather than escalated as an owner decision.
+
+## 23. Typography — final visual judgment
+
+Confirms §6 exactly (see §18.B above): System 1's family-contrast logic is the strongest two-voice mechanism; System 3 does not functionally carry a second voice once actually viewed. No correction.
+
+## 24. Accessibility — final visual judgment
+
+Confirms §7 exactly (see §18.D above): integrated, not a separate mode or microsite. No correction.
+
+## 25. Relationship view — final launch decision
+
+**OUT OF LAUNCH — confirmed, not overturned.** Direct viewing at three widths (§18.C) found the spatial hub-and-spoke treatment accessible and inoffensive but still not demonstrably better than the linear list at conveying the same relationship. "Interesting but unproven" remains the correct read. Retained as a post-launch, opt-in candidate per the direction's own §18/§27/§28-item-4; "multiple routes to meaning" (DNA 1) stays an information-architecture principle, not a mandate for this specific visualisation.
+
+## 26. Anti-generic — final visual judgment
+
+Study 6, viewed without any name or logo, was tested against the direction's own question (§26/Quality Gate 3): stripped of "L'Altro Spazio," could this belong to an architecture studio, boutique hotel, museum, NGO, or café? The specific, dated, status-honest facts threaded through the composition (a proposal plainly marked as not-yet-delivered sitting beside confirmed current activity; a closure stated plainly rather than smoothed over; a mechanism, not a menu, illustrating a decade-old format) keep it specific even with every image reduced to an abstract placeholder — confirming that genericness protection is carried by content discipline as the continuation model found (§11), now demonstrated compositionally rather than only argued. No correction.
+
+## 27. Creative-direction corrections made this session
+
+Two edits were made to `laltrospazio-creative-experience-direction-v1.md`, each recorded here in full per the requested format:
+
+**Edit 1 — Palette.**
+*Prototype/visual observation:* Palette 1 (warm cream/charcoal), viewed directly beside the actual book PDF for the first time this session, reads as the same paper stock and ink as the book, not as an independently-arrived-at convergence (§20, §22 above).
+*Old assumption:* §14/§19/§25/Owner Decision 3 treated the book's cream/off-white/charcoal register as a legitimate, unbranded starting hypothesis for the website, deferring the "does this look like imitation" question to a later visual-design phase once real mockups existed.
+*Corrected rule:* the visual-design phase should start from a cooler, whiter neutral base (Palette 2's register) combined with a single darkened status-signal accent (Palette 3's logic), not from the warm-cream base; ENCOUNTER's warmth should come from photography and modest per-section accent variation, not from the base neutral tone itself.
+
+**Edit 2 — Verification-metadata restraint (new discipline under §13/§19).**
+*Prototype/visual observation:* Study 6's dense/social beat, with a dated verification line under every ordinary current-documentary image caption, visually reads as a provenance interface rather than as ENCOUNTER's intended social warmth (§19 above), even though each individual line is honest and correct.
+*Old assumption:* the direction's honesty discipline (§13, §19, DNA 2) implied that visible, dated verification should accompany claims generally, without distinguishing decision-bearing facts from ordinary documentary captions.
+*Corrected rule:* dated "confirmed/checked" verification lines are reserved for facts a visitor is about to act on (hours, access, booking status, event dates, freshness of a claim) and for archival dating — not for every ordinary current-documentary image caption. Documentary photography in dense/social contexts may carry a plain, undated caption; Measure's apparatus should recede in exactly the contexts where Encounter is meant to lead, per §12 of this document (Step 12 below).
+
+A third, smaller refinement (not a correction) is recorded against §21: the "minimum reliable grammar" finding from §21 above — at least one structural signal (edge/scale/framing) plus one text signal is sufficient for current/archive legibility; stacking every available signal on one page is unnecessary, not required.
+
+## 28. Quality gates — final visual pass
+
+| # | Gate | Result | Basis |
+|---|---|---|---|
+| 1 | Measure + Encounter visibly exist, not just textually | **PASS** | Study 6, §19 |
+| 2 | Measure avoids an admin/provenance aesthetic | **PASS, with a correction applied** | §19/§27 Edit 2 — found and corrected this session |
+| 3 | Encounter avoids hospitality cliché | **PASS** | Study 6 used no photography at all rather than risk generic bar imagery; image-source decision in §19 |
+| 4 | Current/archive registers quickly | **PASS** | §18.A, §21 |
+| 5 | Archive/current coexist with real imagery | **PARTIAL PASS** | Composition proven (§19 Beat 4); real photography itself still untested — no production-safe photography exists yet |
+| 6 | Unknown states remain useful, not unfinished | **PASS** | Beat 2's SEGNI DI PACE proposal card, §19 |
+| 7 | Accessibility feels integrated | **PASS** | §18.D, §24 |
+| 8 | Typography gives personality without imitating the book | **PASS** | §18.B, §20, §23 |
+| 9 | Palette feels independent from the book | **FAIL as currently recommended; corrected** | §20, §22, §27 Edit 1 |
+| 10 | Image statuses coexist without fake archival styling | **PASS** | §19 Beat 4 — no sepia/tape/grain used |
+| 11 | Quiet↔dense rhythm visibly works | **PASS** | §19, all five beats |
+| 12 | Mobile preserves the creative grammar, not just stacking | **PARTIAL PASS** | Study 6's mosaic collapses to a uniform single-column stack below 760px (§18/§19 mobile screenshots) — rhythm survives at the whole-page level (beat lengths still vary) but within-beat scale variation is lost on mobile; a genuine reflow (proportional rescaling instead of uniform stacking) is not yet demonstrated |
+| 13 | Relationship exploration correctly scoped | **PASS** | §25 |
+| 14 | More specific than a generic cultural/NGO/hospitality site | **PASS** | §26 |
+| 15 | Book and website feel like sibling projects, not one design adapted across formats | **PASS, with the palette correction applied** | §20 |
+
+**13/15 clean pass, 2 corrected-in-place (palette, metadata restraint), 0 unresolved blockers.** Gates 5 and 12 are named as partial rather than full passes because they identify real, bounded future work (sourcing actual production-safe photography; a genuine proportional mobile reflow) rather than a defect in this session's evidence.
+
+## 29. Recommendation to the reviewing session (final)
+
+**READY TO MERGE creative direction + prototype validation**, on the basis that: (a) every §28 prototyping question from the direction document has now been tested both numerically (§1–§16) and visually (§17–§28); (b) the one real corrective finding this session produced (palette proximity to the book) has already been applied to the direction document, not left as an open risk; (c) the second finding (metadata restraint) has likewise been applied; (d) the two partial-pass gates (5, 12) describe bounded follow-on work for the visual-design phase, not blockers to merging validated creative direction. No further creative-direction theory pass is needed before the next phase (concrete content-schema design, already unblocked, and visual/component design once schema is stable, per §29 of the direction document).
