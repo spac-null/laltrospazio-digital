@@ -1,0 +1,79 @@
+/*
+  DISPOSABLE PROTOTYPE ARTEFACT — not production CSS.
+  Three palette hypotheses, switchable via [data-palette="1|2|3"] on <html>.
+  Kept behaviourally comparable: every palette defines the same variable
+  names, so composition can stay identical while only color changes.
+  Focus-ring color is NOT palette-dependent — accessibility must not be a
+  palette experiment.
+*/
+
+:root {
+  --focus-ring: #1a56ff;
+  --focus-ring-offset: 2px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+}
+
+/* PALETTE 1 — restrained warm-neutral ("cream/charcoal" hypothesis) */
+[data-palette="1"] {
+  --color-bg: #f4f1ea;
+  --color-surface: #fbf9f4;
+  --color-surface-raised: #ffffff;
+  --color-ink: #24211b;
+  --color-ink-muted: #5c574a;
+  --color-ink-faint: #8a8474;
+  --color-line: #cfc7b3;
+  --color-line-strong: #a89f88;
+  --color-accent-current: #2e6b56;   /* muted teal-green: "active / live" */
+  --color-accent-notice: #9c4a2e;    /* muted rust: temporary / warning */
+  --color-accent-archive: #7a705a;   /* muted ochre: historical */
+  --color-accent-signal: #2e6b56;
+  --palette-name: "Palette 1 — Warm Neutral";
+}
+
+/* PALETTE 2 — white / ink system: cooler, more graphic, meaningfully distinct from P1 */
+[data-palette="2"] {
+  --color-bg: #ffffff;
+  --color-surface: #f2f2f3;
+  --color-surface-raised: #ffffff;
+  --color-ink: #0e0e10;
+  --color-ink-muted: #55585c;
+  --color-ink-faint: #8d9095;
+  --color-line: #d9d9db;
+  --color-line-strong: #b4b5b9;
+  --color-accent-current: #1c4fd6;   /* cool signal blue */
+  --color-accent-notice: #b3311c;
+  --color-accent-archive: #6b6e73;
+  --color-accent-signal: #1c4fd6;
+  --palette-name: "Palette 2 — White / Ink";
+}
+
+/* PALETTE 3 — restrained base, ONE stronger signal/accent used only for status */
+[data-palette="3"] {
+  --color-bg: #efeae1;
+  --color-surface: #f8f5ee;
+  --color-surface-raised: #ffffff;
+  --color-ink: #201f1c;
+  --color-ink-muted: #5a564c;
+  --color-ink-faint: #8b8578;
+  --color-line: #d6cfbf;
+  --color-line-strong: #ac9f88;
+  --color-accent-current: #e2542a;   /* one strong accent, reserved for live/signal only */
+  --color-accent-notice: #b3311c;
+  --color-accent-archive: #6f6a5c;
+  --color-accent-signal: #e2542a;
+  --palette-name: "Palette 3 — Neutral + Signal";
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+}

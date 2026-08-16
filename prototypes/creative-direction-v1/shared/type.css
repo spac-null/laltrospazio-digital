@@ -1,0 +1,127 @@
+/*
+  DISPOSABLE PROTOTYPE ARTEFACT — typography systems, not final type choices.
+  System-native font stacks only (no font files committed, no external
+  font loading). Three systems, switchable via [data-type="1|2|3"] on <html>.
+  Each system differs in HOW the functional/editorial/metadata voices relate
+  to each other (family, weight, spacing, scale, rhythm) — not merely which
+  family is loaded.
+
+  Fixed across all three systems (non-negotiable floor, per direction §9/§13):
+  - no rotation of any text
+  - no compressed/condensed uppercase body copy
+  - minimum body size 16px, minimum line-height 1.5 for paragraphs
+  - all three must survive 200% browser zoom (tested: rem-based sizing only)
+*/
+
+:root {
+  --font-functional-stack: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-editorial-stack: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+  --font-mono-stack: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+}
+
+/* SYSTEM 1 — "Editorial Pair": family contrast carries the two voices */
+[data-type="1"] {
+  --font-functional: var(--font-functional-stack);
+  --font-editorial: var(--font-editorial-stack);
+  --font-metadata: var(--font-mono-stack);
+  --editorial-style: italic;
+  --editorial-weight: 400;
+  --editorial-tracking: 0;
+  --editorial-scale-quote: 1.75rem;
+  --editorial-scale-statement: 1.25rem;
+  --editorial-leading: 1.5;
+  --functional-weight-label: 600;
+  --functional-tracking-label: 0.02em;
+}
+
+/* SYSTEM 2 — "Single Family, Modulated": one sans family throughout;
+   voices differ only by weight, scale-jump size and rhythm */
+[data-type="2"] {
+  --font-functional: var(--font-functional-stack);
+  --font-editorial: var(--font-functional-stack);
+  --font-metadata: var(--font-mono-stack);
+  --editorial-style: normal;
+  --editorial-weight: 700;
+  --editorial-tracking: -0.01em;
+  --editorial-scale-quote: 2.1rem;
+  --editorial-scale-statement: 1.4rem;
+  --editorial-leading: 1.35;
+  --functional-weight-label: 500;
+  --functional-tracking-label: 0.01em;
+}
+
+/* SYSTEM 3 — "Grotesk + Spacing": same functional sans; editorial voice
+   distinguished by letter-spacing/case treatment rather than weight or
+   family; monospace promoted to its own third "metadata voice" used for
+   short signal callouts as well as dates/status. */
+[data-type="3"] {
+  --font-functional: var(--font-functional-stack);
+  --font-editorial: var(--font-functional-stack);
+  --font-metadata: var(--font-mono-stack);
+  --editorial-style: normal;
+  --editorial-weight: 500;
+  --editorial-tracking: 0.03em;
+  --editorial-scale-quote: 1.5rem;
+  --editorial-scale-statement: 1.05rem;
+  --editorial-leading: 1.6;
+  --functional-weight-label: 600;
+  --functional-tracking-label: 0.08em;
+}
+
+body {
+  font-family: var(--font-functional);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.v-functional {
+  font-family: var(--font-functional);
+}
+
+.v-editorial-statement {
+  font-family: var(--font-editorial);
+  font-style: var(--editorial-style);
+  font-weight: var(--editorial-weight);
+  letter-spacing: var(--editorial-tracking);
+  font-size: var(--editorial-scale-statement);
+  line-height: var(--editorial-leading);
+  overflow-wrap: break-word;
+}
+
+.v-editorial-quote {
+  font-family: var(--font-editorial);
+  font-style: var(--editorial-style);
+  font-weight: var(--editorial-weight);
+  letter-spacing: var(--editorial-tracking);
+  font-size: var(--editorial-scale-quote);
+  line-height: var(--editorial-leading);
+  overflow-wrap: break-word;
+}
+
+.v-editorial-body {
+  font-family: var(--font-editorial);
+  font-weight: 400;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  max-width: 38rem;
+  overflow-wrap: break-word;
+}
+
+.v-metadata {
+  font-family: var(--font-metadata);
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+}
+
+.v-label {
+  font-family: var(--font-functional);
+  font-weight: var(--functional-weight-label);
+  letter-spacing: var(--functional-tracking-label);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+[data-type="3"] .v-editorial-statement,
+[data-type="3"] .v-editorial-quote {
+  text-transform: none;
+}

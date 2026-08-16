@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en" data-palette="1" data-type="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study 4 — Accessibility Information as Normal Design · disposable prototype</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/type.css">
+<link rel="stylesheet" href="../shared/base.css">
+<style>
+  .study-header { padding: var(--space-8) var(--space-4) var(--space-4); max-width: 68rem; margin: 0 auto; }
+  .study-header p { max-width: 42rem; color: var(--color-ink-muted); }
+  main.page { max-width: 44rem; margin: 0 auto var(--space-16); padding: 0 var(--space-4); }
+  .quick-answers { display: grid; gap: var(--space-4); margin-bottom: var(--space-10); }
+  .qa-card { background: var(--color-surface-raised); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: var(--space-4); }
+  .qa-card h2 { font-size: 1rem; margin: 0 0 var(--space-2) 0; }
+  .qa-card p { margin: 0; }
+  .dim-list { border-top: 1px solid var(--color-line-strong); }
+  details.dim {
+    border-bottom: 1px solid var(--color-line);
+    padding: var(--space-3) 0;
+  }
+  details.dim > summary {
+    cursor: pointer;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
+    list-style: none;
+  }
+  details.dim > summary::-webkit-details-marker { display: none; }
+  details.dim > summary::before {
+    content: "+";
+    display: inline-block;
+    width: 1em;
+    color: var(--color-ink-muted);
+  }
+  details.dim[open] > summary::before { content: "–"; }
+  .dim-name { font-weight: 600; }
+  .dim-headline { color: var(--color-ink-muted); }
+  .dim-body { padding: var(--space-2) 0 0 1.5em; max-width: 34rem; }
+  .contact-cta { margin-top: var(--space-10); background: var(--color-surface); border-radius: var(--radius-md); padding: var(--space-4); }
+</style>
+</head>
+<body>
+<nav class="lab-bar" aria-label="Prototype lab controls">
+  <strong>Lab:</strong>
+  <div class="lab-group"><span>Palette</span>
+    <button class="lab-switch-btn" data-palette-btn="1" aria-pressed="true">1 Warm</button>
+    <button class="lab-switch-btn" data-palette-btn="2">2 Ink</button>
+    <button class="lab-switch-btn" data-palette-btn="3">3 Signal</button>
+  </div>
+  <div class="lab-group"><span>Type</span>
+    <button class="lab-switch-btn" data-type-btn="1" aria-pressed="true">1 Pair</button>
+    <button class="lab-switch-btn" data-type-btn="2">2 Modulated</button>
+    <button class="lab-switch-btn" data-type-btn="3">3 Spacing</button>
+  </div>
+  <a class="lab-switch-btn lab-home-link" href="../index.html">← Lab home</a>
+</nav>
+
+<header class="study-header">
+  <p class="v-label">Study 4 of 5</p>
+  <h1>Accessibility Information as Normal Design</h1>
+  <p>The real, partially-unverified Via Nazario access profile (Current Public State v1 §3), shown as an ordinary page rather than a compliance dashboard. No wheelchair icon leading the design, no green-tick/red-cross coding, no separate "accessibility mode" — this is styled exactly like the rest of the site's fact-line and card language (Studies 1–2), because it must be.</p>
+</header>
+
+<main class="page">
+
+  <section class="quick-answers" aria-labelledby="qa-h">
+    <h2 id="qa-h" class="v-label">Quick answers</h2>
+    <div class="qa-card">
+      <h2>Can I get in?</h2>
+      <p>We can't yet confirm step-free access or door width for the current building. <a href="#physical">See what we know</a>, and please ask us before you visit if this matters for you.</p>
+    </div>
+    <div class="qa-card">
+      <h2>How can I communicate?</h2>
+      <p>Text or WhatsApp works right now and is checked regularly. Whether LIS/sign-language support is available on your specific date hasn't been confirmed — ask us when you book.</p>
+    </div>
+    <div class="qa-card">
+      <h2>What should I ask before coming?</h2>
+      <p>Whether the entrance and toilet suit your needs, and whether a LIS-fluent host is on shift that day. Both are currently unconfirmed defaults, not confirmed "no"s.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="dim-h">
+    <h2 id="dim-h" class="v-label">What we know, dimension by dimension</h2>
+    <div class="dim-list">
+
+      <details class="dim" id="physical">
+        <summary><span class="status-dot status-dot--unknown" aria-hidden="true"></span><span class="dim-name">Physical access</span><span class="dim-headline">— not yet confirmed</span></summary>
+        <div class="dim-body">
+          <p>Entrance, door width, internal movement, counter height, seating and toilet accessibility haven't been checked for the current building. A 2015-era design intended a lowered counter, but that's a historical fact, not a current one — we won't guess.</p>
+        </div>
+      </details>
+
+      <details class="dim">
+        <summary><span class="status-dot status-dot--unknown" aria-hidden="true"></span><span class="dim-name">Visual access</span><span class="dim-headline">— not yet confirmed</span></summary>
+        <div class="dim-body">
+          <p>Lighting, contrast and menu format haven't been rechecked. Braille menus were documented in 2018; we don't yet know if that still holds today.</p>
+        </div>
+      </details>
+
+      <details class="dim">
+        <summary><span class="status-dot status-dot--current" aria-hidden="true"></span><span class="dim-name">Deaf / communication access</span><span class="dim-headline">— text contact confirmed, staff coverage unconfirmed</span></summary>
+        <div class="dim-body">
+          <p>Text and WhatsApp contact are confirmed and working. Whether a LIS-fluent host is on shift for your specific visit hasn't been confirmed — ask when you book.</p>
+        </div>
+      </details>
+
+      <details class="dim">
+        <summary><span class="status-dot status-dot--unknown" aria-hidden="true"></span><span class="dim-name">Hearing / audio access</span><span class="dim-headline">— not established</span></summary>
+        <div class="dim-body">
+          <p>Amplification, induction loop, and captioning haven't been established either way.</p>
+        </div>
+      </details>
+
+      <details class="dim">
+        <summary><span class="status-dot status-dot--unknown" aria-hidden="true"></span><span class="dim-name">Cognitive / information access</span><span class="dim-headline">— not yet assessed</span></summary>
+        <div class="dim-body">
+          <p>Clarity of directions and menu complexity haven't been assessed on-site yet.</p>
+        </div>
+      </details>
+
+      <details class="dim">
+        <summary><span class="status-dot status-dot--current" aria-hidden="true"></span><span class="dim-name">Digital access</span><span class="dim-headline">— an engineering responsibility, not a claim</span></summary>
+        <div class="dim-body">
+          <p>This website's own accessibility is something we're building to standard, not a claim we're making about the venue — it doesn't need a verification date the way a physical fact does.</p>
+        </div>
+      </details>
+
+      <details class="dim">
+        <summary><span class="status-dot status-dot--unknown" aria-hidden="true"></span><span class="dim-name">Event-specific access</span><span class="dim-headline">— varies, check the listing</span></summary>
+        <div class="dim-body">
+          <p>Some events note their own access conditions (interpretation, sensory intensity). Check the specific event you're interested in; nothing here should be assumed to apply to every event.</p>
+        </div>
+      </details>
+
+      <details class="dim">
+        <summary><span class="status-dot status-dot--current" aria-hidden="true"></span><span class="dim-name">Assistance / contact</span><span class="dim-headline">— confirmed channel</span></summary>
+        <div class="dim-body">
+          <p>Ask us anything on this page directly via WhatsApp; it's checked regularly. A separate, dedicated accessibility-question line hasn't been set up yet — this is the one to use for now.</p>
+        </div>
+      </details>
+
+      <details class="dim">
+        <summary><span class="status-dot status-dot--historical" aria-hidden="true"></span><span class="dim-name">Temporary limitations</span><span class="dim-headline">— none currently reported</span></summary>
+        <div class="dim-body">
+          <p>Nothing is currently reported as out of service (no blocked route, no broken lift). If that changes, it will appear here as a dated notice, not silently.</p>
+        </div>
+      </details>
+
+    </div>
+  </section>
+
+  <section class="contact-cta" aria-labelledby="contact-h">
+    <h2 id="contact-h" class="v-label">Ask before you come</h2>
+    <p>Most of what's above is honestly unconfirmed rather than confirmed absent. If any of it matters for your visit, message us and we'll check.</p>
+    <p><a class="v-functional" href="#" style="font-weight:600;">Message us on WhatsApp →</a></p>
+  </section>
+
+</main>
+
+</body>
+<script src="../shared/lab.js"></script>
+</html>

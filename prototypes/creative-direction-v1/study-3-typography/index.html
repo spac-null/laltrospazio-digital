@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en" data-palette="1" data-type="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study 3 — Two-Voice Typography · disposable prototype</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/type.css">
+<link rel="stylesheet" href="../shared/base.css">
+<style>
+  .study-header { padding: var(--space-8) var(--space-4) var(--space-4); max-width: 68rem; margin: 0 auto; }
+  .study-header p { max-width: 42rem; color: var(--color-ink-muted); }
+  .sample-grid { max-width: 44rem; margin: 0 auto; padding: 0 var(--space-4) var(--space-16); display: grid; gap: var(--space-8); }
+  .sample { border-bottom: 1px solid var(--color-line); padding-bottom: var(--space-6); min-width: 0; }
+  .sample__label { color: var(--color-ink-muted); margin-bottom: var(--space-2); }
+  .venue-status { display: flex; align-items: baseline; gap: var(--space-2); }
+  .event-title { margin: 0; font-size: 1.3rem; }
+  .event-date { color: var(--color-ink-muted); }
+  .access-instr { max-width: 32rem; }
+  .cta-btn {
+    display: inline-block;
+    border: 1.5px solid var(--color-ink);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--color-ink);
+    font-family: var(--font-functional);
+    font-weight: 600;
+  }
+  .cta-btn:hover { background: var(--color-ink); color: var(--color-bg); }
+  .quote-block { border-left: 3px solid var(--color-line-strong); padding-left: var(--space-4); }
+  .zoom-note { max-width: 44rem; margin: 0 auto var(--space-12); padding: 0 var(--space-4); font-size: 0.9rem; color: var(--color-ink-muted); }
+</style>
+</head>
+<body>
+<nav class="lab-bar" aria-label="Prototype lab controls">
+  <strong>Lab:</strong>
+  <div class="lab-group"><span>Palette</span>
+    <button class="lab-switch-btn" data-palette-btn="1" aria-pressed="true">1 Warm</button>
+    <button class="lab-switch-btn" data-palette-btn="2">2 Ink</button>
+    <button class="lab-switch-btn" data-palette-btn="3">3 Signal</button>
+  </div>
+  <div class="lab-group"><span>Type system</span>
+    <button class="lab-switch-btn" data-type-btn="1" aria-pressed="true">1 Editorial Pair</button>
+    <button class="lab-switch-btn" data-type-btn="2">2 Single Family, Modulated</button>
+    <button class="lab-switch-btn" data-type-btn="3">3 Grotesk + Spacing</button>
+  </div>
+  <a class="lab-switch-btn lab-home-link" href="../index.html">← Lab home</a>
+</nav>
+
+<header class="study-header">
+  <p class="v-label">Study 3 of 5</p>
+  <h1>Two-Voice Typography</h1>
+  <p>Three systems for the tension between a functional/practical voice and an editorial/cultural voice — differing in family, weight, spacing and rhythm, not just "which font." System-native stacks only (no font files). Switch type systems above; every sample below re-renders. Test at 100% and at 200% browser zoom.</p>
+</header>
+
+<div class="sample-grid">
+
+  <div class="sample">
+    <p class="v-label sample__label">Venue status — functional voice</p>
+    <div class="venue-status v-functional">
+      <span class="status-dot status-dot--notice" aria-hidden="true"></span>
+      <span>Temporarily closed 12–26 August 2026. Reopens 27 August.</span>
+    </div>
+  </div>
+
+  <div class="sample">
+    <p class="v-label sample__label">Event title / date — functional voice</p>
+    <h2 class="event-title v-functional">Cena al Buio</h2>
+    <p class="event-date v-metadata">Last confirmed date: 31 October 2025 · Halloween</p>
+  </div>
+
+  <div class="sample">
+    <p class="v-label sample__label">Access instruction — functional voice, longer Italian string</p>
+    <p class="access-instr v-functional">Le prenotazioni sono possibili solo tramite WhatsApp: chiamare non è necessario. Città di Bologna, Via Nazario Sauro 24/F — ingresso da confermare per sedie a rotelle.</p>
+  </div>
+
+  <div class="sample">
+    <p class="v-label sample__label">Short institutional statement — editorial voice</p>
+    <p class="v-editorial-statement">A decade-long practice of building and rebuilding environments around the people actually in them.</p>
+  </div>
+
+  <div class="sample">
+    <p class="v-label sample__label">Archival quotation — editorial voice (placeholder, consent-gated)</p>
+    <blockquote class="quote-block v-editorial-quote">
+      "[Placeholder — an oral-history excerpt would appear here once the speaker has confirmed consent for public use. Not a real quotation.]"
+    </blockquote>
+  </div>
+
+  <div class="sample">
+    <p class="v-label sample__label">Long-form paragraph — editorial voice at reading measure</p>
+    <p class="v-editorial-body">L'Altro Spazio is a bar, cultural venue and social cooperative in Bologna where disabled and Deaf people work as hosts, cooks, artists and designers — not as guests being accommodated. It grew out of two people's different routes into the same realisation: that exclusion usually isn't caused by disability itself, but by spaces, services and assumptions built without disabled people in mind. Today that practice runs through a venue on Via Nazario Sauro, seasonal work at Parco 11 Settembre, and a cooperative that is turning a decade of informal practice into a more durable institution.</p>
+  </div>
+
+  <div class="sample">
+    <p class="v-label sample__label">CTA / action — functional voice</p>
+    <a class="cta-btn" href="#">Book via WhatsApp</a>
+  </div>
+
+  <div class="sample">
+    <p class="v-label sample__label">Metadata — dedicated metadata voice (monospace-flavoured, all three systems)</p>
+    <p class="v-metadata">last verified 16 Aug 2026 · source: owner confirmation</p>
+  </div>
+
+</div>
+
+<p class="zoom-note"><strong>Zoom/mobile-width note (reviewer instruction):</strong> resize this window to ~360px and separately test the browser's 200% zoom. Every size above is set in <code>rem</code>, so both should scale from the user's base font size rather than breaking to a fixed pixel layout. No text on this page is rotated; no body text drops below 1rem; the access-instruction sample is the longest Italian string on the page and is the one to watch for wrapping/hyphenation at narrow widths.</p>
+
+</body>
+<script src="../shared/lab.js"></script>
+</html>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" data-palette="1" data-type="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L'Altro Spazio — Creative Direction Prototype Lab (disposable)</title>
+<link rel="stylesheet" href="shared/tokens.css">
+<link rel="stylesheet" href="shared/type.css">
+<link rel="stylesheet" href="shared/base.css">
+<style>
+  .lab-header { max-width: 44rem; margin: 0 auto; padding: var(--space-12) var(--space-4) var(--space-6); }
+  .lab-header p { color: var(--color-ink-muted); }
+  .warning {
+    max-width: 44rem; margin: 0 auto var(--space-10); padding: var(--space-4);
+    border: 1px dashed var(--color-accent-notice); border-radius: var(--radius-md);
+    font-size: 0.9rem;
+  }
+  .studies { max-width: 44rem; margin: 0 auto var(--space-16); padding: 0 var(--space-4); display: grid; gap: var(--space-4); }
+  .study-link { display: block; background: var(--color-surface-raised); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: var(--space-4); text-decoration: none; color: var(--color-ink); }
+  .study-link h2 { margin: 0 0 var(--space-1) 0; font-size: 1.05rem; }
+  .study-link p { margin: 0; color: var(--color-ink-muted); font-size: 0.9rem; }
+  .study-link:hover h2 { text-decoration: underline; }
+</style>
+</head>
+<body>
+<nav class="lab-bar" aria-label="Prototype lab controls">
+  <strong>Lab:</strong>
+  <div class="lab-group"><span>Palette</span>
+    <button class="lab-switch-btn" data-palette-btn="1" aria-pressed="true">1 Warm</button>
+    <button class="lab-switch-btn" data-palette-btn="2">2 Ink</button>
+    <button class="lab-switch-btn" data-palette-btn="3">3 Signal</button>
+  </div>
+  <div class="lab-group"><span>Type</span>
+    <button class="lab-switch-btn" data-type-btn="1" aria-pressed="true">1 Pair</button>
+    <button class="lab-switch-btn" data-type-btn="2">2 Modulated</button>
+    <button class="lab-switch-btn" data-type-btn="3">3 Spacing</button>
+  </div>
+</nav>
+
+<header class="lab-header">
+  <p class="v-label">Disposable prototype lab</p>
+  <h1>Creative Direction v1 — Prototype Studies</h1>
+  <p>Five focused, static-HTML studies testing whether Territory A (Measure) + Territory B (Encounter) actually produces a distinctive, hospitable, honest L'Altro Spazio digital environment — or collapses into something generic, cold, or a disguised copy of the book. See <code>docs/design/laltrospazio-creative-prototype-test-v1.md</code> for the full write-up and findings.</p>
+</header>
+
+<div class="warning">
+  <strong>Not production.</strong> No framework, no build step, no dependency on <code>src/</code>. Palettes and typography systems are hypotheses under test, switchable above — nothing here is approved branding. Every study uses real, public-safe, already-established L'Altro Spazio facts; where a fact is unknown, it is shown as unknown.
+</div>
+
+<nav class="studies" aria-label="Prototype studies">
+  <a class="study-link" href="study-1-current-archive/index.html">
+    <h2>Study 1 — Current / Archive Marker</h2>
+    <p>Three treatments distinguishing "happening now" from "history," tested against the same four real facts.</p>
+  </a>
+  <a class="study-link" href="study-2-freshness-uncertainty/index.html">
+    <h2>Study 2 — Freshness / Uncertainty Display</h2>
+    <p>Translating the content model's evidence discipline into plain, non-bureaucratic sentences.</p>
+  </a>
+  <a class="study-link" href="study-3-typography/index.html">
+    <h2>Study 3 — Two-Voice Typography</h2>
+    <p>Three typographic systems for the functional/editorial tension, tested across real content kinds.</p>
+  </a>
+  <a class="study-link" href="study-4-accessibility/index.html">
+    <h2>Study 4 — Accessibility Information as Normal Design</h2>
+    <p>The real, partially-unverified nine-dimension access profile, styled like an ordinary page.</p>
+  </a>
+  <a class="study-link" href="study-5-relationship/index.html">
+    <h2>Study 5 — Relationship / Multiple Routes</h2>
+    <p>Linear vs. spatial treatment of one Cena al Buio content cluster — testing whether relational layout earns its keep.</p>
+  </a>
+</nav>
+
+</body>
+<script src="shared/lab.js"></script>
+</html>

@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en" data-palette="1" data-type="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study 5 — Relationship / Multiple Routes · disposable prototype</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/type.css">
+<link rel="stylesheet" href="../shared/base.css">
+<style>
+  .study-header { padding: var(--space-8) var(--space-4) var(--space-4); max-width: 68rem; margin: 0 auto; }
+  .study-header p { max-width: 42rem; color: var(--color-ink-muted); }
+  main.page { max-width: 60rem; margin: 0 auto var(--space-16); padding: 0 var(--space-4); }
+  .layout-toggle { display: flex; gap: var(--space-2); margin-bottom: var(--space-8); }
+
+  /* Shared list semantics: identical <ul><li><a> markup for BOTH treatments.
+     Only CSS layout differs — DOM order and link text never change. */
+  .rel-list { list-style: none; margin: 0; padding: 0; }
+  .rel-card {
+    background: var(--color-surface-raised);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+  .rel-card a { text-decoration: none; color: var(--color-ink); display: block; }
+  .rel-card a:hover .rel-card__title { text-decoration: underline; }
+  .rel-card__eyebrow { display: block; margin-bottom: var(--space-1); }
+  .rel-card__title { font-weight: 600; margin: 0 0 var(--space-1) 0; }
+  .rel-card__desc { margin: 0; color: var(--color-ink-muted); font-size: 0.9375rem; }
+  .rel-card--center { background: var(--color-surface); }
+
+  /* Treatment A — linear */
+  .rel-list--linear .rel-card { margin-bottom: var(--space-3); }
+  .rel-list--linear .rel-card--center { margin-bottom: var(--space-6); }
+
+  .rel-satellites-item { list-style: none; margin: 0; padding: 0; }
+  .rel-satellites { list-style: none; margin: var(--space-3) 0 0 0; padding: 0; }
+  .rel-list--linear .rel-satellites > li { margin-bottom: var(--space-3); }
+
+  /* Treatment B — spatial (desktop/tablet only; degrades to linear stack
+     below 760px, which is itself part of the finding, not a bug) */
+  .rel-list--spatial { display: block; }
+  @media (min-width: 760px) {
+    .rel-list--spatial {
+      position: relative;
+      padding-top: var(--space-8);
+    }
+    .rel-list--spatial .rel-card--center {
+      max-width: 26rem;
+      margin: 0 auto var(--space-8);
+      position: relative;
+    }
+    .rel-list--spatial .rel-card--center::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: calc(-1 * var(--space-8));
+      width: 2px;
+      height: var(--space-8);
+      background: var(--color-line-strong);
+      transform: translateX(-1px);
+    }
+    .rel-satellites {
+      display: flex;
+      gap: var(--space-6);
+      position: relative;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .rel-satellites::before {
+      content: "";
+      position: absolute;
+      top: calc(-1 * var(--space-4));
+      left: calc(100% / 6);
+      right: calc(100% / 6);
+      height: 2px;
+      background: var(--color-line-strong);
+    }
+    .rel-satellites > li { flex: 1; position: relative; }
+    .rel-satellites > li::before {
+      content: "";
+      position: absolute;
+      top: calc(-1 * var(--space-4));
+      left: 50%;
+      width: 2px;
+      height: var(--space-4);
+      background: var(--color-line-strong);
+      transform: translateX(-1px);
+    }
+  }
+
+  .finding-box {
+    margin-top: var(--space-10);
+    background: var(--color-surface);
+    border: 1px dashed var(--color-line-strong);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    font-size: 0.9rem;
+    color: var(--color-ink-muted);
+  }
+</style>
+</head>
+<body>
+<nav class="lab-bar" aria-label="Prototype lab controls">
+  <strong>Lab:</strong>
+  <div class="lab-group"><span>Palette</span>
+    <button class="lab-switch-btn" data-palette-btn="1" aria-pressed="true">1 Warm</button>
+    <button class="lab-switch-btn" data-palette-btn="2">2 Ink</button>
+    <button class="lab-switch-btn" data-palette-btn="3">3 Signal</button>
+  </div>
+  <div class="lab-group"><span>Type</span>
+    <button class="lab-switch-btn" data-type-btn="1" aria-pressed="true">1 Pair</button>
+    <button class="lab-switch-btn" data-type-btn="2">2 Modulated</button>
+    <button class="lab-switch-btn" data-type-btn="3">3 Spacing</button>
+  </div>
+  <a class="lab-switch-btn lab-home-link" href="../index.html">← Lab home</a>
+</nav>
+
+<header class="study-header">
+  <p class="v-label">Study 5 of 5 — intentionally narrow</p>
+  <h1>Relationship / Multiple Routes</h1>
+  <p>One real content cluster — Cena al Buio, its historical event manifestation, its private/corporate service manifestation, and its case-study history — shown two ways from <strong>the same underlying list markup</strong>. Toggle between them below. Try both with a keyboard only (Tab), and read the DOM order in browser dev tools — it does not change between treatments.</p>
+</header>
+
+<main class="page">
+  <div class="layout-toggle" role="group" aria-label="Choose treatment">
+    <button class="lab-switch-btn" id="btn-linear" aria-pressed="true">A — Linear</button>
+    <button class="lab-switch-btn" id="btn-spatial" aria-pressed="false">B — Spatial</button>
+  </div>
+
+  <ul class="rel-list rel-list--linear" id="rel-list">
+    <li class="rel-card rel-card--center">
+      <a href="#">
+        <span class="v-label rel-card__eyebrow">The format (WORK)</span>
+        <h2 class="rel-card__title">Cena al Buio</h2>
+        <p class="rel-card__desc">A decade-old format: sighted guests are served and guided by staff who are blind or low-vision.</p>
+      </a>
+    </li>
+    <li class="rel-satellites-item">
+      <ul class="rel-satellites" id="rel-satellites">
+        <li class="rel-card">
+          <a href="#">
+            <span class="v-label rel-card__eyebrow">Historical occurrence</span>
+            <h3 class="rel-card__title">Halloween 2025</h3>
+            <p class="rel-card__desc">Its last confirmed public date.</p>
+          </a>
+        </li>
+        <li class="rel-card">
+          <a href="#">
+            <span class="v-label rel-card__eyebrow">Book privately</span>
+            <h3 class="rel-card__title">Private / corporate booking</h3>
+            <p class="rel-card__desc">Available as a service — ask us to check current availability.</p>
+          </a>
+        </li>
+        <li class="rel-card">
+          <a href="#">
+            <span class="v-label rel-card__eyebrow">Read the full story</span>
+            <h3 class="rel-card__title">A decade of one mechanism</h3>
+            <p class="rel-card__desc">How the format has stayed the same since 2015, with one unexplained gap in 2024.</p>
+          </a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="finding-box">
+    <strong>Reviewer note:</strong> below 760px width, Treatment B silently becomes Treatment A — there is no separate "mobile spatial" layout, because none of the connecting lines survive a single-column width honestly. Treat that collapse itself as evidence, not as an implementation gap to fix later.
+  </div>
+</main>
+
+<script>
+  var list = document.getElementById('rel-list');
+  var btnLinear = document.getElementById('btn-linear');
+  var btnSpatial = document.getElementById('btn-spatial');
+  function setTreatment(t) {
+    list.classList.remove('rel-list--linear', 'rel-list--spatial');
+    list.classList.add('rel-list--' + t);
+    btnLinear.setAttribute('aria-pressed', t === 'linear' ? 'true' : 'false');
+    btnSpatial.setAttribute('aria-pressed', t === 'spatial' ? 'true' : 'false');
+  }
+  btnLinear.addEventListener('click', function () { setTreatment('linear'); });
+  btnSpatial.addEventListener('click', function () { setTreatment('spatial'); });
+</script>
+<script src="../shared/lab.js"></script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en" data-palette="1" data-type="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study 2 — Freshness / Uncertainty Display · disposable prototype</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/type.css">
+<link rel="stylesheet" href="../shared/base.css">
+<style>
+  .study-header { padding: var(--space-8) var(--space-4) var(--space-4); max-width: 68rem; margin: 0 auto; }
+  .study-header p { max-width: 42rem; color: var(--color-ink-muted); }
+  section.block { max-width: 44rem; margin: 0 auto var(--space-12); padding: 0 var(--space-4); }
+  .block h2 { font-size: 1.1rem; }
+  .block-note { color: var(--color-ink-muted); font-size: 0.9rem; margin-bottom: var(--space-4); }
+  .fact-group { background: var(--color-surface-raised); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: var(--space-4); }
+  details.qa {
+    margin-top: var(--space-3);
+    font-size: 0.8125rem;
+    border: 1px dashed var(--color-line-strong);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-ink-muted);
+  }
+  details.qa summary { cursor: pointer; }
+  details.qa .internal-token { font-family: var(--font-mono-stack); background: var(--color-surface); padding: 0.1em 0.3em; border-radius: 2px; }
+</style>
+</head>
+<body>
+<nav class="lab-bar" aria-label="Prototype lab controls">
+  <strong>Lab:</strong>
+  <div class="lab-group"><span>Palette</span>
+    <button class="lab-switch-btn" data-palette-btn="1" aria-pressed="true">1 Warm</button>
+    <button class="lab-switch-btn" data-palette-btn="2">2 Ink</button>
+    <button class="lab-switch-btn" data-palette-btn="3">3 Signal</button>
+  </div>
+  <div class="lab-group"><span>Type</span>
+    <button class="lab-switch-btn" data-type-btn="1" aria-pressed="true">1 Pair</button>
+    <button class="lab-switch-btn" data-type-btn="2">2 Modulated</button>
+    <button class="lab-switch-btn" data-type-btn="3">3 Spacing</button>
+  </div>
+  <a class="lab-switch-btn lab-home-link" href="../index.html">← Lab home</a>
+</nav>
+
+<header class="study-header">
+  <p class="v-label">Study 2 of 5</p>
+  <h1>Freshness / Uncertainty Display</h1>
+  <p>The content model tracks status (current / historical / submitted…) and freshness (verified / needs-verification / stale) as internal evidence metadata. This study tests whether that discipline can reach a visitor as plain, calm English/Italian sentences — never as visible research jargon. Each block below has a "for reviewers" disclosure showing the internal label it maps from; that disclosure is a QA aid for this prototype only and would not exist in production.</p>
+</header>
+
+<section class="block">
+  <h2>A current place status</h2>
+  <p class="block-note">Via Nazario Sauro — one confirmed fact, one honestly unconfirmed fact, shown side by side without either reading as broken.</p>
+  <div class="fact-group">
+    <div class="fact-line">
+      <span class="status-dot status-dot--notice fact-line__dot" aria-hidden="true"></span>
+      <div class="fact-line__body">
+        <p class="fact-line__statement">Temporarily closed 12–26 August 2026 (inclusive). Reopens 27 August.</p>
+        <p class="v-metadata fact-line__meta">Confirmed by the venue, 16 August 2026</p>
+      </div>
+    </div>
+    <div class="fact-line">
+      <span class="status-dot status-dot--unknown fact-line__dot" aria-hidden="true"></span>
+      <div class="fact-line__body">
+        <p class="fact-line__statement">Regular opening hours: not yet published here — ask before you come.</p>
+        <p class="v-metadata fact-line__meta">To be confirmed</p>
+      </div>
+    </div>
+  </div>
+  <details class="qa">
+    <summary>For reviewers: internal evidence labels behind this block</summary>
+    <p>Closure dates → <span class="internal-token">OWNER-CONFIRMED CURRENT</span>. Regular hours → <span class="internal-token">NEEDS-VERIFICATION</span>. Neither token, nor words like "verified" or "unresolved," appear in the visitor-facing copy above.</p>
+  </details>
+</section>
+
+<section class="block">
+  <h2>An uncertain service availability</h2>
+  <p class="block-note">Cena al Buio — a decade-old format whose <em>status</em> is genuinely current, but whose <em>freshness</em> has lapsed (no reconfirmed public date in ~10 months). The copy states the format plainly and hands the visitor a real next step, instead of either a stale "book now" button or a false "discontinued" reading.</p>
+  <div class="fact-group">
+    <div class="fact-line">
+      <span class="status-dot status-dot--current fact-line__dot" aria-hidden="true"></span>
+      <div class="fact-line__body">
+        <p class="fact-line__statement">Cena al Buio: guests are served and guided by staff who are blind or low-vision — a format L'Altro Spazio has run for a decade.</p>
+        <p class="v-metadata fact-line__meta">No public date confirmed right now — ask us, or check back</p>
+      </div>
+    </div>
+    <div class="fact-line">
+      <span class="status-dot status-dot--unknown fact-line__dot" aria-hidden="true"></span>
+      <div class="fact-line__body">
+        <p class="fact-line__statement">Also available as a private or corporate booking.</p>
+        <p class="v-metadata fact-line__meta">Last confirmed offer: December 2025 — ask us to check current availability</p>
+      </div>
+    </div>
+  </div>
+  <details class="qa">
+    <summary>For reviewers: internal evidence labels behind this block</summary>
+    <p>WORK status <span class="internal-token">CURRENT</span>, freshness condition <span class="internal-token">STALE</span> (no public EVENT in ~10 months). SERVICE status <span class="internal-token">CURRENT-SERVICE</span>, freshness <span class="internal-token">STALE</span> (no 2026 delivery evidence). Per Content Model Invariant 4, a stale-but-current fact must never render with the same confidence as a freshly-verified one — the "ask us to check" phrasing is that softened call-to-action, in plain language rather than a badge.</p>
+  </details>
+</section>
+
+<section class="block">
+  <h2>Two projects, two outcomes — the same component family</h2>
+  <p class="block-note">Cultura Verde (resolved) and SEGNI DI PACE (unresolved) shown with identical structure, so a visitor learns to read "outcome known" vs. "outcome not yet known" as a normal pattern, not as two different kinds of page.</p>
+  <div class="fact-group">
+    <div class="fact-line">
+      <span class="status-dot status-dot--historical fact-line__dot" aria-hidden="true"></span>
+      <div class="fact-line__body">
+        <p class="fact-line__statement">Cultura Verde: a 2024 Comune-funded programme of concerts, art and reading activities at Parco 11 Settembre's Porto Verde — delivered in partnership with Associazione Farm and other local organisations.</p>
+        <p class="v-metadata fact-line__meta">Awarded May 2024 · concluded 2025</p>
+      </div>
+    </div>
+    <div class="fact-line">
+      <span class="status-dot status-dot--unknown fact-line__dot" aria-hidden="true"></span>
+      <div class="fact-line__body">
+        <p class="fact-line__statement">SEGNI DI PACE: a proposal to bring LIS-based, Deaf-led encounter work into schools and public services, submitted with a partner organisation.</p>
+        <p class="v-metadata fact-line__meta">Submitted March 2026 — outcome not yet known</p>
+      </div>
+    </div>
+  </div>
+  <details class="qa">
+    <summary>For reviewers: internal evidence labels behind this block</summary>
+    <p>Cultura Verde → PROJECT status <span class="internal-token">COMPLETED</span>. SEGNI DI PACE → PROJECT status <span class="internal-token">SUBMITTED</span>, with no invented <span class="internal-token">NOT-ESTABLISHED</span> status value — the record simply stays at its last-confirmed real-world state, exactly as the Content Model requires.</p>
+  </details>
+</section>
+
+<section class="block">
+  <h2>An access condition not yet verified</h2>
+  <p class="block-note">One confirmed communication channel next to one honestly unconfirmed physical fact — testing whether "we don't know yet" can sit beside "we do know this" without the whole block reading as unfinished.</p>
+  <div class="fact-group">
+    <div class="fact-line">
+      <span class="status-dot status-dot--current fact-line__dot" aria-hidden="true"></span>
+      <div class="fact-line__body">
+        <p class="fact-line__statement">Text/WhatsApp contact for booking and questions works and is checked regularly.</p>
+        <p class="v-metadata fact-line__meta">Confirmed 16 August 2026</p>
+      </div>
+    </div>
+    <div class="fact-line">
+      <span class="status-dot status-dot--unknown fact-line__dot" aria-hidden="true"></span>
+      <div class="fact-line__body">
+        <p class="fact-line__statement">Step-free entrance and door width: not yet confirmed for the current building.</p>
+        <p class="v-metadata fact-line__meta">Ask us before your visit</p>
+      </div>
+    </div>
+  </div>
+  <details class="qa">
+    <summary>For reviewers: internal evidence labels behind this block</summary>
+    <p>Contact channel → <span class="internal-token">VERIFIED-CURRENT</span>. Physical entrance → <span class="internal-token">NEEDS-VERIFICATION</span> (2015-era "lowered counter" design intent is historical, not a current verification, and is deliberately not used to imply a current answer).</p>
+  </details>
+</section>
+
+</body>
+<script src="../shared/lab.js"></script>
+</html>

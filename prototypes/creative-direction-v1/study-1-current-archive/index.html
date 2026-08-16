@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en" data-palette="1" data-type="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study 1 — Current / Archive Marker · disposable prototype</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/type.css">
+<link rel="stylesheet" href="../shared/base.css">
+<style>
+  .study-header { padding: var(--space-8) var(--space-4) var(--space-4); max-width: 68rem; margin: 0 auto; }
+  .study-header p { max-width: 42rem; color: var(--color-ink-muted); }
+  section.treatment { max-width: 68rem; margin: 0 auto var(--space-16); padding: 0 var(--space-4); }
+  .treatment h2 { font-size: 1.1rem; }
+  .treatment-note { max-width: 42rem; color: var(--color-ink-muted); font-size: 0.9rem; margin-bottom: var(--space-6); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* Treatment A — temporal edge */
+  .item-a {
+    background: var(--color-surface-raised);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+  }
+  .item-a--current { border-left: 4px solid var(--color-accent-current); }
+  .item-a--historical { border-left: 3px dashed var(--color-accent-archive); }
+  .item-a__tag { display: block; margin-bottom: var(--space-2); }
+  .item-a__title { margin: 0 0 var(--space-1) 0; font-size: 1.05rem; }
+  .item-a__body { margin: 0 0 var(--space-2) 0; }
+  .item-a__meta { color: var(--color-ink-muted); }
+
+  /* Treatment B — density / framing */
+  .item-b--current {
+    background: var(--color-surface-raised);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+  }
+  .item-b--current .item-b__rule {
+    border-top: 1px solid var(--color-line-strong);
+    padding-top: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+  .item-b--historical {
+    position: relative;
+    background: var(--color-surface);
+    padding: var(--space-8) var(--space-6);
+    overflow: hidden;
+  }
+  .item-b__year {
+    position: absolute;
+    right: var(--space-4);
+    top: var(--space-2);
+    font-size: 4rem;
+    line-height: 1;
+    color: var(--color-ink);
+    opacity: 0.08;
+    font-weight: 700;
+    pointer-events: none;
+  }
+  .item-b--historical .item-b__title { position: relative; }
+  .item-b--historical .item-b__body { position: relative; }
+
+  /* Treatment C — sequence / grouping */
+  .seq-heading {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    border-bottom: 1px solid var(--color-line-strong);
+    padding-bottom: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+  .seq-heading--archive { border-bottom-style: dashed; }
+  .seq-list { display: grid; gap: var(--space-3); }
+  .seq-item { padding: var(--space-3) 0; border-bottom: 1px solid var(--color-line); }
+  .seq-item:last-child { border-bottom: none; }
+  .seq-item__title { margin: 0 0 var(--space-1) 0; }
+  .seq-item__body { margin: 0; }
+  .seq-limitation { background: var(--color-surface); border: 1px dashed var(--color-line-strong); padding: var(--space-4); margin-top: var(--space-4); font-size: 0.9rem; color: var(--color-ink-muted); }
+</style>
+</head>
+<body>
+<nav class="lab-bar" aria-label="Prototype lab controls">
+  <strong>Lab:</strong>
+  <div class="lab-group"><span>Palette</span>
+    <button class="lab-switch-btn" data-palette-btn="1" aria-pressed="true">1 Warm</button>
+    <button class="lab-switch-btn" data-palette-btn="2">2 Ink</button>
+    <button class="lab-switch-btn" data-palette-btn="3">3 Signal</button>
+  </div>
+  <div class="lab-group"><span>Type</span>
+    <button class="lab-switch-btn" data-type-btn="1" aria-pressed="true">1 Pair</button>
+    <button class="lab-switch-btn" data-type-btn="2">2 Modulated</button>
+    <button class="lab-switch-btn" data-type-btn="3">3 Spacing</button>
+  </div>
+  <a class="lab-switch-btn lab-home-link" href="../index.html">← Lab home</a>
+</nav>
+
+<header class="study-header">
+  <p class="v-label">Study 1 of 5</p>
+  <h1>Current / Archive Marker</h1>
+  <p>Same four real facts, three different systems for telling "this is happening now" apart from "this is history" — without giant labels, without color as the only signal, without archive turning sepia. Use the switcher above to test every treatment against all three palettes and all three type systems.</p>
+</header>
+
+<section class="treatment" aria-labelledby="t-a-h">
+  <h2 id="t-a-h">Treatment A — Temporal edge</h2>
+  <p class="treatment-note">Distinction carried by: border edge (solid vs. dashed), a small plain-language tag, and a metadata line — never by color alone. Works item-by-item, so it survives mixed lists (e.g. an event feed showing both a live and a historical entry together).</p>
+  <div class="grid-2">
+    <article class="item-a item-a--current">
+      <span class="v-label item-a__tag"><span class="status-dot status-dot--current" aria-hidden="true"></span>Currently</span>
+      <h3 class="item-a__title">Via Nazario Sauro 24/F</h3>
+      <p class="item-a__body">Temporarily closed 12–26 August 2026 (inclusive). Reopens 27 August.</p>
+      <p class="v-metadata item-a__meta">Regular hours: not yet established · checked 16 Aug 2026</p>
+    </article>
+    <article class="item-a item-a--current">
+      <span class="v-label item-a__tag"><span class="status-dot status-dot--current" aria-hidden="true"></span>Currently</span>
+      <h3 class="item-a__title">Parco 11 Settembre</h3>
+      <p class="item-a__body">Active for the summer 2026 season.</p>
+      <p class="v-metadata item-a__meta">Daily hours: not yet established · checked 16 Aug 2026</p>
+    </article>
+    <article class="item-a item-a--historical">
+      <span class="v-label item-a__tag"><span class="status-dot status-dot--historical" aria-hidden="true"></span>Historical — closed</span>
+      <h3 class="item-a__title">Via Polese 7</h3>
+      <p class="item-a__body">Operated February–April 2014. Closed after water damage; did not reopen under the same association.</p>
+      <p class="v-metadata item-a__meta">2014</p>
+    </article>
+    <article class="item-a item-a--historical">
+      <span class="v-label item-a__tag"><span class="status-dot status-dot--historical" aria-hidden="true"></span>Historical instance</span>
+      <h3 class="item-a__title">Cena al Buio — Halloween 2025</h3>
+      <p class="item-a__body">A decade-old format: guests are served and guided by staff who are blind or low-vision. This was its last confirmed public date.</p>
+      <p class="v-metadata item-a__meta">31 Oct 2025 · current cadence not yet confirmed</p>
+    </article>
+  </div>
+</section>
+
+<section class="treatment" aria-labelledby="t-b-h">
+  <h2 id="t-b-h">Treatment B — Density / framing</h2>
+  <p class="treatment-note">Distinction carried by: how much space and how much editorial voice each item is given. Current items are tight, dense, dated to today. Historical items get museum-label breathing room and the editorial typographic voice. Costs more space per item than Treatment A — better suited to a page that already separates current from historical content into its own region.</p>
+  <div class="grid-2">
+    <article class="item-b--current">
+      <p class="v-metadata item-b__rule">16 AUG 2026 — CURRENT</p>
+      <h3 class="item-b__title">Via Nazario Sauro 24/F</h3>
+      <p class="item-b__body">Temporarily closed 12–26 August 2026. Reopens 27 August. Regular hours not yet established.</p>
+    </article>
+    <article class="item-b--current">
+      <p class="v-metadata item-b__rule">16 AUG 2026 — CURRENT</p>
+      <h3 class="item-b__title">Parco 11 Settembre</h3>
+      <p class="item-b__body">Active for the summer 2026 season. Daily hours not yet established.</p>
+    </article>
+    <article class="item-b--historical">
+      <span class="item-b__year" aria-hidden="true">2014</span>
+      <h3 class="item-b__title v-editorial-statement">Via Polese 7</h3>
+      <p class="item-b__body">Operated February–April 2014, closed after water damage. Did not reopen under the same association.</p>
+    </article>
+    <article class="item-b--historical">
+      <span class="item-b__year" aria-hidden="true">2015–25</span>
+      <h3 class="item-b__title v-editorial-statement">Cena al Buio — Halloween 2025</h3>
+      <p class="item-b__body">A decade-old format, last confirmed public date 31 October 2025. Current cadence not yet confirmed.</p>
+    </article>
+  </div>
+</section>
+
+<section class="treatment" aria-labelledby="t-c-h">
+  <h2 id="t-c-h">Treatment C — Sequence / grouping</h2>
+  <p class="treatment-note">Distinction carried entirely by section placement — one heading for "active now," one for "archive" — with no per-item marker at all. Cheapest to build and cleanest to read, but only works when a page can genuinely separate current from historical into two blocks; it has no answer for a single mixed list (see limitation below).</p>
+  <div class="seq-heading">
+    <span class="v-label">Active now</span>
+    <span class="v-metadata">16 August 2026</span>
+  </div>
+  <div class="seq-list">
+    <article class="seq-item">
+      <h3 class="seq-item__title">Via Nazario Sauro 24/F</h3>
+      <p class="seq-item__body">Temporarily closed 12–26 August 2026. Reopens 27 August.</p>
+    </article>
+    <article class="seq-item">
+      <h3 class="seq-item__title">Parco 11 Settembre</h3>
+      <p class="seq-item__body">Active for the summer 2026 season.</p>
+    </article>
+  </div>
+  <div class="seq-heading seq-heading--archive" style="margin-top: var(--space-8);">
+    <span class="v-label">Archive</span>
+  </div>
+  <div class="seq-list">
+    <article class="seq-item">
+      <h3 class="seq-item__title v-editorial-statement">Via Polese 7</h3>
+      <p class="seq-item__body">Operated February–April 2014. Closed after water damage.</p>
+    </article>
+    <article class="seq-item">
+      <h3 class="seq-item__title v-editorial-statement">Cena al Buio — Halloween 2025</h3>
+      <p class="seq-item__body">Last confirmed public date of a decade-old format.</p>
+    </article>
+  </div>
+  <p class="seq-limitation"><strong>Named limitation:</strong> this treatment has no mechanism for a page that must show a current and a historical item side by side in one feed (e.g. a search result, or a WORK page mixing a live and a past EVENT). It only works where the page architecture already separates the two.</p>
+</section>
+
+</body>
+<script src="../shared/lab.js"></script>
+</html>
