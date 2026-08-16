@@ -29,6 +29,7 @@ The single design principle threaded through every section below: **status is ne
 8. **Fewer entities, used consistently, beat more entities used once each.** Where a candidate entity's job can be done by a field, a relationship, or a status value on an existing entity, it is not made a new entity (see the entity-by-entity justification in §3, and the deliberate exclusions in §23).
 9. **Durable structure and current values are separable.** The shape of a record (what fields it has) can be finished and correct long before every field has a verified value — this is what lets schema and architecture work proceed in parallel with the owner's still-open verification items, exactly as Current Public State v1 §14 already established.
 10. **The model is built for what this organisation is, not for what a generic cultural non-profit's CMS usually has.** Every entity below is justified against a real example from Working Paper v0.3 or Current Public State v1, not against a template.
+11. **Real-world state and evidence state are two different axes, and are never collapsed into one vocabulary.** An entity's status describes what is actually happening to the thing itself; a separate provenance/freshness layer describes how well, and how recently, that is known. "We don't know" is never a lifecycle value — it is a fact about evidence, and it is recorded as one (§8, §17, §18).
 
 ---
 
@@ -41,9 +42,11 @@ Thirteen entities, tested against the candidate list and against real examples r
 **What makes it distinct:** Carries its own operational lifecycle, independent of the organisation that runs it and independent of any other place.
 **Examples:** Via Nazario Sauro 24/F; Parco 11 Settembre; Via Polese 7 (historical); Pratello 29/A (historical); da Osvaldo (historical).
 **Non-examples:** A dated concert (that's an EVENT hosted at a place); "Bologna" as a city (too coarse — not a location someone visits for a specific reason); a proposed but never-opened concept like JASPACE, which is closer to a PROJECT/WORK that never launched than a PLACE (see §8).
-**Lifecycle:** PROPOSED → CURRENT / SEASONAL-CURRENT → PERMANENTLY-CLOSED / HISTORICAL. Deliberately does **not** include a "TEMPORARILY CLOSED" lifecycle value — see §5's worked justification for why a temporary closure is a NOTICE, not a change of PLACE lifecycle.
+**Lifecycle (existence axis):** PROPOSED → ACTIVE → HISTORICAL. This is the only axis that changes rarely, and the only one this document calls "lifecycle." Deliberately does **not** include a "TEMPORARILY CLOSED" or a "SEASONAL" value — see §5's worked justification for why both of those belong to different axes entirely.
+**Operating pattern (a separate, independent axis):** YEAR-ROUND / SEASONAL / EVENT-BASED — a durable structural fact about *how* an ACTIVE place operates, not *whether* it currently does. Via Nazario is YEAR-ROUND; Parco is SEASONAL. A place's operating pattern does not change when a season opens or closes any more than a place's lifecycle changes when it closes for ten days — see §5.
+**Current operational condition:** not a stored field at all — a derived read, computed at render time from lifecycle (is this place ACTIVE?), operating pattern plus any bound SEASON's current window (if SEASONAL), and any ACTIVE-status NOTICE scoped to this place. Nothing about "is it open right now" is ever hand-set independently of these three sources.
 **Public/internal:** Public.
-**Relationships:** operated by ORGANISATION; described by one ACCESS PROFILE; hosts EVENTs; may be bound to a SEASON; may be the subject of a HISTORY ENTRY once historical.
+**Relationships:** operated by ORGANISATION; described by one ACCESS PROFILE; hosts EVENTs; may be bound to a SEASON (if operating_pattern = SEASONAL); may be the subject of a HISTORY ENTRY once HISTORICAL.
 **Why first-class:** Nothing else in the model can carry "is this specific location open right now" without conflating it with the organisation's or another place's state — exactly the failure Institutional Architecture v1 §6 names as invalid ("L'Altro Spazio is closed" inferred from one venue's closure).
 
 ### 3.2 ORGANISATION
@@ -61,7 +64,7 @@ Thirteen entities, tested against the candidate list and against real examples r
 **What makes it distinct:** A single stable identity (name, description, mechanism, status) that zero or more EVENTs and zero or one SERVICE offerings can reference without duplicating.
 **Examples:** Cena al Buio; Cineporto/Parco cultural programming; Aperitivo dal Mondo; Spazi Migranti; the LIS-awareness training format; the recurring exhibition programme.
 **Non-examples:** A specific Cena al Buio night (that's an EVENT); a funded, time-boxed residency like Sensory Dialogues (that's a PROJECT — see the boundary test in §8); a one-off event with no recurring identity behind it (may simply be an EVENT with no `work_ref`).
-**Lifecycle:** PROPOSED → CURRENT → PAST → ARCHIVED. Deliberately has **no** "DORMANT" value — a work whose evidence has gone quiet is handled by the freshness mechanism (§18), not by a new status (see the worked Cena al Buio case in §6).
+**Lifecycle:** PROPOSED → CURRENT → PAST → ARCHIVED. Deliberately has **no** "DORMANT" value — a work whose evidence has gone quiet keeps its real-world `status` unchanged; a separate, deterministic freshness condition (§18) flags it for review instead of inventing a new lifecycle state (see the worked Cena al Buio case in §6).
 **Public/internal:** Public.
 **Relationships:** manifests_as EVENT (0..N); manifests_as SERVICE (0..1 typically, occasionally more); documented_by HISTORY ENTRY / ARTICLE; may relate_to PARTNERSHIP (e.g. a migrant/refugee association co-running Spazi Migranti); may be grouped by SEASON.
 **Why first-class:** This is the entity the Cena al Buio stress test (Current Public State v1 §7) already proved necessary — without it, a dated event, a bookable corporate offer, and a decade-old format description have nowhere to share an identity, and duplicate it instead.
@@ -74,14 +77,14 @@ Thirteen entities, tested against the candidate list and against real examples r
 **Lifecycle (date-status, not the ladder in §2):** SCHEDULED → OCCURRED, or CANCELLED / POSTPONED at any point before OCCURRED. An EVENT with no fixed date yet still requires an explicit date-status value ("date to be announced") rather than being permitted to exist with neither a date nor a stated reason for the absence of one.
 **Public/internal:** Public.
 **Relationships:** optionally references a WORK; optionally references a PROJECT (if produced by one); occurs at a PLACE; may belong to a SEASON; may carry its own access_override fields superseding its PLACE's ACCESS PROFILE baseline.
-**Why first-class:** Already implemented in the existing pipeline in spirit (per Institutional Architecture v1 §3.7); this model does not change that it must exist, only clarifies its relationship to WORK/PROJECT/PLACE so a canonical event page can say "this is a Cena al Buio night" without re-describing what Cena al Buio is.
+**Why first-class:** A dated occurrence is required by the model regardless of how it is eventually implemented — Institutional Architecture v1 §3.7 already established that dated events/notices are their own information layer; this document's contribution is only to clarify EVENT's relationship to WORK/PROJECT/PLACE, so a canonical event page can say "this is a Cena al Buio night" without re-describing what Cena al Buio is.
 
 ### 3.5 PROJECT
 **Purpose:** Answers "what bounded, usually funded, usually time-boxed undertaking is this — and has it actually happened yet?"
 **What makes it distinct:** Carries an application/award lifecycle no durable WORK format has, and an end state a WORK does not need.
 **Examples:** Cultura Verde (2024, awarded and delivered); SEGNI DI PACE (2026, submitted, outcome unknown); Sencity (concept only); Sensory Dialogues (funded, delivered, concluded residency).
 **Non-examples:** A recurring house format with no funding/application lifecycle (that's a WORK); a single dated occurrence (that's an EVENT, though a PROJECT may produce several).
-**Lifecycle:** PROPOSED → SUBMITTED → AWARDED → ACTIVE → COMPLETED, with CANCELLED / NOT-ESTABLISHED as terminal branches from any pre-ACTIVE state. Each transition requires its own evidence class (§8 works this through with the Cultura Verde example specifically, since it is the one case in the evidence base where the full ladder is documented end to end).
+**Lifecycle (real-world state only):** PROPOSED → SUBMITTED → AWARDED → ACTIVE → COMPLETED, with DECLINED (the funder/authority said no), WITHDRAWN (the applicant pulled it), and CANCELLED (agreed or awarded, then stopped before completion) as distinct terminal branches — each a genuine real-world outcome, not a stand-in for uncertainty. Each transition requires its own evidence class (§8 works this through with the Cultura Verde example specifically, since it is the one case in the evidence base where the full ladder is documented end to end). **A stalled application whose actual outcome is simply unknown is not a lifecycle value at all** — the record stays at its last-confirmed real-world state (typically SUBMITTED) and its evidence/freshness metadata (§17, §18) is what flags "we don't know what happened to this," never a status enum member invented to mean the same thing.
 **Public/internal:** Mixed — the project's existence and (once AWARDED or further) its public framing may be public; budget/financial detail is internal only, consistent with Working Paper v0.3's confidentiality boundary.
 **Relationships:** may relate_to a WORK (a project can extend or fund a durable format); produces EVENT(s); involves PARTNERSHIP(s); may be the subject of a HISTORY ENTRY or ARTICLE once concluded.
 **Why first-class:** This is exactly the boundary Institutional Architecture v1 Task 3 and Working Paper v0.3 §13 insist on: an application must never silently become a public claim of delivered work, and a PROJECT's own status ladder is the mechanism that makes that structurally true rather than editorially hoped-for.
@@ -111,7 +114,7 @@ Thirteen entities, tested against the candidate list and against real examples r
 **What makes it distinct:** Structurally incapable of collapsing to a boolean; carries its own per-dimension verification and expiry independent of the place's own operational lifecycle.
 **Examples:** Via Nazario's nine-dimension access record, once populated; Parco's own, separately, since an outdoor public park's profile is not inherited from an indoor venue's.
 **Non-examples:** A one-line "we are accessible" claim (explicitly excluded — see §11); an EVENT's one-off deviation from the baseline (handled by lightweight override fields directly on EVENT, not a second ACCESS PROFILE record — see §11's hybrid recommendation).
-**Lifecycle:** per-dimension, not record-level — each dimension independently carries VERIFIED-CURRENT / NEEDS-VERIFICATION / NOT-AVAILABLE / NOT-APPLICABLE / UNKNOWN.
+**State (two separate axes, per dimension, never merged):** a **condition** value — the actual real-world fact, which may itself be NOT-PRESENT (the feature/accommodation genuinely does not exist here) or NOT-APPLICABLE (this dimension has no meaningful bearing on this place), alongside whatever the practical condition otherwise is; and, independently, a **verification status** — reusing §17's five-value publication-status vocabulary (VERIFIED-CURRENT / VERIFIED-HISTORICAL / NEEDS-VERIFICATION / CONFLICTING / DO-NOT-PUBLISH) — describing how well that condition is currently known, not what it is.
 **Public/internal:** Public, with internal verification metadata (§17) attached per dimension.
 **Relationships:** describes exactly one PLACE; may be temporarily superseded by a NOTICE (a dimension's `temporary_exception_ref`); may be referenced (not duplicated) by an EVENT's access_override.
 **Why first-class:** Task 6's own instruction rules out a boolean; making this its own entity (rather than nine flat fields buried in PLACE) is what lets each dimension expire and get reverified independently, which a flat field set on PLACE could not do cleanly.
@@ -145,15 +148,17 @@ Thirteen entities, tested against the candidate list and against real examples r
 **Public/internal:** Public once PUBLISHED and, where relevant, consent-cleared.
 **Relationships:** relates_to WORK, PLACE, PROJECT, HISTORY ENTRY, or a named person (only with consent).
 **Why first-class:** Task 14 and Institutional Architecture v1 §11 both require somewhere for interpretive/narrative material to live without distorting operational records — this is that place, and its consent field is what keeps oral-history use "careful and with consent" rather than assumed.
+**Why HISTORY ENTRY and ARTICLE stay two separate entities, checked directly:** merging them would force every dated fact — "cooperative registered 27 June 2022," which needs no consent gate and no interpretive framing at all — through the same consent/interpretation machinery a genuinely narrative piece like an oral-history excerpt requires, or else force every essay to be atomised into dated nodes it doesn't naturally have. The two entities differ on both axes that matter here: HISTORY ENTRY is atomic, dated, and consent-free by default; ARTICLE is long-form, interpretive, and consent-gated whenever it draws on a named individual. A single "History and evidence" page can render both together without them needing to be one record type.
 
 ### 3.12 PARTNERSHIP *(lightweight)*
 **Purpose:** Answers "what is this organisation's or person's actual current relationship to us, and on what evidence?"
 **What makes it distinct:** A thin relationship record, not a logo-wall entry — its status is independent of whatever PROJECT or WORK it is scoped to, and it can change without either of those records changing.
 **Examples:** Associazione Farm's ongoing collaboration at Parco (ACTIVE, scope=WORK+PLACE); a signed letter-of-adhesion partner on SEGNI DI PACE (scope=PROJECT, status=LETTER-OF-SUPPORT); a named-but-unconfirmed collaborator in a 2026 draft planning document (scope=PROJECT, status=PROPOSED).
 **Non-examples:** The Comune di Bologna's formal 36-month Parco pact, which is significant enough and specific enough that it is better modelled as its own PARTNERSHIP record of type FORMAL-PUBLIC-ADMINISTRATION-AGREEMENT rather than a generic collaborator entry — the type field, not a separate entity, carries that distinction.
-**Lifecycle:** PROPOSED → LETTER-OF-SUPPORT → ACTIVE → PAST, with APPLICATION-ONLY as a value reserved for a partner named only inside a still-unresolved application.
-**Public/internal:** Public only once ACTIVE or, in hedged form, LETTER-OF-SUPPORT on the specific project it supports — never on a general partners listing while PROPOSED or APPLICATION-ONLY.
+**Lifecycle (real-world relationship state):** PROPOSED → LETTER-OF-SUPPORT → ACTIVE → PAST. A partner named only inside a still-unresolved application is simply PROPOSED, scoped to that PROJECT — a separate "APPLICATION-ONLY" value was considered and dropped as redundant with PROPOSED-plus-scope; keeping the ladder to four real-world values is the smaller, cleaner model.
+**Public/internal:** Public only once ACTIVE or, in hedged form, LETTER-OF-SUPPORT on the specific project it supports — never on a general partners listing while PROPOSED.
 **Relationships:** scope_ref is polymorphic — PROJECT, WORK, PLACE, or ORGANISATION-wide.
+**Freshness:** carries `last_verified`/`review_after` like any other entity making a current-tense claim (§18) — an ACTIVE partnership nobody has reconfirmed in a long while is flagged for review, not silently kept ACTIVE forever.
 **Why first-class, but kept light:** Task 10 explicitly asks whether a full entity is needed or a lighter object suffices — a lighter object suffices, provided it still carries its own status independent of the project/work it's scoped to, because that independence is exactly what prevents a proposal-only name from leaking onto a general partners page.
 
 ### 3.13 CONTACT CHANNEL *(lightweight)*
@@ -164,6 +169,7 @@ Thirteen entities, tested against the candidate list and against real examples r
 **Lifecycle:** CURRENT / INACTIVE.
 **Public/internal:** Public when CURRENT and designated public-facing.
 **Relationships:** owner_ref is polymorphic — ORGANISATION, PLACE, or SERVICE.
+**Freshness:** carries `last_verified`/`review_after` (§18) — a channel not reconfirmed in a long while is flagged for review rather than assumed to still be answered.
 **Why first-class, but kept light:** Task 9 explicitly asks for reusable channels rather than scattered strings — this is the minimal record that lets "which number is for booking vs. collaborations vs. accessibility questions" be answered structurally rather than by convention.
 
 **On the count itself:** ten entities carry real, independent lifecycle; three are one notch above a plain field precisely because more than one heavier entity needs to reference them without duplication. None of the thirteen exists merely because a generic CMS would have a content type by that name — each is justified above against a specific example this organisation's own evidence base already contains. Section 23 lists what was deliberately kept *out* of this set for the same reason.
@@ -236,19 +242,25 @@ CONTACT CHANNEL
 
 No relationship above was forced to fit a pre-decided diagram; each line traces back to a specific example in §3. The two recurring shapes worth naming explicitly: (a) **manifestation** — WORK to EVENT/SERVICE — is one-directional and reference-only, never a duplication of the WORK's own description; (b) **polymorphic scope/subject** — used by NOTICE, HISTORY ENTRY, ARTICLE, PARTNERSHIP, and CONTACT CHANNEL — is what keeps those four lightweight/cross-cutting entities from needing a separate type per owner.
 
+**This is a conceptual pattern, not a code mandate.** "A notice/article/contact/etc. can relate to one of several valid subject types" is the entire semantic requirement — it does not prescribe a generic polymorphic-reference implementation. A later technical-architecture phase may satisfy it with explicit typed relationships, owner-specific reference fields, small per-owner join structures, or any other concrete approach; nothing here should be read as instructing a future implementer to build a generic polymorphism abstraction merely because this document names the pattern once.
+
 ---
 
 ## 5. Place model, worked
 
-The candidate lifecycle list in the brief for PLACE — CURRENT, SEASONAL CURRENT, HISTORICAL, TEMPORARILY CLOSED, PERMANENTLY CLOSED, PROPOSED — is a reasonable starting list, but it conflates two different kinds of fact, and this model deliberately does not adopt it unmodified.
+The candidate lifecycle list in the brief for PLACE — CURRENT, SEASONAL CURRENT, HISTORICAL, TEMPORARILY CLOSED, PERMANENTLY CLOSED, PROPOSED — reads as one list, but it actually names three different axes bundled together: whether the place exists at all, how it structurally operates, and what condition it happens to be in right now. This model keeps them separate rather than adopting the candidate list unmodified.
 
-**PLACE.lifecycle_status** answers a durable, structural question — "what kind of place is this" — and changes rarely: `PROPOSED`, `CURRENT`, `SEASONAL-CURRENT`, `PERMANENTLY-CLOSED`, `HISTORICAL`.
+**Axis 1 — lifecycle (existence):** `PROPOSED` → `ACTIVE` → `HISTORICAL`. This is the only slow-changing axis, and the only one that ever gets called "lifecycle." A place that closes permanently transitions directly to `HISTORICAL` — there is no separate `PERMANENTLY-CLOSED` value, because once a place is definitively no longer operating, "historical" is the only fact left to state; the smallest clean model does not need two words for that.
 
-**A temporary closure is not a lifecycle change.** Via Nazario's 12–26 August 2026 closure does not make it a different *kind* of place for those two weeks; it remains `CURRENT`, and the closure is expressed entirely through a `NOTICE` scoped to that PLACE, with its own `effective_start`/`effective_end` and automatic expiry. This is a deliberate rejection of "TEMPORARILY CLOSED" as a lifecycle value, for a concrete reason: a lifecycle field that flips back and forth every time a venue closes for a week invites exactly the staleness risk Task 12 warns about (a status a human has to remember to revert), whereas a time-bound NOTICE expires on its own. The same reasoning is why Parco's seasonal rhythm is expressed as `SEASONAL-CURRENT` (a durable structural fact — this place *is* seasonal in kind) bound to a `SEASON` record for the specific window, rather than as a set of manually-toggled open/closed flags.
+**Axis 2 — operating pattern (a structural fact about how, not whether):** `YEAR-ROUND` / `SEASONAL` / `EVENT-BASED`. Via Nazario is `ACTIVE` + `YEAR-ROUND`. Parco is `ACTIVE` + `SEASONAL`. This value describes the *kind* of place it structurally is, and it does not flip on and off — Parco does not become a different kind of place between seasons, any more than Via Nazario becomes a different kind of place between closures.
 
-**A place-level closure is never organisation-wide by inference (Invariant, §21).** Nothing in the model allows a build step to derive "the organisation is closed" from any one PLACE's NOTICE or lifecycle_status; an organisation-wide closure, if one is ever needed, requires its own NOTICE with `scope_target = ORGANISATION`, stated explicitly, not inferred from a place going quiet.
+**Axis 3 — current operational condition, which is never stored.** "Is this place open right now" is not a field anyone edits — it is derived, at render time, from the other two axes plus whatever is currently true: lifecycle must be `ACTIVE`; if operating_pattern is `SEASONAL`, is there a `CURRENT`-status `SEASON` window bound to this place right now; and is there any `ACTIVE`-status `NOTICE` scoped to this place overriding the default reading. Nothing about "open now" can drift out of sync with these sources, because nothing about it is independently editable.
 
-**A permanently closed place is retained, never deleted.** Via Polese, Pratello 29/A, and da Osvaldo remain PLACE records with `lifecycle_status = HISTORICAL` (or `PERMANENTLY-CLOSED` if the distinction between "closed and archived into History" and "closed very recently, not yet migrated to History framing" is useful — both values exist for exactly that transitional reason) so that HISTORY ENTRY nodes have something concrete to point to, and so the Invariant "no historical venue may appear as a current destination" (§21) has something to check against rather than an absence.
+**Worked against the two current examples:** Via Nazario — lifecycle `ACTIVE`, operating_pattern `YEAR-ROUND`, currently reading as closed purely because an `ACTIVE` `NOTICE` (12–26 August 2026, with its own `effective_start`/`effective_end` and automatic expiry) says so; the moment that notice expires, the derived read reverts with nothing to manually flip back. Parco — lifecycle `ACTIVE`, operating_pattern `SEASONAL`, currently reading as open because "now" falls inside a `CURRENT`-status `SEASON` window bound to it. Neither place's lifecycle value has changed at all in either case — a lifecycle field that had to flip every time a venue closed for a week or a season ended would invite exactly the staleness risk Task 12 warns about (a status a human has to remember to revert); deriving the current read instead means there is nothing to forget.
+
+**A place-level closure is never organisation-wide by inference (Invariant, §21).** Nothing in the model allows a build step to derive "the organisation is closed" from any one PLACE's NOTICE, lifecycle, or operating pattern; an organisation-wide closure, if one is ever needed, requires its own NOTICE with `scope_target = ORGANISATION`, stated explicitly, not inferred from a place going quiet.
+
+**A historical place is retained, never deleted.** Via Polese, Pratello 29/A, and da Osvaldo remain PLACE records with `lifecycle = HISTORICAL`, regardless of what their operating pattern once was (all three were `YEAR-ROUND` in their time — that fact is preserved as history, not as a currently-meaningful field), so that HISTORY ENTRY nodes have something concrete to point to, and so the Invariant "no historical venue may appear as a current destination" (§21) has something to check against rather than an absence.
 
 ---
 
@@ -271,9 +283,9 @@ Each manifestation's status is independent: the SERVICE can be `CURRENT-SERVICE`
 
 - **Cineporto / Parco programming.** WORK = the durable seasonal cultural format. Manifestations: dated EVENTs (concerts, screenings), each `belongs_to` a SEASON bound to the Parco PLACE; a HISTORY ENTRY/ARTICLE documenting Associazione Farm's public-branding persistence years past its operational transfer (Working Paper v0.3 §8) — a good test of `documented_by` carrying a genuinely complicating historical fact without disturbing the current WORK record. No SERVICE manifestation applies. The Comune di Bologna's 36-month collaboration pact is deliberately **not** folded into the WORK record — it is modelled as its own PARTNERSHIP (type=FORMAL-PUBLIC-ADMINISTRATION-AGREEMENT, scope=WORK+PLACE), because "who authorises/funds this" and "what this programme is" are different facts with different evidence standards.
 
-- **LIS training.** WORK = the durable training capability. Historical manifestations: the 2016–17 recurring course and the 2023 Ente Nazionale Sordi convening, both as HISTORY ENTRY / PAST EVENT records. If revived: a SERVICE manifestation (status starting at `PROPOSED` or `NOT-ESTABLISHED` until confirmed bookable). This case tests the WORK identity surviving a long gap between a past manifestation and a possible future SERVICE without needing the WORK's own status to flip back and forth.
+- **LIS training.** WORK = the durable training capability. Historical manifestations: the 2016–17 recurring course and the 2023 Ente Nazionale Sordi convening, both as HISTORY ENTRY / PAST EVENT records. If revived: a SERVICE manifestation, status `PROPOSED` until confirmed bookable, at which point it moves to `CURRENT-SERVICE` (SERVICE's own real-world ladder, §3.6 — no other value is needed). This case tests the WORK identity surviving a long gap between a past manifestation and a possible future SERVICE without needing the WORK's own status to flip back and forth.
 
-- **Aperitivo dal Mondo.** WORK = the durable world-food format (continuous 2022–2025 per Working Paper v0.3). Manifestation: a high-volume stream of near-weekly EVENTs — the useful test here is confirming that *volume* belongs entirely in EVENT, never pushed up into the WORK record itself. Its current status ("recent but unverified" per Current Public State v1 §6) is not a new status value — it is the freshness mechanism (§18) at work: `last_evidenced` is old, `review_after` has lapsed, so the WORK's public rendering softens automatically rather than continuing to assert "ongoing" indefinitely.
+- **Aperitivo dal Mondo.** WORK = the durable world-food format (continuous 2022–2025 per Working Paper v0.3). Manifestation: a high-volume stream of near-weekly EVENTs — the useful test here is confirming that *volume* belongs entirely in EVENT, never pushed up into the WORK record itself. Its current status ("recent but unverified" per Current Public State v1 §6) is not a new status value and is not a change to `status` at all — `status` stays `CURRENT`. What has actually happened is that `last_evidenced` is old and `review_after` has lapsed, so the WORK's freshness condition (§18) reads `REVIEW_DUE`/`STALE` rather than `CURRENT` — a fact about how well the claim is currently evidenced, computed deterministically, with the eventual display consequence left to a later, explicit display-policy decision, not asserted here.
 
 - **A recurring music/performance format (e.g. Spazi Migranti).** WORK = the durable format identity. Manifestations: a similarly high-volume EVENT stream, plus a `relates_to → PARTNERSHIP` link to the migrant/refugee associations co-running it (scope=WORK, not scope=PROJECT) — this tests PARTNERSHIP attaching to a WORK directly, independent of any funded PROJECT.
 
@@ -303,7 +315,11 @@ A project is distinguished from a programme by having an **application/award lif
 | → AWARDED | A formal award decision or signed agreement — never a submission alone |
 | → ACTIVE | Evidence of actual delivery having begun (an event produced, a partner activity recorded) |
 | → COMPLETED | A defined end state reached — a report submitted, a grant liquidated, a residency concluded |
-| → CANCELLED / NOT-ESTABLISHED | An explicit negative outcome (CANCELLED) or a stalled, unresolved application that never crystallised either way (NOT-ESTABLISHED) — the two are kept distinct because "rejected" and "we don't know" are different facts |
+| → DECLINED | The funder/authority formally said no |
+| → WITHDRAWN | The applicant pulled the application before a decision |
+| → CANCELLED | Agreed or awarded, then stopped before COMPLETED |
+
+**A stalled application with an unknown outcome does not get a status value of its own.** DECLINED, WITHDRAWN, and CANCELLED are all real-world facts requiring their own evidence; "we submitted this and don't currently know what happened" is not a fourth kind of ending — it is the record staying at its last-confirmed state (typically SUBMITTED) while its evidence/freshness metadata (§17–§18) carries the uncertainty. Collapsing "unknown outcome" into a lifecycle value would be exactly the state/evidence conflation §2's eleventh design principle rules out.
 
 **Worked example — Cultura Verde**, the one case in the evidence base where the full ladder is documented end to end: SUBMITTED (an application to the Comune's Quartiere Porto-Saragozza) → AWARDED (May 2024, €8,000, scored 81 points — a formal award decision, not a submission) → ACTIVE (the "Il Porto Verde di Bologna" children's programme actually delivered in 2024, independently corroborated by a July 2024 Facebook credit line) → COMPLETED (the associated financial contribution liquidated in 2025 after eligible expenditure was reported). This project's own accounting status and its delivery status are, per Working Paper v0.3 §13, two separable facts — the model keeps them separable by never inferring ACTIVE from AWARDED alone; ACTIVE requires its own delivery evidence.
 
@@ -327,7 +343,7 @@ Covered in field terms in §3.6. The one point worth adding here: a SERVICE's bo
 
 ## 10. Season / programme grouping
 
-Covered in field terms in §3.7. SEASON exists purely to let a PLACE's or WORK's "current" claim be qualified to a bounded, recurring window (this year's Parco summer programme) without inventing a heavier entity or overloading PLACE.lifecycle_status with per-year values. A SEASON groups EVENTs and, optionally, instantiates a yearly recurrence of a WORK (e.g. "Cineporto, summer 2026" as this year's specific instance of the durable Cineporto WORK) — but the WORK's own identity persists across seasons that come and go, exactly as scenario 9 in §22 requires.
+Covered in field terms in §3.7. SEASON exists purely to let a SEASONAL place's or a WORK's "current" claim be qualified to a bounded, recurring window (this year's Parco summer programme) without inventing a heavier entity, and without overloading PLACE's own lifecycle or operating-pattern fields with per-year values — a place's operating pattern says it *is* seasonal in kind; the SEASON record says which specific window is current right now. A SEASON groups EVENTs and, optionally, instantiates a yearly recurrence of a WORK (e.g. "Cineporto, summer 2026" as this year's specific instance of the durable Cineporto WORK) — but the WORK's own identity persists across seasons that come and go, exactly as scenario 9 in §22 requires.
 
 ---
 
@@ -337,16 +353,18 @@ Covered in field terms in §3.7. SEASON exists purely to let a PLACE's or WORK's
 
 **Structural recommendation — hybrid, per Task 6's own framing:** the nine dimensions (physical, visual, Deaf/communication, hearing/audio, cognitive/information, digital, event-specific, assistance/contact, temporary limitations) live as an **ACCESS PROFILE entity** describing exactly one PLACE — not flat fields bolted onto PLACE itself, and not scattered free text. An EVENT does **not** get its own full ACCESS PROFILE record; instead it carries lightweight, optional `access_override` fields, one slot per dimension, that supersede the host PLACE's baseline only for that event's own display, defaulting to "inherits venue baseline" when unset. This is the hybrid: a heavier, independently-verified profile per place; a lightweight override, not a second heavy entity, per event.
 
-Each dimension within an ACCESS PROFILE carries, independently:
-- the practical condition itself (structured value, not free prose alone)
-- `verified_date` and `authority` (who confirmed it, and when)
-- a `confidence/status` value: VERIFIED-CURRENT / NEEDS-VERIFICATION / NOT-AVAILABLE / NOT-APPLICABLE / UNKNOWN
-- a `recheck_rule` (how often this dimension should be reconfirmed)
+Each dimension within an ACCESS PROFILE carries two independent axes, never merged into one vocabulary:
+- **condition** (the real-world fact): the practical condition itself as a structured value, or one of two real-world qualifiers when there simply is no ordinary condition to describe — `NOT-PRESENT` (the feature/accommodation genuinely does not exist here) or `NOT-APPLICABLE` (this dimension has no meaningful bearing on this place)
+- **verification status** (the evidence fact, reusing §17's five-value publication-status vocabulary rather than a bespoke one): VERIFIED-CURRENT / VERIFIED-HISTORICAL / NEEDS-VERIFICATION / CONFLICTING / DO-NOT-PUBLISH
+- `verified_date` and `authority` (who confirmed the condition, and when)
+- a `recheck_rule` (how often this dimension should be reconfirmed) — feeding the same deterministic freshness computation defined in §18
 - an optional `temporary_exception_ref` pointing to a NOTICE (e.g. a wheelchair route temporarily rerouted for construction)
+
+**Baseline, event-specific, and temporary are three distinct mechanisms, not one field wearing three hats.** The ACCESS PROFILE itself is the durable baseline for a PLACE. An EVENT's own `access_override` fields (§3.4, §11 above) supersede that baseline only for that specific event's display, and only for the dimensions actually set — never by rewriting the baseline record. A temporary limitation (a route blocked for construction, a lift out of service) never touches the baseline profile either: it is expressed purely through a scoped, time-bound NOTICE referenced by the dimension's `temporary_exception_ref`, and it reverts to the baseline automatically once that notice expires. None of the three mechanisms edits another's data.
 
 **Digital access is handled differently from the other eight.** It is an ongoing engineering responsibility enforced by the build itself (per AGENTS.md: "preserve accessibility as a design-system requirement, not a marketing layer"), not a claim requiring verification metadata — the model does not create a content record for it, only notes that it must be structurally enforced elsewhere.
 
-**A dimension whose verification has expired does not keep asserting its last known value.** If `now > verified_date + recheck_rule`, the build renders that dimension in its downgraded "needs reverification" state rather than continuing to show a stale specific claim — this is the mechanism that resolves scenario 11 in §22 (an accessibility fact last verified 18 months ago) without a human needing to remember to change anything.
+**A dimension whose verification has lapsed does not keep asserting its last known value as if it were still fresh.** Once `now` passes `verified_date + recheck_rule`, the dimension's derived freshness condition (§18) leaves `CURRENT`; this document does not prescribe the exact fallback presentation (that is a display-policy decision for a later phase), but it does require, as a floor invariant (§21), that a lapsed dimension never renders as though freshly verified. This is the mechanism that resolves scenario 11 in §22 (an accessibility fact last verified 18 months ago) without a human needing to remember to change anything — time flags the fact for review; it does not silently keep asserting it.
 
 ---
 
@@ -374,11 +392,13 @@ What the entity does carry: `legal_name`, `public_name` (used only for the disam
 
 **Associazione Farm is modelled as its own ORGANISATION record, current, not historical, and not part of the L'Altro Spazio succession chain** — it is a separate organisation with its own overlapping presence at Parco, linked to the Cineporto WORK and the Parco PLACE via a PARTNERSHIP record, never folded into L'Altro Spazio's own entity history. This resolves cleanly from the evidence already in Working Paper v0.3 §8 and requires no owner input.
 
+**What ORGANISATION deliberately does not carry:** the broader, trans-entity public identity — "L'Altro Spazio" as a decade-long practice spanning four legal entities and five environments — is not the same thing as Cooperativa L'Altro Spazio, the current legal operator, and this entity must not be made to speak for both. ORGANISATION's own editorial field is a narrow, current-operator-scoped description only. The concise public-facing explanation of what L'Altro Spazio broadly *is* (Institutional Architecture v1 §2B) is sourced elsewhere — see §22's corrected homepage-assembly resolution — precisely so the current cooperative never silently becomes the semantic owner of the whole public identity's history.
+
 ---
 
 ## 14. Contact model
 
-Covered in field terms in §3.13. Each CONTACT CHANNEL carries `purpose` (booking / general-info / collaborations / accessibility-question), `audience`, `channel_type`, `value`, `status`, `public/private`, `preferred` (bool), `response_mode`, and a polymorphic `owner_ref`. The second phone number surfaced in Current Public State v1 §2 (info/collaborations) is exactly the case this entity exists for: the model can represent "a second, purpose-distinct channel exists" cleanly the moment it is owner-confirmed for the new site — nothing about the model itself needs to wait on that confirmation, only the specific record's population does.
+Covered in field terms in §3.13. Each CONTACT CHANNEL carries `purpose` (booking / general-info / collaborations / accessibility-question), `audience`, `channel_type`, `value`, `status`, `public/private`, `preferred` (bool), `response_mode`, `last_verified`/`review_after` (§18), and a polymorphic `owner_ref`. The second phone number surfaced in Current Public State v1 §2 (info/collaborations) is exactly the case this entity exists for: the model can represent "a second, purpose-distinct channel exists" cleanly the moment it is owner-confirmed for the new site — nothing about the model itself needs to wait on that confirmation, only the specific record's population does.
 
 ---
 
@@ -391,6 +411,8 @@ Covered in field terms in §3.12. Kept lightweight rather than a full registry, 
 ## 16. Editorial / history model
 
 HISTORY ENTRY (§3.10) supplies the dated, structured spine; ARTICLE (§3.11) supplies interpretive and narrative depth built on top of that spine. The rule that keeps operational entities from absorbing narrative weight they shouldn't carry: **PLACE.description stays short and functional** (what a visitor needs to recognise it); the decade-long story of how Via Nazario came to be, or why Cena al Buio has run unchanged for ten years, lives only in ARTICLE and HISTORY ENTRY records that reference the PLACE or WORK, never inside the operational record's own description field. Oral-history material (the interview corpus, the origin narratives) is explicitly gated by ARTICLE's separate `consent_status` field — publication-readiness and speaker consent are two different gates, and neither substitutes for the other, matching Institutional Architecture v1 §11's "carefully and with consent" standard.
+
+**ARTICLE is also where the site's broader public-identity summary lives**, precisely because it is not owned by any single operational entity — see §13's correction and §22's homepage-assembly resolution: the concise "not just a bar" explanation is a standalone (or multiply-related) ARTICLE, not a field on the current legal ORGANISATION.
 
 ---
 
@@ -411,7 +433,7 @@ Each field additionally carries `source`, `authority`, `verified_date`, and `rec
 - **INTERNAL EDITORIAL METADATA** — `source`, `authority`, `verified_date`, `recheck_after`, owner-confirmation notes, conflict notes.
 - **BUILD-TIME VALIDATION METADATA** — the `publication_status` value itself (it gates rendering), and any computed expiry/staleness flag derived from `recheck_after`.
 
-This directly extends the provenance discipline already established in this repo's `content-provenance.md`/`field-authority.md` model (per Institutional Architecture v1 §17) to the new content families this document defines, rather than inventing a parallel system.
+This provenance model is defined on its own semantic terms, independent of any particular storage or tooling. Institutional Architecture v1 §17 notes that a similarly-shaped discipline already exists in current infrastructure; a later technical-architecture phase may draw on that discipline where it genuinely fits the semantics defined here, but this document does not treat existing infrastructure as the default host for it, consistent with the greenfield instruction.
 
 ---
 
@@ -424,11 +446,21 @@ Six tiers, carried forward from Current Public State v1 §12 because they alread
 | STABLE | Legal name, coordinates, founding dates | Verify only on operational/legal change |
 | SEMI-STABLE | Contact channels, organisational relationship framing, service descriptions | Review periodically, owner-confirmation-gated |
 | SEASONAL | SEASON windows, place seasonal status | Reverify every cycle; never carry last year's dates forward |
-| VOLATILE | WORK current-status claims, SERVICE bookability | Recheck frequently; freshness expiry downgrades display automatically |
+| VOLATILE | WORK current-status claims, SERVICE bookability, PARTNERSHIP, CONTACT CHANNEL | Recheck frequently; freshness condition (below) flags review automatically |
 | EVENT-SPECIFIC | EVENT access overrides, EVENT booking details | Set and verified per event, at authoring time |
-| TEMPORARY | NOTICE content | Already has an explicit expiry; extend the existing mechanism, do not replace it |
+| TEMPORARY | NOTICE content | Carries its own explicit expiry, defined once in §12/§3.9 — no separate mechanism needed |
 
-Every entity that can make a current-tense claim (WORK, SERVICE, ACCESS PROFILE dimension, PARTNERSHIP) carries `last_evidenced`/`verified_date` and `review_after`. **This is the single mechanism that resolves the "programme disappears for two years and returns" scenario without inventing a new status value** (§6, §22 scenario 9): the WORK's editorial `status` stays CURRENT throughout; only its *display prominence* softens once `review_after` lapses, and firms back up automatically the moment a new EVENT or SERVICE re-references it. Archival behaviour (moving a record fully into HISTORY once it is truly concluded, not merely quiet) remains an editorial decision — the freshness mechanism handles quiet, not concluded.
+**Deterministic freshness, not interpretive build logic.** Every entity that can make a current-tense claim (WORK, SERVICE, ACCESS PROFILE dimension, PARTNERSHIP, CONTACT CHANNEL, and seasonal/current place information) carries `last_verified` and `review_after`. From these two fields alone, a **freshness condition** is derived purely mechanically:
+
+- **CURRENT** — now ≤ review_after
+- **REVIEW_DUE** — now > review_after, within a further, similarly fixed grace period
+- **STALE** — now is past that further grace period as well
+
+Both thresholds are plain date arithmetic on stored fields — there is no interpretation, judgment, or content-aware reasoning involved in computing which of the three conditions applies at any moment.
+
+**Key rule: time may flag content for review; time alone must never silently rewrite its meaning.** A lapsed freshness condition never changes what an entity's own `status` says happened — the WORK described in §6's Aperitivo dal Mondo case still has `status = CURRENT`; only its `freshness_condition` moves to REVIEW_DUE or STALE. What that condition should *do* to the rendered page — render normally, render with a "last confirmed on [date]" note, suppress a current-facing call-to-action, drop out of a "current" listing while remaining reachable elsewhere, or simply queue the record for editorial review — is a **public display policy**, and this document deliberately does not prescribe it: that choice belongs to a later implementation/UX phase, once the semantic model is stable. The one thing this document does require, as a floor rather than a full policy (§21), is that a STALE fact must never render as though it were still CURRENT.
+
+**This is the mechanism that resolves the "programme disappears for two years and returns" scenario without inventing a new status value** (§6, §22 scenario 9): the WORK's own `status` stays CURRENT throughout the entire gap; only its computed freshness condition moves through REVIEW_DUE to STALE and back to CURRENT the moment a new EVENT or SERVICE re-references it and resets `last_verified`. Archival behaviour (moving a record fully into HISTORY once it is truly concluded, not merely quiet) remains a distinct, real-world status change an editor makes deliberately — freshness never performs that transition on its own.
 
 ---
 
@@ -444,9 +476,9 @@ Field-level conceptual shape for each of the thirteen entities, grouped as ident
 
 ### PLACE
 - **identity:** id, canonical name, public short name
-- **state:** lifecycle_status (PROPOSED/CURRENT/SEASONAL-CURRENT/PERMANENTLY-CLOSED/HISTORICAL)
+- **state:** lifecycle (PROPOSED/ACTIVE/HISTORICAL) — the existence axis; operating_pattern (YEAR-ROUND/SEASONAL/EVENT-BASED) — a separate, independent axis; current operational condition is not stored, only derived (§5)
 - **location:** address, coordinates
-- **relationships:** operator (ORGANISATION), access profile (ACCESS PROFILE), bound season (SEASON, optional)
+- **relationships:** operator (ORGANISATION), access profile (ACCESS PROFILE), bound season (SEASON, if operating_pattern = SEASONAL)
 - **editorial:** localised short description
 - **internal metadata:** provenance per field (§17)
 
@@ -454,7 +486,7 @@ Field-level conceptual shape for each of the thirteen entities, grouped as ident
 - **identity:** id, legal_name, public_name
 - **state:** lifecycle_status (CURRENT/HISTORICAL), legal_form (general terms only)
 - **relationships:** operates (PLACE[]), succeeds / superseded_by (ORGANISATION), contact channels
-- **editorial:** localised public summary (the one canonical source for the homepage's "not just a bar" explanation — see §21)
+- **editorial:** localised current-operator description only — deliberately narrow; the broader trans-entity public-identity explanation is not this entity's field, see §13 and §22
 - **internal metadata:** registration_date, provenance; board/legal-representative fields exist in shape only, withheld from public rendering by default
 
 ### WORK
@@ -473,7 +505,7 @@ Field-level conceptual shape for each of the thirteen entities, grouped as ident
 
 ### PROJECT
 - **identity:** id, name
-- **state:** status (PROPOSED/SUBMITTED/AWARDED/ACTIVE/COMPLETED/CANCELLED/NOT-ESTABLISHED), key dates per transition
+- **state:** status (PROPOSED/SUBMITTED/AWARDED/ACTIVE/COMPLETED/DECLINED/WITHDRAWN/CANCELLED) — real-world outcomes only; an unknown/unresolved outcome is never a status value, it is expressed by the record remaining at its last-confirmed state plus its own freshness/evidence metadata (§17–§18); key dates per transition
 - **relationships:** relates_to (WORK, optional), produces (EVENT[]), involves (PARTNERSHIP[]), subject_of (HISTORY ENTRY/ARTICLE, once concluded)
 - **editorial:** localised public-safe description (only once status permits mention)
 - **internal metadata:** funder, budget (internal only), evidence for each transition
@@ -494,10 +526,10 @@ Field-level conceptual shape for each of the thirteen entities, grouped as ident
 
 ### ACCESS PROFILE
 - **identity:** id, describes (PLACE)
-- **state:** per-dimension confidence/status (VERIFIED-CURRENT/NEEDS-VERIFICATION/NOT-AVAILABLE/NOT-APPLICABLE/UNKNOWN)
+- **state:** per dimension, two separate axes — condition (the real-world value, or NOT-PRESENT/NOT-APPLICABLE) and verification_status (VERIFIED-CURRENT/VERIFIED-HISTORICAL/NEEDS-VERIFICATION/CONFLICTING/DO-NOT-PUBLISH, reusing §17's vocabulary)
 - **relationships:** temporary_exception per dimension (NOTICE, optional)
 - **editorial:** per-dimension localised practical-condition text
-- **internal metadata:** per-dimension verified_date, authority, recheck_rule
+- **internal metadata:** per-dimension verified_date, authority, recheck_rule (feeds the §18 freshness computation)
 
 ### NOTICE
 - **identity:** id
@@ -522,17 +554,17 @@ Field-level conceptual shape for each of the thirteen entities, grouped as ident
 
 ### PARTNERSHIP
 - **identity:** id, partner_name
-- **state:** status (PROPOSED/LETTER-OF-SUPPORT/ACTIVE/PAST/APPLICATION-ONLY), relationship_type
+- **state:** status (PROPOSED/LETTER-OF-SUPPORT/ACTIVE/PAST), relationship_type
 - **relationships:** scope_ref (polymorphic: PROJECT/WORK/PLACE/ORGANISATION)
 - **editorial:** localised short description of the relationship
-- **internal metadata:** evidence reference, dates
+- **internal metadata:** evidence reference, dates, last_verified/review_after (§18)
 
 ### CONTACT CHANNEL
 - **identity:** id, purpose
 - **state:** status (CURRENT/INACTIVE), public/private
 - **relationships:** owner_ref (polymorphic: ORGANISATION/PLACE/SERVICE)
 - **editorial:** localised label (e.g. "Bookings," "Accessibility questions")
-- **internal metadata:** value, audience, response_mode, provenance
+- **internal metadata:** value, audience, response_mode, provenance, last_verified/review_after (§18)
 
 ---
 
@@ -541,12 +573,12 @@ Field-level conceptual shape for each of the thirteen entities, grouped as ident
 Rules the eventual build system should enforce mechanically, not editorially.
 
 1. A PROJECT with status ∈ {PROPOSED, SUBMITTED} must never render on any "current work" or "completed work" surface.
-2. A PLACE with lifecycle_status ∈ {PERMANENTLY-CLOSED, HISTORICAL} must never appear in a current Visit-destination listing.
+2. A PLACE with lifecycle = HISTORICAL must never appear in a current Visit-destination listing, regardless of what its operating_pattern once was.
 3. A NOTICE past its `expiry` (or `effective_end`, whichever governs) must not render, with no manual removal step required.
-4. Any accessibility dimension rendered as a specific current claim must have a `verified_date` within its `recheck_rule` window; once expired, only the downgraded "needs reverification" state may render.
+4. A dimension whose freshness condition (§18) is REVIEW_DUE or STALE must never render as though it were still VERIFIED-CURRENT; the exact fallback presentation is a display-policy decision for a later phase, but silent continuation of a stale claim is never permitted.
 5. A SERVICE with status ∈ {INACTIVE, ARCHIVED, PROPOSED} must never render a booking/contact call-to-action as if bookable now.
 6. An EVENT must carry either a concrete date or an explicit date-status; no EVENT may render with neither.
-7. A PARTNERSHIP with status ∈ {PROPOSED, APPLICATION-ONLY} must never appear on a general/organisation-wide partners listing; it may appear only inside the specific PROJECT/WORK it is scoped to, and only if that record itself is public.
+7. A PARTNERSHIP with status = PROPOSED must never appear on a general/organisation-wide partners listing; it may appear only inside the specific PROJECT/WORK it is scoped to, and only if that record itself is public.
 8. A historical organisational statistic (a workforce percentage, an attendance figure) sourced from a HISTORY ENTRY or ARTICLE must never render on a CURRENT-scoped surface (PLACE, ORGANISATION-current-facts, SERVICE) — only inside HISTORY/ARTICLE content, explicitly dated.
 9. No build step may derive an organisation-wide status from any single PLACE's NOTICE or lifecycle_status; ORGANISATION-scope claims require their own ORGANISATION-scoped NOTICE or record.
 10. Every WORK, PROJECT, and SERVICE record must carry a `status` field; a record without one fails validation outright.
@@ -554,6 +586,8 @@ Rules the eventual build system should enforce mechanically, not editorially.
 12. A CONFLICTING-status fact must render only as "to be confirmed" (or not at all) — never a single asserted value chosen by the build or the editor.
 13. A page naming a historical PLACE or ORGANISATION must state, in the same view, that it is closed/superseded and since when — silence on closure status is an explicit validation failure, not a stylistic choice.
 14. No entity, anywhere, may carry a field literally reducible to a single "accessible"/"fullyAccessible" boolean; a schema check should reject any such field outright.
+15. No entity may substitute an evidence-uncertainty condition ("not established," "unknown outcome," "unconfirmed") for a real-world lifecycle/status value; uncertainty is expressed only through provenance/freshness metadata (§17–§18), never as a status enum member in its own right.
+16. A PLACE's current operational condition must never be a separately stored, independently editable field — it must always be computed at render time from lifecycle + operating_pattern + any bound SEASON + any ACTIVE-scope NOTICE, so it can never drift out of sync with those sources.
 
 ---
 
@@ -561,22 +595,22 @@ Rules the eventual build system should enforce mechanically, not editorially.
 
 | # | Scenario | Model behaviour | Hack required? |
 |---|---|---|---|
-| 1 | Via Nazario closes 10 days, Parco stays open | A NOTICE scoped to Via Nazario's PLACE; Via Nazario's own `lifecycle_status` stays CURRENT throughout. Parco's PLACE record and SEASON are entirely independent — no shared status field exists to leak between them. | No |
+| 1 | Via Nazario closes 10 days, Parco stays open | A NOTICE scoped to Via Nazario's PLACE; Via Nazario's `lifecycle` (ACTIVE) and `operating_pattern` (YEAR-ROUND) are both untouched throughout — only the derived current-operational-condition read changes, and only for Via Nazario. Parco's PLACE record, operating_pattern (SEASONAL), and SEASON are entirely independent — no shared field exists to leak between them. | No |
 | 2 | Cena al Buio has no public dates but is privately bookable | WORK.status = CURRENT; zero EVENT records reference it; one SERVICE (audience=private/B2B) does, status=CURRENT-SERVICE. What's-on correctly shows nothing; Work-with-us shows the bookable offer. | No |
 | 3 | Cena al Buio later gains two scheduled public events | Two new EVENT records created, `references` the same WORK, status=SCHEDULED. WORK identity unchanged; `last_evidenced` refreshes. | No |
-| 4 | A grant application is submitted but never funded | PROJECT created at SUBMITTED; if formally rejected, transitions to CANCELLED; if it simply stalls, stays at SUBMITTED or moves to NOT-ESTABLISHED. Never renders as AWARDED/delivered at any point. | No |
+| 4 | A grant application is submitted but never funded | PROJECT created at SUBMITTED; if formally declined, transitions to DECLINED (a real-world outcome); if it simply stalls with no known resolution, it stays at SUBMITTED, with its freshness condition (§18) moving to REVIEW_DUE/STALE to flag the gap — "we don't know" is never its own status value. Never renders as AWARDED/delivered at any point. | No |
 | 5 | A project is awarded and creates five events | PROJECT transitions SUBMITTED→AWARDED→ACTIVE on formal-decision evidence; five EVENT records created with `references → PROJECT`. | No |
 | 6 | A partner appears only in a proposal | A PARTNERSHIP record, status=PROPOSED, scope_ref = that PROJECT. Blocked by Invariant 7 from any general partners listing. | No |
 | 7 | A wheelchair route changes temporarily for construction | The physical-access dimension's `temporary_exception_ref` points to a NOTICE (scope=PLACE, severity=warning, dated); the baseline resumes automatically once the notice expires. | No |
-| 8 | An old venue remains historically important but is closed permanently | PLACE.lifecycle_status = PERMANENTLY-CLOSED/HISTORICAL, retained (not deleted); a HISTORY ENTRY documents it; Invariant 2 blocks it from any current listing. | No |
-| 9 | A programme disappears for two years and returns | WORK.status stays CURRENT; `review_after` lapses, softening display prominence without a status change; a new EVENT/SERVICE reference resets freshness and restores full display. | No |
+| 8 | An old venue remains historically important but is closed permanently | PLACE.lifecycle = HISTORICAL, retained (not deleted), regardless of its former operating_pattern; a HISTORY ENTRY documents it; Invariant 2 blocks it from any current listing. | No |
+| 9 | A programme disappears for two years and returns | WORK.status stays CURRENT throughout — no lifecycle change at all; its computed freshness condition (§18) moves CURRENT → REVIEW_DUE → STALE as `review_after` lapses, then back to CURRENT the instant a new EVENT/SERVICE re-references it and resets `last_verified`. The exact display consequence of REVIEW_DUE/STALE is a separate, later policy decision, not asserted here. | No |
 | 10 | A service is no longer offered but remains part of historical work | SERVICE.status → ARCHIVED, removed from booking surfaces; the WORK it manifested from is unaffected; a HISTORY ENTRY/ARTICLE may still reference the archived SERVICE narratively. | No |
 | 11 | An accessibility fact was last verified 18 months ago | The dimension's `verified_date` + `recheck_rule` has lapsed; Invariant 4 forces the downgraded "needs reverification" state automatically at build time. | No |
 | 12 | One event has different accessibility conditions than its host venue baseline | The EVENT's own `access_override` fields supersede the PLACE's ACCESS PROFILE for that event's display only; unset dimensions inherit the baseline. | No |
 
 All twelve scenarios resolve using mechanisms already defined above — none required a new entity, a new status value, or a special-case exception introduced solely to make the scenario work.
 
-**Homepage assembly test (Task 15), included here as a thirteenth check because it stresses the model differently — for duplication, not for correctness:** a future homepage needs (a) current PLACE status for Via Nazario and Parco plus any ACTIVE-scope NOTICE, (b) upcoming EVENTs, (c) one concise institutional explanation, (d) selected CURRENT WORK entries, (e) a visit path, (f) a collaboration path. The one risk this test surfaces: the "2–3 sentence outsider explanation" (Institutional Architecture v1 §2B) is genuinely global — not about one place, one work, or one project — and a careless model would be tempted to hardcode it directly into a homepage template as a duplicate fact. The resolution adopted here: this text lives as the single `public_summary` field on the current ORGANISATION record (§20) — the one entity that legitimately represents "who/what this collectively is" — and the homepage *references* it rather than duplicating it. No other duplicate-fact risk was found; every other homepage element is a straightforward filtered query over already-defined entities.
+**Homepage assembly test (Task 15), included here as a thirteenth check because it stresses the model differently — for duplication, not for correctness:** a future homepage needs (a) current PLACE status for Via Nazario and Parco plus any ACTIVE-scope NOTICE, (b) upcoming EVENTs, (c) one concise institutional explanation, (d) selected CURRENT WORK entries, (e) a visit path, (f) a collaboration path. The one risk this test surfaces: the "2–3 sentence outsider explanation" (Institutional Architecture v1 §2B) is genuinely global — not about one place, one work, or one legal entity — and a careless model would be tempted either to hardcode it into a homepage template as a duplicate fact, or to attach it to the current ORGANISATION record, which would silently make the current cooperative the semantic owner of a decade-long, four-entity public identity it does not legally represent (§13). **Corrected resolution:** this text is a single, standalone ARTICLE (§3.11) — an editorial unit that may `relate_to` the current ORGANISATION, relevant WORK entries, and HISTORY without being owned by any one of them — and the homepage *references* that one ARTICLE rather than duplicating it or parking it on ORGANISATION. No other duplicate-fact risk was found; every other homepage element is a straightforward filtered query over already-defined entities.
 
 ---
 
@@ -627,22 +661,25 @@ Neither of these blocks schema design, content drafting, or any other next-phase
 
 ## 26. Implementation implications
 
-Scoped to implications only — no schema, code, or route accompanies this document.
+Scoped to implications only — no schema, code, or route accompanies this document, and none of the points below commits to a storage model, file format, runtime, validation technology, or content-tooling choice.
 
-- The existing `content/venue.json` / `content/events/` / `content/notices/` pattern (per Institutional Architecture v1 §22) extends naturally to new content families for WORK, PROJECT, SERVICE, ACCESS PROFILE, HISTORY ENTRY, ARTICLE, PARTNERSHIP, and CONTACT CHANNEL — additive families, not a redesign of the pipeline shape itself, though the greenfield instruction means the *concrete* schema for each family should be drafted fresh against this document, not backward-fit from the old JSON shapes.
-- The existing build-time validation boundary (draft/published, provenance enforcement) should be extended to enforce this document's §21 invariants mechanically — a PROPOSED PROJECT should be as mechanically blocked from rendering as "current work" as an unpublished event already is from appearing on the current site's events listing.
-- Polymorphic references (NOTICE's scope_target, HISTORY ENTRY's subject_ref, ARTICLE's relates_to, PARTNERSHIP's scope_ref, CONTACT CHANNEL's owner_ref) are a genuine schema-design decision for the next phase — whether these are modelled as a tagged union, separate join tables, or another mechanism is left open on purpose, since it is an implementation choice, not a semantic one.
-- The freshness/expiry mechanism (§18) implies the build needs a notion of "current date at build time" evaluated against `review_after`/`recheck_rule`/`expiry` fields across several entity types — a genuinely new build-time behaviour beyond what the existing notice-expiry mechanism alone does today, worth flagging early to whoever scopes the technical architecture phase.
-- No new hosting, routing, or infrastructure decision is implied by this document.
+- **The model is independent of storage and implementation.** A later technical-architecture phase must choose whatever representation best supports the semantics defined here — thirteen entities, their relationships, their status ladders, their freshness computation, and the invariants in §21. Existing infrastructure may be reused only where it is evaluated on its own merits and found to fit the new system without distorting the model; it is not the default, and this document does not assume it as one, per the owner's greenfield direction.
+- **Every invariant in §21 must be enforced mechanically, whatever that later architecture turns out to be** — a PROPOSED PROJECT must be as mechanically blocked from rendering as "current work" as any other invariant requires, regardless of which validation technology ends up doing the blocking.
+- **Polymorphic scope/subject references remain conceptual, not a code mandate** (§4) — the requirement is only that a NOTICE/HISTORY ENTRY/ARTICLE/PARTNERSHIP/CONTACT CHANNEL can relate to one of several valid subject types; a later phase may satisfy this with a tagged union, explicit typed relationships, small per-owner join structures, or any other concrete mechanism, chosen on implementation grounds, not because this document named a pattern.
+- **The freshness computation (§18) is a genuinely new deterministic behaviour** the eventual implementation must support — evaluating `review_after`/`recheck_rule` against the current date to derive CURRENT/REVIEW_DUE/STALE across several entity types — whatever storage or runtime is ultimately chosen for it.
+- No hosting, routing, storage, or infrastructure decision is implied or recommended by this document.
 
 ---
 
 ## 27. Recommended next phase
 
-1. Draft the concrete schema shape for each of the thirteen entities (still no code — a data-modelling task, following the same discipline `event-schema.md` presumably already models for EVENT, without inspecting it as a constraint on the new families).
-2. Resolve the two non-blocking notes in §25 as part of that schema-drafting pass, not before it.
-3. Carry this content model into the new creative/design-system phase (per the greenfield sequence: content model → creative direction → UX/information design → technical architecture → implementation) — this document does not choose typography, layout, or visual language, and should not be read as constraining them.
-4. Only after schema and creative direction are both drafted: begin evaluating which verified old data (per §24) is worth migrating into the new schema, field by field.
+**Not concrete schema design yet.** This model has not been stress-tested against real content, and freezing an implementation representation before that happens risks encoding a mistake the model itself hasn't yet been forced to surface.
+
+1. **Real-content instantiation / stress test.** Work through the semantic model conceptually against a small, representative corpus, still without JSON schema, TypeScript, or any code — for example: Via Nazario; Parco 11 Settembre; Via Polese; Cena al Buio (WORK); one Cena al Buio dated EVENT; one possible Cena al Buio SERVICE manifestation; Cultura Verde (PROJECT); SEGNI DI PACE (PROJECT); one current CONTACT CHANNEL; one current ACCESS PROFILE dimension; one temporary access limitation (NOTICE); one historical narrative/editorial item (HISTORY ENTRY or ARTICLE). The purpose is to surface awkward relationships, missing fields, redundant entities, lifecycle mistakes, provenance problems, or duplication pressure this document's own review could not find without real instances to push against. No such records are created in this document.
+2. Resolve the two non-blocking notes in §25, and any new ones the stress test in step 1 surfaces, once real content has actually tested them.
+3. Only after the model survives that stress test: begin concrete schema design.
+4. **The creative/design-system phase may begin once the semantic model is stable — independently of schema/technical-representation work, and not gated behind it.** Per the greenfield sequence, content model and creative direction both precede technical architecture; this document does not choose typography, layout, or visual language, and schema decisions must not be allowed to dictate the creative system any more than the creative system should dictate the schema.
+5. Only after schema and creative direction are both drafted: begin evaluating which verified old data (per §24) is worth migrating into the new schema, field by field.
 
 ---
 
