@@ -2,7 +2,7 @@
 
 **Working date:** 16 August 2026
 **Branch:** `feature/page-experience-home-visit-v1` (based on `main@474938e`)
-**Status:** Disposable full-page prototype — mechanical QA complete, visual QA requires human review. Not a design sign-off.
+**Status:** Disposable full-page prototype — mechanical QA complete, owner visual review applied. Visit structurally validated; Home awaits real-photography test. Not a design sign-off.
 **Scope:** Two full-page HTML prototypes (Home + Visit) testing the recommended page experience against real content, with a reviewer-only date-state switch for the August 2026 closure/reopening.
 
 ---
@@ -100,34 +100,56 @@ Zero horizontal overflow at all viewport widths. Grid items use `min-width: 0` t
 | Email link (`mailto:`) | ✅ | ✅ |
 | WhatsApp link (`wa.me`) | ✅ | ✅ |
 
+### Owner visual review (16 August 2026)
+
+| Page | Finding |
+|------|---------|
+| Visit | Structurally and visually convincing enough for this prototype stage. Content honesty, hierarchy, and nine-dimension accessibility model read clearly at page scale. |
+| Home | Structurally convincing. Full creative specificity — warmth, density, rhythm of real photography — remains dependent on a real-photography test. Placeholder images cannot validate the final visual identity. |
+
 ---
 
 ## 3. Content verification against canonical sources
 
 All content in the prototype was verified against the canonical docs in `docs/institution/`.
 
-### Verified facts (CURRENT VERIFIED)
+### Current operational facts
 
 | Fact | Source |
 |------|--------|
 | Address: Via Nazario Sauro 24/F, Bologna | `laltrospazio-current-public-state-v1.md` |
 | WhatsApp: +39 351 704 8064 | `laltrospazio-current-public-state-v1.md` (two independent sources) |
 | Email: nazariosauro@altrospazio.org | `laltrospazio-current-public-state-v1.md` (Facebook corroborated) |
-| Closure: 12–26 August 2026, reopens 27 August | Owner-confirmed |
+| Closure: 12–26 August 2026, planned reopening 27 August | Owner-confirmed planned date; actual reopening not yet occurred at source date |
 | Parco 11 Settembre: active summer 2026 | Owner-confirmed |
-| Cena al Buio: decade-old format, last confirmed date 31 Oct 2025 | `laltrospazio-current-public-state-v1.md` |
-| Cooperativa L'Altro Spazio: legal operator since 2022 | `laltrospazio-current-public-state-v1.md` |
+| Cooperativa L'Altro Spazio: cooperative registration 2022, operational consolidation of Via Nazario/Parco from 2025 | `laltrospazio-current-public-state-v1.md` |
 
-### Honest uncertainty (correctly represented)
+### Historical / longitudinal facts
 
-| Fact | Status in prototype |
-|------|---------------------|
-| Regular opening hours | "Non ancora confermati" — correct, no authoritative source exists |
-| Wheelchair access / door width / toilet | "Da verificare di persona" — correct, zero physical access items verified |
-| LIS-capable staff per shift | "Non ancora confermato" — correct, historically strong but current staffing unestablished |
-| Braille menus | "Non sappiamo ancora se sappiano ancora disponibili oggi" — correct, documented 2018, current unverified |
-| Season end date for Parco | "Data di chiusura non ancora stabilita" — correct |
-| Specific event dates | "Nessuna data pubblica è ancora in questo calendario" — correct, no 2026 event dates verified |
+| Fact | Source |
+|------|--------|
+| Cena al Buio: format developed from 2015, last confirmed public date 31 October 2025 | `laltrospazio-current-public-state-v1.md` |
+| L'Altro Spazio practice active since 2014 | `laltrospazio-current-public-state-v1.md` |
+| Deaf/disabled workforce involvement: historical practice since 2015, current composition not established | `laltrospazio-current-public-state-v1.md` |
+| Braille menus: documented 2018, current availability unverified | `laltrospazio-current-public-state-v1.md` |
+
+### Point-in-time evidence (not current service availability)
+
+| Fact | Source |
+|------|--------|
+| Cena al Buio last confirmed date: 31 Oct 2025 | `laltrospazio-current-public-state-v1.md` |
+| No 2026 Cena al Buio public dates found | `laltrospazio-current-public-state-v1.md` |
+
+### Current status unknown
+
+| Fact | Status |
+|------|--------|
+| Regular opening hours | No authoritative source exists |
+| Wheelchair access / door width / toilet | Zero physical access items verified |
+| LIS-capable staff per shift | Historically strong, current staffing unestablished |
+| Season end date for Parco | Not yet verified |
+| Specific 2026 event dates | No 2026 event dates verified |
+| Regular WhatsApp monitoring frequency | Not established |
 
 ### Claims deliberately NOT included
 
@@ -157,14 +179,16 @@ The prototype implements the creative direction v1 (`docs/design/laltrospazio-cr
 | Placeholder images: never fake-photo | Diagonal-line pattern with "placeholder" flag, not stock photos |
 | Accessibility as section of Visit, not standalone | Nine-dimension model embedded in Visit page |
 | Date-state switch: stands in for real auto-expiry | localStorage-persisted, reviewer-only, two states |
+| Internal design rules → neutral public labels | Design principles ("not a separate section", "not a second bar") preserved in this document, not displayed as public copy |
 
 ### What is NOT tested in this prototype
 
 - Typography family choices (system fonts only — structural relationship tested, not final fonts)
-- Photography (placeholders only — real images supply warmth, not the base palette)
+- Photography (placeholders only — real images supply warmth, not the base palette; see `docs/design/laltrospazio-production-image-needs-v1.md` for production image requirements)
 - Relationship treatments (linear vs. spatial — tested in Study 5 of the creative prototype lab)
 - Dark mode (not in scope for v1)
 - Build-time NOTICE auto-expiry (manual switch instead)
+- Final visual identity of Home (dependent on real-photography test)
 
 ---
 
@@ -172,16 +196,20 @@ The prototype implements the creative direction v1 (`docs/design/laltrospazio-cr
 
 ```
 prototypes/page-experience-v1/
-├── index.html              (242 lines — Home prototype)
+├── index.html              (Home prototype)
 ├── visit/
-│   └── index.html          (304 lines — Visit prototype)
+│   └── index.html          (Visit prototype)
 ├── shared/
-│   ├── tokens.css          (50 lines — palette + spacing)
-│   ├── type.css            (62 lines — two-voice typography)
-│   ├── base.css            (111 lines — reset + primitives)
-│   ├── frame.css           (94 lines — header/nav/footer + date switch)
-│   └── frame.js            (35 lines — mobile nav + date switch)
+│   ├── tokens.css          (palette + spacing)
+│   ├── type.css            (two-voice typography)
+│   ├── base.css            (reset + primitives)
+│   ├── frame.css           (header/nav/footer + date switch)
+│   └── frame.js            (mobile nav + date switch)
 └── screenshots/            (8 PNG files — desktop/mobile × 16aug/27aug × home/visit)
+
+docs/design/
+├── laltrospazio-page-experience-home-visit-v1.md  (this report)
+└── laltrospazio-production-image-needs-v1.md      (image asset request)
 ```
 
 ### Pre-existing working-tree change (NOT part of this work)
