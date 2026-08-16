@@ -1,0 +1,111 @@
+/* DISPOSABLE PROTOTYPE ARTEFACT — reset + layout/behaviour primitives. */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { color-scheme: light; scroll-behavior: smooth; }
+body { margin: 0; min-height: 100vh; }
+img, svg { max-width: 100%; display: block; }
+a { color: var(--color-current); }
+code { overflow-wrap: anywhere; }
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+.skip-link {
+  position: absolute; left: 1rem; top: -3rem;
+  background: var(--color-ink); color: var(--color-surface);
+  padding: 0.6rem 1rem; border-radius: var(--radius-sm);
+  z-index: 100; transition: top 0.15s ease;
+  text-decoration: none; font-family: var(--font-functional); font-weight: 600;
+}
+.skip-link:focus { top: 1rem; }
+
+.container { max-width: var(--max-wide); margin: 0 auto; padding: 0 var(--space-4); }
+.measure { max-width: var(--max-measure); }
+
+/* ---- status-dot: never the sole carrier of state; text always present alongside ---- */
+.status-dot {
+  display: inline-block; width: 0.6em; height: 0.6em; border-radius: 999px;
+  margin-right: 0.55em; flex: none; vertical-align: middle;
+}
+.status-dot--current { background: var(--color-current); }
+.status-dot--notice { background: var(--color-notice); }
+.status-dot--archive { background: var(--color-archive); opacity: 0.7; }
+.status-dot--unknown { background: transparent; border: 1.5px solid var(--color-ink-muted); }
+
+/* ---- fact-line: honest-statement component ---- */
+.fact-line { display: flex; align-items: flex-start; gap: var(--space-2); padding: var(--space-3) 0; border-bottom: 1px solid var(--color-line); }
+.fact-line:last-child { border-bottom: none; }
+.fact-line__dot { margin-top: 0.45em; }
+.fact-line__body { flex: 1; min-width: 0; }
+.fact-line__statement { margin: 0 0 0.25rem 0; }
+.fact-line__meta { color: var(--color-ink-muted); margin: 0; }
+
+/* ---- card ---- */
+.card { background: var(--color-surface); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: var(--space-4); }
+
+/* ---- buttons / CTAs — real touch targets, no essential hover-only behaviour ---- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5em;
+  min-height: 2.75rem; padding: 0.65rem 1.1rem;
+  border-radius: var(--radius-sm); font-family: var(--font-functional); font-weight: 600;
+  text-decoration: none; border: 1.5px solid var(--color-ink); color: var(--color-ink);
+  background: transparent; cursor: pointer; font-size: 1rem;
+}
+.btn--primary { background: var(--color-ink); color: var(--color-surface); }
+.btn--quiet { border-color: var(--color-line-strong); color: var(--color-ink-muted); font-weight: 500; }
+.btn-row { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+
+/* ---- placeholder image primitive (Study 6 precedent: never a photo, never a fake-photo filter) ---- */
+figure.imgph { margin: 0; }
+figure.imgph .imgph__box {
+  position: relative; overflow: hidden; border-radius: var(--radius-sm);
+  background:
+    repeating-linear-gradient(135deg, var(--color-line) 0, var(--color-line) 1px, transparent 1px, transparent 13px),
+    var(--color-surface-sunken);
+}
+figure.imgph .imgph__flag {
+  position: absolute; bottom: var(--space-1); right: var(--space-1);
+  font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.02em;
+  color: var(--color-ink-muted); background: var(--color-surface);
+  padding: 0.15rem 0.45rem; border-radius: 2px; opacity: 0.9;
+}
+figure.imgph figcaption { padding-top: var(--space-2); }
+figure.imgph figcaption .v-label { display: block; margin-bottom: 0.2rem; color: var(--color-ink-muted); }
+figure.imgph figcaption p { margin: 0.1rem 0 0; }
+figure.imgph figcaption .v-metadata { display: block; margin-top: 0.2rem; }
+
+.imgph--current .imgph__box { aspect-ratio: 4 / 3; }
+.imgph--current { border-left: 3px solid var(--color-current); padding-left: var(--space-3); }
+.imgph--archival .imgph__box { aspect-ratio: 3 / 4; border: 1px solid var(--color-line-strong); }
+.imgph--archival { border-left: 3px dotted var(--color-archive); padding-left: var(--space-3); }
+.imgph--process .imgph__box { aspect-ratio: 16 / 10; }
+.imgph--process { border-left: 3px solid var(--color-ink-muted); padding-left: var(--space-3); }
+.imgph--parco .imgph__box { aspect-ratio: 4 / 3; }
+.imgph--parco { border-left: 3px solid var(--color-current); padding-left: var(--space-3); }
+
+/* touch target floor */
+button, a.btn, .nav-link, .site-id, .site-footer a { min-height: 2.75rem; }
+
+/* extreme-reflow safety: grid children default to min-width:auto, which lets a
+   long unbreakable token (an email, a phone number) force a track wider than
+   the viewport at ~200px. Keep grid items shrinkable, and let metadata-style
+   text break mid-token only as a last resort at that extreme. */
+.place-status-grid > *, .activity-grid > *, .mosaic > *, .bridge > *, .info-grid > * { min-width: 0; }
+.v-metadata, .fact-line__meta { overflow-wrap: anywhere; }
+

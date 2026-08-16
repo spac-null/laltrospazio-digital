@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="it" data-date="16aug">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L'Altro Spazio — Home · disposable full-page prototype</title>
+<link rel="stylesheet" href="shared/tokens.css">
+<link rel="stylesheet" href="shared/type.css">
+<link rel="stylesheet" href="shared/base.css">
+<link rel="stylesheet" href="shared/frame.css">
+<style>
+  .proto-banner {
+    background: var(--color-surface-sunken); border-bottom: 1px dashed var(--color-line-strong);
+    font-size: 0.8rem; color: var(--color-ink-muted); text-align: center; padding: var(--space-2) var(--space-4);
+  }
+
+  /* Beat 1 — hero / orientation (quiet) */
+  .hero { max-width: var(--max-wide); margin: 0 auto; padding: var(--space-12) var(--space-4) var(--space-8); }
+  .hero__eyebrow { color: var(--color-ink-muted); margin: 0 0 var(--space-2); }
+  .hero h1 { margin: 0 0 var(--space-4); font-size: clamp(2.1rem, 1.7rem + 2vw, 3.25rem); }
+  .hero__lead { max-width: 38rem; font-size: 1.15rem; color: var(--color-ink); margin: 0 0 var(--space-8); }
+
+  .place-status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); max-width: 52rem; }
+  @media (max-width: 640px) { .place-status-grid { grid-template-columns: 1fr; } }
+  .place-status { border-left: 4px solid var(--color-line-strong); padding: var(--space-3) var(--space-4); background: var(--color-surface); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+  .place-status--current { border-left-color: var(--color-current); }
+  .place-status--notice { border-left-color: var(--color-notice); }
+  .place-status h2 { margin: 0 0 var(--space-1); font-size: 1rem; }
+  .place-status p { margin: 0 0 var(--space-1); }
+  .hero .cta-row { margin-top: var(--space-8); }
+
+  /* Beat 2 — 30-second bridge (light) */
+  .bridge { max-width: var(--max-wide); margin: 0 auto; padding: var(--space-10) var(--space-4); display: grid; grid-template-columns: 1fr 1.3fr; gap: var(--space-8); align-items: center; }
+  @media (max-width: 760px) { .bridge { grid-template-columns: 1fr; } }
+  .bridge .v-editorial-lead { margin: 0; }
+
+  /* Beat 3 — current activity (medium) */
+  .activity { max-width: var(--max-wide); margin: 0 auto; padding: var(--space-10) var(--space-4); }
+  .activity h2 { margin: 0 0 var(--space-6); }
+  .activity-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+  @media (max-width: 760px) { .activity-grid { grid-template-columns: 1fr; } }
+  .activity-card { background: var(--color-surface); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: var(--space-4); }
+  .activity-card--empty { background: var(--color-surface-sunken); border-style: dashed; }
+  .activity-card h3 { margin: 0 0 var(--space-2); font-size: 1rem; }
+  .activity-card p { margin: 0 0 var(--space-2); }
+  .activity-card a { display: inline-flex; align-items: center; padding: 0.3rem 0; }
+
+  /* Beat 4 — dense mosaic (Measure + Encounter at scale) */
+  .moments { max-width: var(--max-wide); margin: 0 auto; padding: var(--space-12) var(--space-4); }
+  .moments h2 { margin: 0 0 var(--space-2); }
+  .moments > p { max-width: 38rem; color: var(--color-ink-muted); margin: 0 0 var(--space-6); }
+  .mosaic { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-4); }
+  .mosaic .m-1 { grid-column: span 3; }
+  .mosaic .m-2 { grid-column: span 3; padding-top: var(--space-8); }
+  .mosaic .m-3 { grid-column: span 4; }
+  .mosaic .m-4 { grid-column: span 2; padding-top: var(--space-6); }
+  @media (max-width: 760px) {
+    .mosaic { grid-template-columns: 1fr; }
+    .mosaic > * { grid-column: 1; padding-top: 0; }
+  }
+
+  /* Beat 5 — approach bridge (quiet) */
+  .approach-bridge { max-width: var(--max-wide); margin: 0 auto; padding: var(--space-12) var(--space-4); }
+  .approach-bridge .v-long-form { margin: 0 0 var(--space-3); }
+  .approach-bridge a { display: inline-flex; align-items: center; padding: 0.6rem 0; }
+
+  /* Beat 6 — action prompts (quiet) */
+  .action-prompts { max-width: var(--max-wide); margin: 0 auto; padding: 0 var(--space-4) var(--space-16); display: flex; gap: var(--space-8); flex-wrap: wrap; }
+  .action-prompts p { margin: 0; }
+  .action-prompts a { font-weight: 600; display: inline-flex; align-items: center; padding: 0.6rem 0; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Vai al contenuto principale</a>
+<p class="proto-banner">Prototipo disposable di pagina completa — non è il sito in produzione. Data di riferimento: 16 agosto 2026.</p>
+
+<div class="date-switch" role="group" aria-label="Strumento per revisori: simula la data">
+  <span>Data prototipo:</span>
+  <button data-date-btn="16aug" aria-pressed="true">16 ago — chiuso</button>
+  <button data-date-btn="27aug">27 ago — riaperto</button>
+</div>
+
+<header class="site-header">
+  <div class="site-header__bar">
+    <a class="site-id" href="index.html">L'Altro Spazio</a>
+    <button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="primary-nav">Menu</button>
+    <nav class="primary-nav" id="primary-nav" data-primary-nav aria-label="Navigazione principale">
+      <ul class="primary-nav__list">
+        <li><a class="nav-link" href="index.html" aria-current="page">Home</a></li>
+        <li><a class="nav-link" href="visit/index.html">Visita</a></li>
+        <li><a class="nav-link nav-link--inert" href="#">In programma</a></li>
+        <li><a class="nav-link nav-link--inert" href="#">Come lavoriamo</a></li>
+        <li><a class="nav-link nav-link--inert" href="#">Collabora con noi</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- BEAT 1 — QUIET / ORIENTATION (5-second layer) -->
+<section class="hero" aria-labelledby="hero-h">
+  <p class="v-label hero__eyebrow">Bologna · Via Nazario Sauro</p>
+  <h1 id="hero-h">L'Altro Spazio</h1>
+  <p class="hero__lead">Bar, spazio culturale e cooperativa sociale. Chi ci lavora — al banco, in cucina, nei programmi culturali — include persone sorde e disabili.</p>
+
+  <div class="place-status-grid">
+    <article class="place-status place-status--notice">
+      <h2><span class="status-dot status-dot--notice" aria-hidden="true"></span>Via Nazario Sauro 24/F</h2>
+      <p data-show-on="16aug">Temporaneamente chiuso dal 12 al 26 agosto 2026. Riapre il 27 agosto.</p>
+      <p data-show-on="27aug">Ha riaperto il 27 agosto. Orari abituali ancora in fase di verifica.</p>
+      <p class="v-metadata">Verificato il 16 agosto 2026</p>
+    </article>
+    <article class="place-status place-status--current">
+      <h2><span class="status-dot status-dot--current" aria-hidden="true"></span>Parco 11 Settembre</h2>
+      <p>Attivo per l'estate 2026: concerti, serate di poesia e programmazione culturale, con Associazione Farm e il Comune di Bologna.</p>
+      <p class="v-metadata">Stagione in corso · data di chiusura non ancora stabilita</p>
+    </article>
+  </div>
+
+  <div class="cta-row btn-row">
+    <a class="btn btn--primary" href="visit/index.html">Vieni a trovarci</a>
+    <a class="btn btn--quiet" href="https://wa.me/393517048064" target="_blank" rel="noopener">Scrivici su WhatsApp</a>
+  </div>
+</section>
+
+<!-- BEAT 2 — 30-SECOND LAYER (light) -->
+<section class="bridge" aria-labelledby="bridge-h">
+  <figure class="imgph imgph--process">
+    <div class="imgph__box"><span class="imgph__flag">placeholder</span></div>
+    <figcaption>
+      <span class="v-label">Process</span>
+      <p>IMMAGINE NECESSARIA — attività sociale attuale, Via Nazario</p>
+    </figcaption>
+  </figure>
+  <p id="bridge-h" class="v-editorial-lead">Non è solo un bar. Da un decennio, l'ospitalità e il lavoro quotidiano a Via Nazario Sauro coinvolgono persone sorde e disabili come professioniste — non come ospiti da accogliere. Gli spazi si sono adattati a chi li abita, non il contrario.</p>
+</section>
+
+<!-- BEAT 3 — CURRENT ACTIVITY (medium density, honesty-led) -->
+<section class="activity" aria-labelledby="activity-h">
+  <h2 id="activity-h">Cosa succede ora</h2>
+  <div class="activity-grid">
+    <article class="activity-card">
+      <h3>Parco 11 Settembre</h3>
+      <p>La programmazione estiva è attiva: concerti e serate di poesia si susseguono nel corso della stagione.</p>
+      <p class="v-metadata">Nessuna data pubblica è ancora in questo calendario — verifica sui canali social nel frattempo.</p>
+    </article>
+    <article class="activity-card activity-card--empty">
+      <h3>Eventi pubblici in programma</h3>
+      <p>Nessun evento pubblico è attualmente confermato in questo calendario.</p>
+      <a class="v-metadata" href="https://wa.me/393517048064" target="_blank" rel="noopener">Scrivici per sapere cosa c'è in programma →</a>
+    </article>
+    <article class="activity-card" style="grid-column: 1 / -1;">
+      <h3>Cena al Buio</h3>
+      <p class="v-editorial" style="font-size:1rem;">Un format attivo da un decennio: chi vede viene servito e guidato da chi non vede o vede poco.</p>
+      <p class="v-metadata">Nessuna data pubblica confermata al momento · ultima data confermata: 31 ottobre 2025</p>
+      <div class="btn-row" style="margin-top: var(--space-2);">
+        <a class="btn btn--quiet" href="https://wa.me/393517048064" target="_blank" rel="noopener">Chiedici la prossima data</a>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- BEAT 4 — DENSE: MEASURE + ENCOUNTER AT SCALE, WITH ARCHIVAL INTERRUPTION -->
+<section class="moments" aria-labelledby="moments-h">
+  <h2 id="moments-h">Momenti recenti</h2>
+  <p>Materiale reale, non fotografia generica: i riquadri sotto indicano il tipo di immagine che serve, non un'estetica da bar.</p>
+  <div class="mosaic">
+    <figure class="imgph imgph--current m-1">
+      <div class="imgph__box"><span class="imgph__flag">placeholder</span></div>
+      <figcaption>
+        <span class="v-label">Documentario attuale</span>
+        <p>IMMAGINE NECESSARIA — Via Nazario Sauro, tra un evento e l'altro</p>
+      </figcaption>
+    </figure>
+    <figure class="imgph imgph--parco m-2">
+      <div class="imgph__box"><span class="imgph__flag">placeholder</span></div>
+      <figcaption>
+        <span class="v-label">Parco · attuale</span>
+        <p>IMMAGINE NECESSARIA — Parco 11 Settembre, una sera d'estate</p>
+      </figcaption>
+    </figure>
+    <figure class="imgph imgph--process m-3">
+      <div class="imgph__box"><span class="imgph__flag">placeholder</span></div>
+      <figcaption>
+        <span class="v-label">Processo</span>
+        <p>IMMAGINE NECESSARIA — Cena al Buio: il meccanismo, non l'allestimento</p>
+      </figcaption>
+    </figure>
+    <figure class="imgph imgph--archival m-4">
+      <div class="imgph__box"><span class="imgph__flag">placeholder</span></div>
+      <figcaption>
+        <span class="v-label">Archivio — 2015</span>
+        <p>IMMAGINE NECESSARIA — i primi lavori a Via Nazario, prima dell'apertura</p>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- BEAT 5 — APPROACH BRIDGE (quiet) -->
+<section class="approach-bridge" aria-labelledby="approach-h">
+  <h2 id="approach-h">Perché è diverso da un bar accessibile</h2>
+  <p class="v-long-form">Due percorsi diversi — uno sullo sguardo e la visibilità, l'altro sulla traduzione e la mediazione — si sono incontrati nella stessa pratica: costruire spazi intorno a chi li abita davvero, non aggiungere un accomodamento dopo che lo spazio è già stato deciso.</p>
+  <p><a href="#" class="nav-link--inert" style="font-weight:600;">Scopri come lavoriamo →</a></p>
+</section>
+
+<!-- BEAT 6 — ACTION PATHS (quiet, hierarchy respected) -->
+<section class="action-prompts" aria-label="Altri percorsi">
+  <p><a href="#">Vuoi collaborare con noi?</a></p>
+  <p><a href="#">Vuoi conoscere la storia di L'Altro Spazio?</a></p>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div>
+      <h2>L'Altro Spazio</h2>
+      <p class="site-footer__disambiguation">L'Altro Spazio è il nome pubblico di una pratica attiva dal 2014; oggi è gestita dalla Cooperativa L'Altro Spazio.</p>
+    </div>
+    <div>
+      <h2>Approfondisci</h2>
+      <ul>
+        <li><a href="#">L'organizzazione</a></li>
+        <li><a href="#">Storia</a></li>
+        <li><a href="#">Ricerca e fonti</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Contatti</h2>
+      <ul>
+        <li><a href="https://wa.me/393517048064" target="_blank" rel="noopener">WhatsApp — 351 704 8064</a></li>
+        <li><a href="mailto:nazariosauro@altrospazio.org">nazariosauro@altrospazio.org</a></li>
+        <li>Via Nazario Sauro 24/F, Bologna</li>
+      </ul>
+    </div>
+  </div>
+  <p class="site-footer__legal">Prototipo disposable di pagina completa — non è il sito in produzione.</p>
+</footer>
+
+<script src="shared/frame.js"></script>
+</body>
+</html>

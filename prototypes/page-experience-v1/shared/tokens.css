@@ -1,0 +1,50 @@
+/*
+  DISPOSABLE PROTOTYPE ARTEFACT — PROTOTYPE VALUES ONLY, not frozen brand hex.
+  Palette principle carried from creative-direction-v1's session-3 correction:
+  cooler/whiter neutral base (not the book's warm cream/charcoal) + one dark
+  enough functional signal accent, reserved for status meaning. Photography
+  (once real photography exists) supplies most of the warmth, not the base.
+  Contrast verified: docs/design/laltrospazio-page-experience-home-visit-v1.md.
+*/
+
+:root {
+  --focus-ring: #1a56ff;
+  --focus-ring-offset: 2px;
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* cool/white neutral base */
+  --color-bg: #f7f8f9;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #eef0f2;
+  --color-ink: #14161a;
+  --color-ink-muted: #53585f;
+  --color-ink-faint: #868c94;
+  --color-line: #dde1e5;
+  --color-line-strong: #b7bec6;
+
+  /* one disciplined functional signal family — status meaning only */
+  --color-current: #1f6e63;      /* deep teal: active / live / current */
+  --color-notice: #9a3324;       /* dark rust: temporary / closure / needs attention */
+  --color-archive: #6b6f76;      /* neutral grey: historical, non-decorative */
+  --color-unknown: #53585f;      /* same as ink-muted: "not yet confirmed" is not an alarm colour */
+
+  --max-measure: 40rem;
+  --max-wide: 72rem;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+}

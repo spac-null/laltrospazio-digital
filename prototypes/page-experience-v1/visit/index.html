@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="it" data-date="16aug">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visita — L'Altro Spazio · disposable full-page prototype</title>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/type.css">
+<link rel="stylesheet" href="../shared/base.css">
+<link rel="stylesheet" href="../shared/frame.css">
+<style>
+  .proto-banner {
+    background: var(--color-surface-sunken); border-bottom: 1px dashed var(--color-line-strong);
+    font-size: 0.8rem; color: var(--color-ink-muted); text-align: center; padding: var(--space-2) var(--space-4);
+  }
+
+  .page-header { max-width: var(--max-wide); margin: 0 auto; padding: var(--space-10) var(--space-4) var(--space-6); }
+  .page-header h1 { margin: 0 0 var(--space-3); }
+  .page-header p { max-width: 38rem; }
+
+  .quick-jump { max-width: var(--max-wide); margin: 0 auto; padding: 0 var(--space-4) var(--space-8); }
+  .quick-jump ul { list-style: none; margin: 0; padding: 0; display: flex; gap: var(--space-4); flex-wrap: wrap; }
+  .quick-jump a { font-weight: 600; text-decoration: none; border: 1.5px solid var(--color-line-strong); border-radius: var(--radius-sm); padding: 0.5rem 0.9rem; display: inline-block; color: var(--color-ink); }
+  .quick-jump a:hover { border-color: var(--color-ink); }
+
+  .place-section { max-width: var(--max-wide); margin: 0 auto; padding: var(--space-10) var(--space-4); border-top: 1px solid var(--color-line); }
+  .place-section h2 { margin: 0 0 var(--space-1); }
+  .place-section .v-label { color: var(--color-ink-muted); }
+
+  .info-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: var(--space-8); margin-top: var(--space-6); align-items: start; }
+  @media (max-width: 760px) { .info-grid { grid-template-columns: 1fr; } }
+
+  .notice-block { border-left: 4px solid var(--color-notice); background: var(--color-surface); padding: var(--space-4); border-radius: 0 var(--radius-md) var(--radius-md) 0; margin-bottom: var(--space-4); }
+  .notice-block--calm { border-left-color: var(--color-current); }
+  .notice-block h3 { margin: 0 0 var(--space-1); font-size: 1rem; }
+  .notice-block p { margin: 0 0 var(--space-1); }
+
+  .hours-block { border-left: 4px solid var(--color-ink-muted); background: var(--color-surface); padding: var(--space-4); border-radius: 0 var(--radius-md) var(--radius-md) 0; margin-bottom: var(--space-4); }
+  .hours-block h3 { margin: 0 0 var(--space-1); font-size: 1rem; }
+
+  .fact-list { display: grid; gap: 0; }
+
+  /* Accessibility quick-answers (Study 4 precedent) */
+  .quick-answers { display: grid; gap: var(--space-3); margin: var(--space-6) 0; }
+  .quick-answer { background: var(--color-surface); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: var(--space-4); }
+  .quick-answer h3 { margin: 0 0 var(--space-2); font-size: 1rem; }
+  .quick-answer p { margin: 0; }
+  .quick-answer a { display: inline-flex; align-items: center; padding: 0.6rem 0; }
+
+  details.dim { border-bottom: 1px solid var(--color-line); padding: var(--space-2) 0; }
+  details.dim > summary {
+    cursor: pointer; display: flex; align-items: baseline; gap: var(--space-2); flex-wrap: wrap;
+    font-weight: 600; list-style: none; padding: var(--space-1) 0;
+  }
+  details.dim > summary::-webkit-details-marker { display: none; }
+  details.dim > summary::before { content: "+"; font-weight: 700; color: var(--color-ink-muted); width: 1em; }
+  details.dim[open] > summary::before { content: "–"; }
+  details.dim .dim-state { color: var(--color-ink-muted); font-weight: 400; }
+  details.dim .dim-body { margin: var(--space-2) 0 var(--space-3) 1.5em; max-width: 34rem; }
+
+  .contact-cta { max-width: var(--max-wide); margin: 0 auto; padding: var(--space-10) var(--space-4) var(--space-16); border-top: 1px solid var(--color-line); }
+
+  .parco-note { max-width: 34rem; color: var(--color-ink-muted); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Vai al contenuto principale</a>
+<p class="proto-banner">Prototipo disposable di pagina completa — non è il sito in produzione. Data di riferimento: 16 agosto 2026.</p>
+
+<div class="date-switch" role="group" aria-label="Strumento per revisori: simula la data">
+  <span>Data prototipo:</span>
+  <button data-date-btn="16aug" aria-pressed="true">16 ago — chiuso</button>
+  <button data-date-btn="27aug">27 ago — riaperto</button>
+</div>
+
+<header class="site-header">
+  <div class="site-header__bar">
+    <a class="site-id" href="../index.html">L'Altro Spazio</a>
+    <button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="primary-nav">Menu</button>
+    <nav class="primary-nav" id="primary-nav" data-primary-nav aria-label="Navigazione principale">
+      <ul class="primary-nav__list">
+        <li><a class="nav-link" href="../index.html">Home</a></li>
+        <li><a class="nav-link" href="index.html" aria-current="page">Visita</a></li>
+        <li><a class="nav-link nav-link--inert" href="#">In programma</a></li>
+        <li><a class="nav-link nav-link--inert" href="#">Come lavoriamo</a></li>
+        <li><a class="nav-link nav-link--inert" href="#">Collabora con noi</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="page-header" aria-labelledby="visit-h">
+  <h1 id="visit-h">Visita</h1>
+  <p>Tutto quello che serve per ridurre l'incertezza prima di venire: dov'è, se è aperto, cosa sappiamo con certezza e cosa no.</p>
+</section>
+
+<nav class="quick-jump" aria-label="Vai a">
+  <ul>
+    <li><a href="#nazario">Via Nazario Sauro</a></li>
+    <li><a href="#accessibilita">Accessibilità</a></li>
+    <li><a href="#parco">Parco 11 Settembre</a></li>
+  </ul>
+</nav>
+
+<!-- VIA NAZARIO -->
+<section class="place-section" id="nazario" aria-labelledby="nazario-h">
+  <p class="v-label">Sede principale · aperta tutto l'anno</p>
+  <h2 id="nazario-h">Via Nazario Sauro 24/F, Bologna</h2>
+
+  <div class="info-grid">
+    <div>
+      <div class="notice-block" data-show-on="16aug">
+        <h3><span class="status-dot status-dot--notice" aria-hidden="true"></span>Temporaneamente chiuso</h3>
+        <p>Chiuso dal 12 al 26 agosto 2026 (incluso). Riapre il 27 agosto 2026.</p>
+        <p class="v-metadata">Confermato dal gestore · verificato il 16 agosto 2026</p>
+      </div>
+      <div class="notice-block notice-block--calm" data-show-on="27aug">
+        <h3><span class="status-dot status-dot--current" aria-hidden="true"></span>Ha riaperto</h3>
+        <p>Il locale ha riaperto il 27 agosto 2026, come previsto.</p>
+        <p class="v-metadata">Confermato dal gestore</p>
+      </div>
+
+      <div class="hours-block">
+        <h3><span class="status-dot status-dot--unknown" aria-hidden="true"></span>Orari abituali</h3>
+        <p>Non ancora confermati. Prima di venire, scrivici su WhatsApp: rispondiamo con l'orario di quel giorno.</p>
+        <p class="v-metadata">In fase di verifica · nessuna fonte pubblica affidabile al momento</p>
+        <div class="btn-row" style="margin-top: var(--space-2);">
+          <a class="btn btn--quiet" href="https://wa.me/393517048064" target="_blank" rel="noopener">Chiedi l'orario di oggi</a>
+        </div>
+      </div>
+
+      <div class="fact-list">
+        <div class="fact-line">
+          <span class="status-dot status-dot--current fact-line__dot" aria-hidden="true"></span>
+          <div class="fact-line__body">
+            <p class="fact-line__statement">Prenotazioni e domande: WhatsApp</p>
+            <p class="v-metadata fact-line__meta">+39 351 704 8064</p>
+          </div>
+        </div>
+        <div class="fact-line">
+          <span class="status-dot status-dot--current fact-line__dot" aria-hidden="true"></span>
+          <div class="fact-line__body">
+            <p class="fact-line__statement">Email</p>
+            <p class="v-metadata fact-line__meta">nazariosauro@altrospazio.org</p>
+          </div>
+        </div>
+        <div class="fact-line">
+          <span class="status-dot status-dot--unknown fact-line__dot" aria-hidden="true"></span>
+          <div class="fact-line__body">
+            <p class="fact-line__statement">Accesso per sedia a rotelle / porta / bagno</p>
+            <p class="v-metadata fact-line__meta">Da verificare di persona — vedi Accessibilità qui sotto</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <figure class="imgph imgph--current">
+        <div class="imgph__box"><span class="imgph__flag">placeholder</span></div>
+        <figcaption>
+          <span class="v-label">Documentario attuale</span>
+          <p>IMMAGINE NECESSARIA — ingresso, Via Nazario Sauro 24/F</p>
+        </figcaption>
+      </figure>
+      <p style="margin-top: var(--space-3);">
+        <a class="btn btn--quiet" href="https://www.google.com/maps/search/?api=1&amp;query=Via+Nazario+Sauro+24%2FF%2C+Bologna" target="_blank" rel="noopener">Apri in Google Maps →</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ACCESSIBILITY -->
+<section class="place-section" id="accessibilita" aria-labelledby="access-h">
+  <p class="v-label">Parte normale della visita, non una sezione a parte</p>
+  <h2 id="access-h">Accessibilità</h2>
+  <p class="measure">Molte condizioni fisiche e sensoriali non sono ancora state verificate di persona — restano visibili come "da verificare", non nascoste. Una cosa è già confermata: puoi scriverci prima di venire, e ti rispondiamo.</p>
+
+  <div class="quick-answers">
+    <article class="quick-answer">
+      <h3>Posso entrare con una sedia a rotelle?</h3>
+      <p>Non possiamo ancora confermare l'accesso senza gradini o la larghezza della porta per l'edificio attuale. <a href="#dim-fisico">Vedi cosa sappiamo</a>, e scrivici prima di venire se questo conta per te.</p>
+    </article>
+    <article class="quick-answer">
+      <h3>Come possiamo comunicare?</h3>
+      <p>Il testo o WhatsApp funzionano fin da ora e vengono controllati regolarmente. Se il personale in servizio conosce la LIS in una data specifica non è ancora confermato — chiedilo quando prenoti.</p>
+    </article>
+    <article class="quick-answer">
+      <h3>L'accesso è diverso per un evento specifico?</h3>
+      <p>Sì, può variare: controlla sempre l'annuncio dell'evento specifico, non solo questa pagina.</p>
+    </article>
+    <article class="quick-answer">
+      <h3>Chi posso contattare prima di venire?</h3>
+      <p>Lo stesso canale WhatsApp usato per le prenotazioni: <a href="https://wa.me/393517048064" target="_blank" rel="noopener">+39 351 704 8064</a>.</p>
+    </article>
+  </div>
+
+  <h3 style="margin-top: var(--space-8);">Cosa sappiamo, dimensione per dimensione</h3>
+  <div>
+    <details class="dim" id="dim-fisico">
+      <summary>Accesso fisico <span class="dim-state">— da verificare di persona</span></summary>
+      <div class="dim-body"><p>Ingresso, larghezza della porta, percorso interno e bagno non sono ancora stati verificati per l'edificio attuale. Un progetto storico del 2015 prevedeva un bancone abbassato: è un'intenzione di allora, non una verifica di oggi.</p></div>
+    </details>
+    <details class="dim">
+      <summary>Accesso visivo <span class="dim-state">— parzialmente noto</span></summary>
+      <div class="dim-body"><p>Menu in Braille documentati nel 2018; non sappiamo ancora se siano ancora disponibili oggi. Illuminazione e contrasto da verificare di persona.</p></div>
+    </details>
+    <details class="dim">
+      <summary>Accesso sordi / comunicazione <span class="dim-state">— parzialmente confermato</span></summary>
+      <div class="dim-body"><p>Il contatto scritto/WhatsApp è confermato e funziona oggi. Se il personale in servizio conosca correntemente la LIS non è ancora confermato per ogni turno.</p></div>
+    </details>
+    <details class="dim">
+      <summary>Accesso uditivo <span class="dim-state">— non noto</span></summary>
+      <div class="dim-body"><p>Amplificazione, eventuali loop di induzione e livello di rumore ambientale non sono ancora stati verificati.</p></div>
+    </details>
+    <details class="dim">
+      <summary>Accesso cognitivo / chiarezza delle informazioni <span class="dim-state">— da verificare di persona</span></summary>
+      <div class="dim-body"><p>Chiarezza della segnaletica e del menu da verificare di persona.</p></div>
+    </details>
+    <details class="dim">
+      <summary>Accesso digitale <span class="dim-state">— responsabilità in corso, non una promessa</span></summary>
+      <div class="dim-body"><p>L'accessibilità di questo stesso sito è una responsabilità di chi lo costruisce, verificata nel tempo — non un'affermazione da spuntare una volta sola.</p></div>
+    </details>
+    <details class="dim">
+      <summary>Accesso specifico all'evento <span class="dim-state">— varia, controlla l'annuncio</span></summary>
+      <div class="dim-body"><p>Ogni evento può avere condizioni proprie, diverse dalla base del locale: controlla sempre l'annuncio specifico.</p></div>
+    </details>
+    <details class="dim">
+      <summary>Assistenza / contatto <span class="dim-state">— confermato</span></summary>
+      <div class="dim-body"><p>Un solo canale reale oggi: WhatsApp, +39 351 704 8064.</p></div>
+    </details>
+    <details class="dim">
+      <summary>Limitazioni temporanee <span class="dim-state">— nessuna segnalata al momento</span></summary>
+      <div class="dim-body"><p>Nessun guasto, lavoro in corso o percorso bloccato è segnalato al momento, oltre alla chiusura stagionale già indicata sopra.</p></div>
+    </details>
+  </div>
+</section>
+
+<!-- PARCO -->
+<section class="place-section" id="parco" aria-labelledby="parco-h">
+  <p class="v-label">Programma stagionale, non un secondo bar</p>
+  <h2 id="parco-h">Parco 11 Settembre</h2>
+
+  <div class="info-grid">
+    <div>
+      <div class="notice-block notice-block--calm">
+        <h3><span class="status-dot status-dot--current" aria-hidden="true"></span>Attivo per l'estate 2026</h3>
+        <p>Concerti, serate di poesia e programmazione culturale, in collaborazione con Associazione Farm e il Comune di Bologna.</p>
+        <p class="v-metadata">Confermato dal gestore · orario giornaliero e data di fine stagione non ancora stabiliti</p>
+      </div>
+      <p class="parco-note">Parco 11 Settembre è un parco pubblico all'aperto: il suo profilo di accessibilità è probabilmente diverso da quello di Via Nazario Sauro, e non è ancora stato verificato separatamente.</p>
+      <div class="btn-row" style="margin-top: var(--space-3);">
+        <a class="btn btn--quiet" href="https://wa.me/393517048064" target="_blank" rel="noopener">Chiedici cosa c'è in programma</a>
+      </div>
+    </div>
+    <figure class="imgph imgph--parco">
+      <div class="imgph__box"><span class="imgph__flag">placeholder</span></div>
+      <figcaption>
+        <span class="v-label">Parco · attuale</span>
+        <p>IMMAGINE NECESSARIA — programmazione estiva a Parco 11 Settembre</p>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="contact-cta" aria-labelledby="contact-h">
+  <h2 id="contact-h">Non trovi quello che ti serve?</h2>
+  <p class="measure">Scrivici direttamente: è lo stesso canale per prenotazioni, domande pratiche e domande sull'accessibilità.</p>
+  <div class="btn-row" style="margin-top: var(--space-3);">
+    <a class="btn btn--primary" href="https://wa.me/393517048064" target="_blank" rel="noopener">Scrivici su WhatsApp</a>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div>
+      <h2>L'Altro Spazio</h2>
+      <p class="site-footer__disambiguation">L'Altro Spazio è il nome pubblico di una pratica attiva dal 2014; oggi è gestita dalla Cooperativa L'Altro Spazio.</p>
+    </div>
+    <div>
+      <h2>Approfondisci</h2>
+      <ul>
+        <li><a href="#">L'organizzazione</a></li>
+        <li><a href="#">Storia</a></li>
+        <li><a href="#">Ricerca e fonti</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Contatti</h2>
+      <ul>
+        <li><a href="https://wa.me/393517048064" target="_blank" rel="noopener">WhatsApp — 351 704 8064</a></li>
+        <li><a href="mailto:nazariosauro@altrospazio.org">nazariosauro@altrospazio.org</a></li>
+        <li>Via Nazario Sauro 24/F, Bologna</li>
+      </ul>
+    </div>
+  </div>
+  <p class="site-footer__legal">Prototipo disposable di pagina completa — non è il sito in produzione.</p>
+</footer>
+
+<script src="../shared/frame.js"></script>
+</body>
+</html>
