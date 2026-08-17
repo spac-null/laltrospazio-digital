@@ -10,13 +10,13 @@ const secondaryLinks = [
 
 export const SiteFooter = () => (
   <footer className="section-dense">
-    <div className="mx-auto max-w-6xl px-6 py-14 md:px-10 md:py-20">
+    <div className="mx-auto max-w-6xl px-6 py-10 md:px-10 md:py-14">
       <p className="max-w-2xl text-sm leading-relaxed text-field-dense-foreground/80">
         L&apos;Altro Spazio è il nome pubblico di una pratica attiva a Bologna dal 2014, condotta
         sotto più organizzazioni nel tempo. Oggi è gestita da Cooperativa L&apos;Altro Spazio.
       </p>
 
-      <div className="mt-10 grid gap-10 md:grid-cols-3">
+      <div className="mt-8 grid gap-10 md:grid-cols-3">
         <nav aria-label="Navigazione secondaria">
           <p className="stamp text-field-dense-foreground/50">Approfondisci</p>
           <ul className="mt-3 space-y-2">

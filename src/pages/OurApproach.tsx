@@ -40,20 +40,26 @@ const OurApproach = () => (
           un bancone adattato nel tempo — non sono nati da una specifica di progetto, ma da un uso
           quotidiano corretto ripetutamente.
         </p>
-        <div className="mt-10 grid gap-8 md:grid-cols-2">
+        {/* The door study directly shows testing/adjustment (the paragraph's subject); the
+            materials pile is real but secondary evidence, so it gets a visibly smaller field. */}
+        <div className="mt-10 grid gap-8 md:grid-cols-12 md:items-end">
           <ArchiveFigure
             src={doorStudies}
             alt="Disegno a inchiostro di una porta in tre stati, con prezzo indicato a mano"
             caption="Studio di una porta, con prezzo indicato a mano"
             date="2015–2016"
-            aspect="landscape"
+            aspect="wide"
+            tone="dense"
+            className="md:col-span-8"
           />
           <ArchiveFigure
             src={trolleyPile}
             alt="Carrello pieno di oggetti e arredi accatastati contro una parete verde"
             caption="Materiali accumulati durante l'allestimento"
             date="2015"
-            aspect="landscape"
+            aspect="square"
+            tone="dense"
+            className="md:col-span-4"
           />
         </div>
       </div>

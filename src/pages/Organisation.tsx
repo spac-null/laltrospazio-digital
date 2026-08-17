@@ -1,4 +1,3 @@
-import { Fact } from "@/components/site/Fact";
 import { SiteFrame } from "@/components/site/SiteFrame";
 
 const Organisation = () => (
@@ -55,23 +54,8 @@ const Organisation = () => (
             </p>
           </div>
         </div>
-      </div>
-    </section>
-
-    {/* What's genuinely unresolved — kept as a Fact because it's a provenance gap, not narrative. */}
-    <section aria-labelledby="org-open-question" className="section-quiet">
-      <div className="mx-auto max-w-3xl px-6 py-14 md:px-10 md:py-16">
-        <h2 id="org-open-question" className="text-2xl">
-          Cosa non sappiamo ancora
-        </h2>
-        <div className="mt-6">
-          <Fact label="Rappresentanza legale" status="not-yet-verified">
-            Non indichiamo qui un legale rappresentante attuale: le fonti a nostra disposizione non
-            sono ancora concordi su questo punto.
-          </Fact>
-        </div>
-        <p className="mt-6 text-sm text-foreground/70">
-          Da novembre 2025 la cooperativa ha inoltre richiesto l&apos;ammissione al mercato
+        <p className="mt-10 max-w-2xl text-sm text-foreground/55">
+          Da novembre 2025 la cooperativa ha anche richiesto l&apos;ammissione al mercato
           elettronico della pubblica amministrazione (MePA) in sei categorie di servizio — un
           segnale di direzione istituzionale, non una prova di volumi di attività già svolti in
           quelle categorie.

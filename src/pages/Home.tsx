@@ -27,6 +27,7 @@ const Home = () => {
           <h1 id="home-hero" className="mt-4 max-w-3xl text-4xl leading-[1.1] md:text-6xl">
             &ldquo;Non mancavano loro. Erano i nostri spazi a essere stati costruiti senza pensarle.&rdquo;
           </h1>
+          <p className="stamp mt-3 text-foreground/45">— Nunzia Vannuccini, cofondatrice</p>
           <p className="mt-6 max-w-xl text-foreground/70">
             L&apos;intuizione che ha aperto L&apos;Altro Spazio nel 2015 — e che continua a guidarlo oggi,
             come cooperativa, a Via Nazario Sauro e al Parco 11 Settembre.
@@ -163,36 +164,34 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Release — quiet again. Two ways deeper into the site, not four generic cards. */}
+      {/* Release — quiet again. Two paths, growing directly out of the field — not cards, not tiles. */}
       <section aria-labelledby="home-paths" className="section-quiet">
-        <div className="mx-auto max-w-6xl px-6 py-20 md:px-10 md:py-24">
+        <div className="mx-auto max-w-4xl px-6 py-20 md:px-10 md:py-24">
           <h2 id="home-paths" className="sr-only">Continua da qui</h2>
-          <div className="grid gap-6 md:grid-cols-2">
-            <Link
-              to="/approccio"
-              className="group border border-border bg-background p-8 transition-colors hover:border-foreground"
-            >
-              <p className="stamp text-foreground/50">Il metodo</p>
-              <h3 className="mt-3 text-xl">Il nostro approccio</h3>
-              <p className="mt-3 text-sm text-foreground/70">
+          <div className="divide-y divide-border border-t border-border">
+            <Link to="/approccio" className="group flex flex-col gap-2 py-8 md:flex-row md:items-baseline md:justify-between md:gap-10">
+              <span className="md:w-56 md:shrink-0">
+                <span className="stamp block text-foreground/50">Il metodo</span>
+                <span className="mt-1 block font-display text-2xl">Il nostro approccio</span>
+              </span>
+              <span className="flex-1 text-sm text-foreground/70">
                 Come lo spazio, la struttura e la partecipazione lavorano insieme, dal cantiere al
                 bancone.
-              </p>
-              <span className="mt-6 inline-block text-sm underline-offset-4 group-hover:underline">
-                Leggi l&apos;approccio →
+              </span>
+              <span className="shrink-0 text-sm underline-offset-4 group-hover:underline">
+                Leggi →
               </span>
             </Link>
-            <Link
-              to="/lavora-con-noi"
-              className="group border border-border bg-background p-8 transition-colors hover:border-foreground"
-            >
-              <p className="stamp text-foreground/50">Collaborare</p>
-              <h3 className="mt-3 text-xl">Lavora con noi</h3>
-              <p className="mt-3 text-sm text-foreground/70">
-                Cosa sosteniamo davvero, con quali prove, e come iniziare una collaborazione.
-              </p>
-              <span className="mt-6 inline-block text-sm underline-offset-4 group-hover:underline">
-                Scopri come →
+            <Link to="/lavora-con-noi" className="group flex flex-col gap-2 py-8 md:flex-row md:items-baseline md:justify-between md:gap-10">
+              <span className="md:w-56 md:shrink-0">
+                <span className="stamp block text-foreground/50">Collaborare</span>
+                <span className="mt-1 block font-display text-2xl">Lavora con noi</span>
+              </span>
+              <span className="flex-1 text-sm text-foreground/70">
+                Il tipo di lavoro che sosteniamo, con quali prove, e come iniziare.
+              </span>
+              <span className="shrink-0 text-sm underline-offset-4 group-hover:underline">
+                Scopri →
               </span>
             </Link>
           </div>

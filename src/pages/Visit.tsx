@@ -115,8 +115,7 @@ const Visit = () => {
         <div className="mx-auto max-w-3xl px-6 py-14 md:px-10 md:py-16">
           <h2 id="visit-contact" className="text-2xl">Contattaci</h2>
           <p className="mt-4 text-foreground/75">
-            Il modo più diretto è WhatsApp. Non promettiamo un tempo di risposta preciso, ma è il
-            canale che controlliamo più spesso.
+            Il modo più diretto è WhatsApp. Non promettiamo un tempo di risposta preciso.
           </p>
           <a
             href="https://wa.me/393517048064"
