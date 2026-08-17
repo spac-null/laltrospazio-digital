@@ -16,8 +16,7 @@ const Contact = () => (
           Scrivici su WhatsApp — {venue.phone}
         </a>
         <p className="mt-3 text-sm text-foreground/60">
-          È il canale che controlliamo più spesso. Non promettiamo un tempo di risposta preciso su
-          nessun canale.
+          Non promettiamo un tempo di risposta preciso su nessun canale.
         </p>
       </div>
     </section>

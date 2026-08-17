@@ -143,22 +143,6 @@ const History = () => (
         </div>
       </div>
     </section>
-
-    <section aria-labelledby="history-caution" className="section-quiet">
-      <div className="mx-auto max-w-3xl px-6 py-14 md:px-10 md:py-16">
-        <h2 id="history-caution" className="text-2xl">
-          Quello che non diciamo
-        </h2>
-        <p className="mt-4 text-foreground/75">
-          Non descriviamo nessuna delle organizzazioni precedenti come un fallimento imprenditoriale
-          in senso generico. Via Polese si è chiusa per un danno esterno, non per un giudizio
-          sull&apos;idea. Da Osvaldo si è chiuso dopo una difficoltà economica reale, che non
-          dettagliamo qui per riservatezza. Non pubblichiamo una percentuale di personale con
-          disabilità come dato attuale: le uniche cifre che esistono sono storiche e
-          autodichiarate.
-        </p>
-      </div>
-    </section>
   </SiteFrame>
 );
 
