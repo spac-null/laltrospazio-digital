@@ -1,4 +1,5 @@
 import { Link, useParams } from "react-router-dom";
+import { SiteFrame } from "@/components/site/SiteFrame";
 import { findEvent, venue } from "@/lib/content";
 
 const formatDate = (value: string) => new Intl.DateTimeFormat("it-IT", {
@@ -12,7 +13,14 @@ const EventDetail = () => {
   const event = findEvent(slug ?? "");
 
   if (!event) {
-    return <main className="min-h-screen bg-background px-6 py-16"><h1 className="text-4xl">Evento non trovato</h1><Link className="mt-6 inline-block underline" to="/eventi">Torna agli eventi</Link></main>;
+    return (
+      <SiteFrame>
+        <div className="mx-auto max-w-3xl px-6 py-20 md:px-10">
+          <h1 className="text-3xl">Evento non trovato</h1>
+          <Link className="mt-6 inline-block underline underline-offset-4" to="/eventi">Torna agli eventi</Link>
+        </div>
+      </SiteFrame>
+    );
   }
 
   const jsonLd = {
@@ -29,8 +37,8 @@ const EventDetail = () => {
   };
 
   return (
-    <main className="min-h-screen bg-background px-6 py-16 md:px-12 md:py-24">
-      <div className="mx-auto max-w-4xl">
+    <SiteFrame>
+      <div className="mx-auto max-w-4xl px-6 py-16 md:px-10 md:py-24">
         <Link to="/eventi" className="text-sm underline underline-offset-4">Tutti gli eventi</Link>
         <article className="mt-12">
           {event.image && <img src={event.image} alt="" className="mb-10 max-h-[28rem] w-full object-cover" />}
@@ -48,7 +56,7 @@ const EventDetail = () => {
         </article>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </div>
-    </main>
+    </SiteFrame>
   );
 };
 

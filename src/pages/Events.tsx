@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { SiteFrame } from "@/components/site/SiteFrame";
 import { upcomingEvents } from "@/lib/content";
 
 const formatDate = (value: string) => new Intl.DateTimeFormat("it-IT", {
@@ -8,33 +9,38 @@ const formatDate = (value: string) => new Intl.DateTimeFormat("it-IT", {
 }).format(new Date(value));
 
 const Events = () => (
-  <main className="min-h-screen bg-background px-6 py-16 md:px-12 md:py-24">
-    <div className="mx-auto max-w-5xl">
-      <Link to="/" className="text-sm underline underline-offset-4">Torna al sito</Link>
-      <header className="mt-12 max-w-3xl">
-        <p className="text-sm uppercase tracking-[0.2em] text-primary">L&apos;Altro Spazio</p>
-        <h1 className="mt-3 text-5xl text-secondary md:text-7xl">Eventi</h1>
-        <p className="mt-6 max-w-2xl text-secondary/80">Appuntamenti, arte e cultura a Bologna. Le date pubblicate qui provengono dal registro eventi verificato.</p>
-      </header>
+  <SiteFrame>
+    <header className="border-b border-border">
+      <div className="mx-auto max-w-3xl px-6 py-16 md:px-10 md:py-20">
+        <p className="stamp text-signal-current">Cosa c&apos;è</p>
+        <h1 className="mt-3 text-3xl md:text-4xl">Appuntamenti in programma</h1>
+        <p className="mt-5 text-foreground/70">Le date qui sotto provengono dal registro eventi verificato — niente promozione, solo ciò che è confermato.</p>
+      </div>
+    </header>
+    <div className="mx-auto max-w-5xl px-6 py-14 md:px-10 md:py-16">
       {upcomingEvents.length === 0 ? (
-        <section className="mt-16 border border-border bg-white p-8 md:p-12">
-          <h2 className="text-3xl text-secondary">Nessun evento in programma</h2>
-          <p className="mt-4 max-w-xl text-secondary/75">Non ci sono ancora appuntamenti confermati da mostrare. Torna presto per gli aggiornamenti.</p>
+        <section className="border border-border bg-field-quiet p-8 md:p-12">
+          <p className="stamp text-signal-unverified">Non ancora verificato</p>
+          <h2 className="mt-3 text-2xl">Nessun evento confermato al momento</h2>
+          <p className="mt-4 max-w-xl text-foreground/70">
+            Non ci sono ancora appuntamenti confermati da mostrare qui. Le attività al Parco 11
+            Settembre e a Via Nazario Sauro si seguono anche sui canali social nel frattempo.
+          </p>
         </section>
       ) : (
-        <section className="mt-16 grid gap-6 md:grid-cols-2">
+        <section className="grid gap-6 md:grid-cols-2">
           {upcomingEvents.map((event) => (
-            <article key={event.id} className="border border-border bg-white p-6">
-              <p className="text-sm text-primary">{formatDate(event.start)}</p>
-              <h2 className="mt-3 text-3xl text-secondary">{event.title}</h2>
-              <p className="mt-3 text-secondary/75">{event.description}</p>
-              <Link to={`/eventi/${event.slug}`} className="mt-6 inline-block font-medium underline underline-offset-4">Scopri l&apos;evento</Link>
+            <article key={event.id} className="border border-border p-6">
+              <p className="stamp text-signal-current">{formatDate(event.start)}</p>
+              <h2 className="mt-3 text-2xl">{event.title}</h2>
+              <p className="mt-3 text-foreground/70">{event.description}</p>
+              <Link to={`/eventi/${event.slug}`} className="mt-6 inline-block text-sm font-medium underline underline-offset-4">Scopri l&apos;evento →</Link>
             </article>
           ))}
         </section>
       )}
     </div>
-  </main>
+  </SiteFrame>
 );
 
 export default Events;
