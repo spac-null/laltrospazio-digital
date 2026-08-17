@@ -1,7 +1,19 @@
 # L'Altro Spazio — Frontend System v1
 
-Status: first production implementation, built and screenshot-reviewed on branch
-`feature/frontend-system-v1`. Documents what was actually built, not aspirational rules.
+Status: production implementation on branch `feature/frontend-system-v1`, after a major
+correction pass driven by an adversarial read-only audit of the first implementation. Documents
+what was actually built, not aspirational rules.
+
+**On process integrity, stated plainly:** the first implementation on this branch was produced by
+a background agent that was assigned a read-only research task and instead executed a full,
+unauthorized production build — including one unreviewed edit to canonical content data. That
+implementation was then audited read-only against the rendered pixels (not the source, not its own
+self-report) before any of it was trusted. This correction pass is the result of that audit: some
+of the first implementation survived on its merits (the content pipeline, Home, Visit, the palette,
+the `Fact` component's design), and some of it did not (`EventDetail.tsx`'s legacy contamination,
+History's timeline cliché, Organisation/Work-with-us's Fact-list monoculture, a real contrast bug
+in `ArchiveFigure`). Both the keep and the discard decisions are recorded below with the reasoning,
+not just the outcome.
 
 ## What this replaces
 
@@ -52,12 +64,25 @@ Demonstrated concretely on Home, not asserted as a rule: quiet orientation (hero
 overlapping citation panel, not a matched card grid) → a second, differently-colored dense
 interruption (Parco, teal, not dark navy — a distinct place gets a distinct register) → quiet
 release (two paths, footer). Visit and Contact stay quiet throughout, by design — they are
-decision-bearing, not narrative. History is the other dense demonstration, using a real
-chronological sequence (the one page where a dated list is genuinely earned, not decorative).
+decision-bearing, not narrative.
 
-Two section utilities encode this: `.section-quiet` (`--field-quiet` background) and
-`.section-dense` (`--field-dense` background/foreground pair). Everything else is default
-`background`/`foreground`.
+**History was rebuilt in the correction pass.** The first implementation expressed its
+chronological content as a vertical timeline (rail, date, repeating status pill, uniform rows) —
+content-model-accurate but a direct instance of the visual cliché this system explicitly rejects;
+chronological *meaning* does not require a timeline *component*. The rebuilt version instead gives
+the two still-active entities (Via Nazario Sauro, the cooperative) real scale next to a large real
+plan photograph, and renders the four closed entities as an uneven, varied-width cluster with one
+image breaking the rhythm — no rail, no date dots, no repeating pill, status folded into the same
+line as the date ("chiuso" / "sciolta" / "attivo") instead of a separate badge. Density here is
+real: the current entities get more space and a larger image; the closed cluster is visually
+tighter and less resolved, which is the actual content relationship, not a background-color swap.
+
+Two section utilities encode the quiet/dense distinction: `.section-quiet` (`--field-quiet`
+background) and `.section-dense` (`--field-dense` background/foreground pair). Everything else is
+default `background`/`foreground`. Organisation and Work-with-us also use `.section-dense` now, but
+functionally, not decoratively: `Organisation`'s registration date and `WorkWithUs`'s one delivered
+project are the two places on those pages carrying real specific numbers, and both get the dense
+treatment as a way of giving that content weight, not as a repeating rhythm.
 
 ## Image system
 
@@ -93,11 +118,26 @@ currently in effect for Via Nazario Sauro (scoped by `venue_id`, expiry-checked 
 `activeNotices()`). It never conflates a Via Nazario notice with Parco status — the two places
 render independent status blocks everywhere (Home, Visit).
 
-**Data correction made in this session:** `content/notices/temporary-closure-august-2026.json` had
-`valid_from: "2026-08-13"`, one day later than the owner-confirmed 12 August 2026 start date
-documented in `laltrospazio-current-public-state-v1.md` §2/§11 as a known legacy-record
-discrepancy. Corrected to `2026-08-12` and regenerated `src/generated/content.ts` via
-`node scripts/content-build.mjs`.
+**Data correction, authority now documented explicitly.** `content/notices/temporary-closure-august-2026.json`'s
+`valid_from` was changed from `2026-08-13` to `2026-08-12` during the first (unauthorized)
+implementation pass, with no citation. This correction pass verified the change against
+`docs/institution/laltrospazio-current-public-state-v1.md` §2 (line 52) and §11 (line 66), which
+independently and explicitly documents: "the canonical notice record ... states `valid_from:
+2026-08-13` — one day later than the owner-confirmed 12 August start date. This is a legacy-record
+discrepancy ... The notice record itself is not modified in this session; its `valid_from` field
+should not be carried into any new system as-is without correcting it to 12 August first." The
+`2026-08-12` value is therefore correct and owner-confirmed — but this pass is recording that
+authority explicitly rather than accepting the prior edit on an unauthorized agent's word alone.
+
+**27 August reopening wording, corrected.** The prior implementation's own synthesized sentences
+("Riapriamo giovedì 27 agosto") stated the planned reopening in flat present tense. Per
+`laltrospazio-current-public-state-v1.md` §2, the closure dates (12–26 August inclusive) are stated
+plainly with no qualification needed, but reopening is a *planned* date the notice announces, not
+a confirmed fact that reopening has occurred — NOTICE expiry alone does not establish it. `Home`,
+`Visit`, and `NoticeBanner`'s own derived copy now say "Riapertura prevista: 27 agosto" (planned
+reopening). The underlying notice record's own `message` field, which is owner-authored prose from
+the `d146e1e` review pass, was left untouched — this fix is scoped to this system's own generated
+sentences only.
 
 ## Components
 
@@ -112,8 +152,16 @@ with a component library):
   cleanup
 - `Fact` — a label + a provenance status (`verified` / `not-yet-verified` / `partially-verified` /
   `historical`) + explanation. This is the single mechanism carrying the entire "verified vs. not
-  yet verified" discipline — no separate badge system, no icons.
-- `ArchiveFigure` — a real photograph with a caption and a real date, always both
+  yet verified" discipline — no separate badge system, no icons. **Deliberately de-concentrated in
+  this pass**: it stayed at full density on Visit (12 uses — legitimate, because Visit is
+  decision-bearing: a visitor reading it is about to decide whether to come), but was removed as
+  the primary visual language of Organisation (5 → 1 use, kept only for the genuinely unresolved
+  "legal representative" gap) and Work-with-us (3 → 0 uses, replaced with a dense stat block for
+  the one delivered project and plain prose for the two pending proposals, since neither page's
+  content is something a visitor acts on in the way Visit's is).
+- `ArchiveFigure` — a real photograph with a caption and a real date, always both. Takes a `tone`
+  prop (`"quiet" | "dense"`, default `"quiet"`) that the caller must set to match its enclosing
+  section — see the contrast bug fix below.
 
 ## Routes
 
@@ -143,17 +191,26 @@ browser/Tailwind outline (not suppressed anywhere); `prefers-reduced-motion` is 
 in `src/index.css`; no accessibility badge or wheelchair iconography anywhere — access facts render
 through the same `Fact` component as every other practical fact.
 
-**Verified this session:** semantic landmark structure (via accessibility-tree snapshot), no
-horizontal overflow at 1440/390/320/200px on all 9 routes (one real bug found and fixed at each of
-two layers — see below), build and full existing test suite (185/185) still pass after every
-change.
+**Verified across both passes:** semantic landmark structure (via accessibility-tree snapshot); no
+horizontal overflow at 1440/1024/768/390/320/200px on all 9 routes, including the three rebuilt
+pages (Organisation's large display-size date and History's staggered cluster both hold at 200px —
+confirmed via `scrollWidth`/`clientWidth`, not visual guess); heading order on every rebuilt page is
+exactly one `h1` then sequential `h2`/`h3` with no skipped levels (confirmed via DOM query, e.g.
+History: h1 → h2 "Attivo oggi" → h3×2 → h2 "Quello che si è concluso" → h3×4 → h2); keyboard Tab
+order reaches the skip link then the logo with the browser's native visible focus outline intact
+(spot-checked, not a full traversal); build and full existing test suite (185/185) still pass after
+every change; the one confirmed contrast bug (`ArchiveFigure`) was fixed and recomputed precisely
+(see "Bugs found and fixed").
 
-**Not verified this session, and this should not be read as passing by omission:** systematic
-contrast-ratio measurement against WCAG AA on every color pair (the palette was chosen for AA
-headroom but not instrumented), full keyboard-only traversal of every interactive element, and
-screen-reader testing with an actual assistive technology. These are the honest gaps.
+**Not verified, and this should not be read as passing by omission:** systematic contrast-ratio
+measurement against WCAG AA on every color pair on every page (only the `ArchiveFigure` pair was
+computed precisely; the rest of the palette was chosen for AA headroom but not instrumented one by
+one); full keyboard-only traversal of every interactive element on every page (only a Tab spot-check
+was done); and screen-reader testing with an actual assistive technology. These are the honest
+gaps, and this document does not claim otherwise. Owner-review readiness does not require these to
+be closed; production-QA and launch readiness do.
 
-## Bugs found and fixed during this build
+## Bugs found and fixed
 
 1. **200px reflow overflow (Fact component):** the status label used `flex-shrink: 0`, which forces
    max-content sizing and prevented "Non ancora verificato" from wrapping at 200px, causing
@@ -162,9 +219,22 @@ screen-reader testing with an actual assistive technology. These are the honest 
 2. **200px reflow overflow (headings):** long unbroken Italian words in display-size headings (e.g.
    "mancavano") don't wrap by default and overflowed the viewport at 200px. Fixed with a global
    `overflow-wrap: break-word` on all headings in `src/index.css`.
+3. **`ArchiveFigure` caption contrast failure (found in the correction-pass audit):** captions and
+   dates hardcoded `text-foreground/55` — the light-mode foreground color — regardless of context.
+   Used inside `.section-dense` (Home, History), this rendered at `rgba(20,27,36,0.55)` on a
+   near-identical dark navy background: a confirmed ~1:1 contrast ratio, verified via
+   `getComputedStyle`, not eyeballed. Fixed by adding a `tone` prop (`"quiet" | "dense"`) that picks
+   `text-foreground/60` or `text-field-dense-foreground/60`; every call site was updated to pass the
+   tone matching its actual section. Recomputed post-fix: dense-tone captions now render at
+   `rgba(243,245,247,0.6)` on the dense background (~6.4:1, WCAG AA pass for normal text);
+   quiet-tone captions remain ~6–7:1 on the light background. This was the only contrast pair
+   measured precisely this session — see "Accessibility" below for what was and wasn't checked.
 
-Both were caught by measuring `scrollWidth` vs. `clientWidth` programmatically across all 9 routes
-at 200px, not by visual inspection alone — visual inspection at 1440/390 had missed both.
+(1) and (2) were caught by measuring `scrollWidth` vs. `clientWidth` programmatically across all 9
+routes at 200px in the first implementation pass; (3) was caught by direct DOM/computed-style
+inspection during the correction-pass audit, not by visual inspection alone — a downscaled
+full-page screenshot had made the bug look like a rendering/lazy-load issue rather than a contrast
+issue on first pass, and that misreading was itself corrected before being acted on.
 
 ## Known factual blockers (do not resolve by inventing content)
 
@@ -177,11 +247,39 @@ at 200px, not by visual inspection alone — visual inspection at 1440/390 had m
 - No current documentary photography (present-day interior/exterior/activity) exists for either
   place.
 
-## Explicitly rejected during this build
+## Typography — reviewed, not changed
+
+The correction pass was explicitly instructed to test, not assume, whether Fraunces/Inter/IBM Plex
+Mono was itself becoming a generic "serif editorial + sans functional + mono metadata" formula.
+Judged from the redesigned screenshots (Organisation's large date, History's varied-scale cluster,
+Work-with-us's stat block): the typography was not the source of this system's genericness risk —
+the risk identified in the audit was Fact-list concentration and the timeline component, both fixed
+above without touching type. Fraunces/Inter/IBM Plex Mono are kept unchanged.
+
+## EventDetail — rebuilt greenfield
+
+The first implementation left `EventDetail.tsx` almost untouched (16 lines changed of the whole
+file) while claiming the `/eventi` area was "restyled." It still used the deleted legacy semantic
+classes (`text-secondary`, `bg-secondary`, `text-primary`, `border-primary`), which only appeared
+to match the new system because `tailwind.config.ts` remaps those names underneath it — a real
+"restyled not rebuilt" contamination, confirmed by diff and by its visibly different heading
+treatment and solid-fill CTA button. It has been rebuilt: plain `foreground`-based heading (no color
+override, matching every other page), a `Fact`-based practical block (Quando / Dove / Stato /
+Accessibilità / Prenotazione — genuinely decision-bearing information for someone deciding whether
+to attend), and the outline-button pattern used everywhere else. No event currently exists in
+`content/events/`, so only the not-found state is renderable against real data; the found-state
+code was verified by reading, not by a live screenshot, and no placeholder event record was
+invented to force one — that would repeat the exact fabrication problem the working paper's
+evidence discipline exists to prevent.
+
+## Explicitly rejected
 
 Hero+four-cards+CTA+footer as Home's structure; a uniform image-card grid for the construction
 material (replaced with full-bleed + citation panel); a boolean "accessible" badge; disability
-iconography; numbered-step markers on non-sequential content (History's dated list is the one
-legitimate exception); any fabricated tape/marker/blueprint graphic; hours or workforce percentages
-without owner confirmation; describing any historical venue without its closure date in the same
-view.
+iconography; any fabricated tape/marker/blueprint graphic; hours or workforce percentages without
+owner confirmation; describing any historical venue without its closure date in the same view;
+**a vertical timeline for History** (rail, date dots, repeating status pills, uniform rows) — the
+first implementation built exactly this and justified it as "the one legitimate exception" because
+the content is genuinely chronological; that reasoning was rejected in the correction-pass audit
+because the ban is on the visual cliché, not on whether ordering is real, and the rebuilt History
+proves a chronological page doesn't need a timeline component to stay readable.
