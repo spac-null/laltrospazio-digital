@@ -5,6 +5,8 @@ type ArchiveFigureProps = {
   date?: string;
   className?: string;
   aspect?: "portrait" | "landscape" | "wide" | "square";
+  /** Which field this figure sits in — controls caption contrast. Must match the enclosing section. */
+  tone?: "quiet" | "dense";
 };
 
 const aspectClass: Record<NonNullable<ArchiveFigureProps["aspect"]>, string> = {
@@ -14,13 +16,26 @@ const aspectClass: Record<NonNullable<ArchiveFigureProps["aspect"]>, string> = {
   square: "aspect-square",
 };
 
+const captionToneClass: Record<NonNullable<ArchiveFigureProps["tone"]>, string> = {
+  quiet: "text-foreground/60",
+  dense: "text-field-dense-foreground/60",
+};
+
 /** A real archive photograph, used as structural input. Never a stock or generated image. */
-export const ArchiveFigure = ({ src, alt, caption, date, className = "", aspect = "landscape" }: ArchiveFigureProps) => (
+export const ArchiveFigure = ({
+  src,
+  alt,
+  caption,
+  date,
+  className = "",
+  aspect = "landscape",
+  tone = "quiet",
+}: ArchiveFigureProps) => (
   <figure className={className}>
     <div className={`overflow-hidden bg-field-dense ${aspectClass[aspect]}`}>
       <img src={src} alt={alt} loading="lazy" className="h-full w-full object-cover" />
     </div>
-    <figcaption className="mt-2 flex items-baseline justify-between gap-3 text-xs text-foreground/55">
+    <figcaption className={`mt-2 flex items-baseline justify-between gap-3 text-xs ${captionToneClass[tone]}`}>
       <span>{caption}</span>
       {date ? <span className="stamp shrink-0">{date}</span> : null}
     </figcaption>
