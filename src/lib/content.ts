@@ -23,3 +23,7 @@ export const activeNotices = (now = new Date()) => notices.filter((notice) => {
   const date = `${parts.year}-${parts.month}-${parts.day}`;
   return notice.publication_status === "published" && date >= notice.valid_from && date < notice.valid_until;
 });
+
+/** The notice currently in effect for Via Nazario Sauro, if any. Does not affect Parco. */
+export const nazarioNotice = (now = new Date()) =>
+  activeNotices(now).find((notice) => notice.venue_id === venue.id) ?? null;

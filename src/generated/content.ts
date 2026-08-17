@@ -31,7 +31,7 @@ export const notices = [
       "address": "Via Nazario Sauro 24/F, Bologna"
     },
     "message": "Ci prendiamo una breve pausa estiva. L'Altro Spazio in Via Nazario Sauro 24/F è temporaneamente chiuso. Riapriamo giovedì 27 agosto.",
-    "valid_from": "2026-08-13",
+    "valid_from": "2026-08-12",
     "valid_until": "2026-08-27",
     "timezone": "Europe/Rome",
     "reopening_date": "2026-08-27",

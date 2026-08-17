@@ -1,17 +1,32 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Frozen production tokens — see docs/design/laltrospazio-frontend-system-v1.md.
+  Cooler/whiter neutral base + one darkened functional signal per section state;
+  warmth is supplied by real material and photography, never by the base tone.
+*/
 @layer base {
   :root {
-    --background: 34 33% 98%;
-    --foreground: 20 14% 4%;
-    --border: 20 5.9% 90%;
-    --input: 20 5.9% 90%;
-    --ring: 20 14.3% 4%;
+    --background: 200 18% 98%;
+    --foreground: 215 30% 11%;
+    --border: 205 14% 87%;
+    --input: 205 14% 87%;
+    --ring: 174 45% 22%;
+
+    --field-quiet: 205 20% 95%;
+    --field-dense: 215 32% 11%;
+    --field-dense-foreground: 200 18% 96%;
+
+    --signal-current: 174 45% 22%;
+    --signal-current-foreground: 200 20% 98%;
+    --signal-notice: 9 52% 30%;
+    --signal-notice-foreground: 30 30% 97%;
+    --signal-unverified: 32 20% 36%;
   }
 
   body {
@@ -19,34 +34,36 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight;
+    @apply font-display tracking-tight [overflow-wrap:break-word];
   }
 
   p {
-    @apply text-base md:text-lg leading-relaxed;
-  }
-
-  .glass-card {
-    @apply bg-white/20 backdrop-blur-md border border-white/30 rounded-lg shadow-lg;
+    @apply text-base leading-relaxed;
   }
 }
 
-.parallax-bg {
-  @apply relative overflow-hidden;
-  background-attachment: fixed;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
+.section-quiet {
+  background-color: hsl(var(--field-quiet));
 }
 
-.section-padding {
-  @apply py-16 md:py-24;
+.section-dense {
+  background-color: hsl(var(--field-dense));
+  color: hsl(var(--field-dense-foreground));
 }
 
-.fade-up {
-  @apply transition-all duration-500 ease-out;
+.stamp {
+  @apply font-mono text-xs tracking-wide;
 }
 
 .text-balance {
   text-wrap: balance;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

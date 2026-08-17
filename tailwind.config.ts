@@ -25,26 +25,39 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        field: {
+          quiet: "hsl(var(--field-quiet))",
+          dense: "hsl(var(--field-dense))",
+          "dense-foreground": "hsl(var(--field-dense-foreground))",
+        },
+        signal: {
+          current: "hsl(var(--signal-current))",
+          "current-foreground": "hsl(var(--signal-current-foreground))",
+          notice: "hsl(var(--signal-notice))",
+          "notice-foreground": "hsl(var(--signal-notice-foreground))",
+          unverified: "hsl(var(--signal-unverified))",
+        },
         primary: {
-          DEFAULT: "#C84B31",
-          foreground: "#F5EFE7",
+          DEFAULT: "hsl(var(--signal-current))",
+          foreground: "hsl(var(--signal-current-foreground))",
         },
         secondary: {
-          DEFAULT: "#2B2A4C",
-          foreground: "#F5EFE7",
+          DEFAULT: "hsl(var(--field-dense))",
+          foreground: "hsl(var(--field-dense-foreground))",
         },
         accent: {
-          DEFAULT: "#B4A05A",
-          foreground: "#F5EFE7",
+          DEFAULT: "hsl(var(--signal-notice))",
+          foreground: "hsl(var(--signal-notice-foreground))",
         },
         muted: {
-          DEFAULT: "#F5EFE7",
-          foreground: "#2B2A4C",
+          DEFAULT: "hsl(var(--field-quiet))",
+          foreground: "hsl(var(--foreground))",
         },
       },
       fontFamily: {
-        display: ["Playfair Display", "serif"],
+        display: ["Fraunces", "serif"],
         sans: ["Inter", "sans-serif"],
+        mono: ["IBM Plex Mono", "monospace"],
       },
       keyframes: {
         "fade-up": {
