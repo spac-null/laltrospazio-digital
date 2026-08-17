@@ -35,7 +35,7 @@ const Visit = () => {
           <div className="mt-6">
             <Fact label="Stato attuale" status={notice ? "verified" : "not-yet-verified"}>
               {notice ? (
-                <>Temporaneamente chiuso. Riapriamo {formatReopen(notice.reopening_date)}.</>
+                <>Temporaneamente chiuso. Riapertura prevista: {formatReopen(notice.reopening_date)}.</>
               ) : (
                 <>Nessuna chiusura in corso al momento risulta pubblicata; gli orari non sono comunque ancora verificati — scrivici prima di venire.</>
               )}

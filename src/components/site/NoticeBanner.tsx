@@ -17,7 +17,7 @@ export const NoticeBanner = () => {
           <p key={notice.id} className="text-sm text-signal-notice">
             <span className="stamp mr-2 rounded-sm bg-signal-notice px-1.5 py-0.5 text-signal-notice-foreground">Avviso</span>
             {notice.message}{" "}
-            <span className="text-signal-notice/70">Riapertura: {formatDate(notice.reopening_date)}.</span>
+            <span className="text-signal-notice/70">Riapertura prevista: {formatDate(notice.reopening_date)}.</span>
           </p>
         ))}
       </div>

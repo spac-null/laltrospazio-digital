@@ -36,7 +36,7 @@ const Home = () => {
             {notice ? (
               <p className="text-sm">
                 <span className="stamp mr-2 text-signal-notice">Temporaneamente chiuso</span>
-                Riapriamo {formatReopen(notice.reopening_date)}.
+                Riapertura prevista: {formatReopen(notice.reopening_date)}.
               </p>
             ) : (
               <p className="text-sm">
@@ -127,6 +127,7 @@ const Home = () => {
               caption="Nastro a terra, prima degli arredi"
               date="2015"
               aspect="square"
+              tone="dense"
               className="md:col-span-4"
             />
             <ArchiveFigure
@@ -135,6 +136,7 @@ const Home = () => {
               caption="Schizzo di prospetto, con gli ambienti etichettati a mano"
               date="2016"
               aspect="wide"
+              tone="dense"
               className="md:col-span-8"
             />
           </div>
