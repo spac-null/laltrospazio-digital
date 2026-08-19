@@ -1,5 +1,5 @@
 import { SiteFrame } from "@/components/site/SiteFrame";
-import { venue } from "@/lib/content";
+import { venue, whatsappUrl } from "@/lib/content";
 
 const Contact = () => (
   <SiteFrame>
@@ -10,14 +10,31 @@ const Contact = () => (
 
         {/* The actually-fastest channel gets the actual visual priority, not just a claim about it. */}
         <a
-          href="https://wa.me/393517048064"
+          href={whatsappUrl(venue.phone)}
           className="mt-8 inline-flex min-h-11 items-center border border-foreground px-6 text-sm font-medium hover:bg-foreground hover:text-background"
         >
-          Scrivici su WhatsApp — {venue.phone}
+          Scrivici o chiamaci su WhatsApp — {venue.phone}
         </a>
         <p className="mt-3 text-sm text-foreground/60">
-          Non promettiamo un tempo di risposta preciso su nessun canale.
+          È un numero WhatsApp: ci arrivano i messaggi e le chiamate fatte da WhatsApp. Non
+          promettiamo un tempo di risposta preciso su nessun canale.
         </p>
+
+        {/* Separate contact, separate purpose — never folded into the general number above. */}
+        <div className="mt-8 border-t border-border pt-6">
+          <p className="stamp text-signal-current">Videochiamata LIS</p>
+          <p className="mt-2 text-sm text-foreground/85">
+            <span className="whitespace-nowrap">{venue.lis_video_phone}</span> — un contatto
+            dedicato, diverso dal numero qui sopra. Funziona in videochiamata con FaceTime o con
+            WhatsApp.
+          </p>
+          <a
+            href={whatsappUrl(venue.lis_video_phone)}
+            className="mt-2 inline-block text-sm underline underline-offset-4"
+          >
+            Apri la chat WhatsApp per la LIS
+          </a>
+        </div>
       </div>
     </section>
 
@@ -28,6 +45,30 @@ const Contact = () => (
           <div>
             <dt className="stamp text-foreground/50">Indirizzo</dt>
             <dd className="mt-1 text-sm text-foreground/85">{venue.address}</dd>
+          </div>
+          <div>
+            <dt className="stamp text-foreground/50">Via Nazario Sauro</dt>
+            <dd className="mt-1">
+              <a href={`mailto:${venue.emails.nazario}`} className="break-all text-sm underline underline-offset-4">
+                {venue.emails.nazario}
+              </a>
+            </dd>
+          </div>
+          <div>
+            <dt className="stamp text-foreground/50">Parco 11 Settembre</dt>
+            <dd className="mt-1">
+              <a href={`mailto:${venue.emails.parco}`} className="break-all text-sm underline underline-offset-4">
+                {venue.emails.parco}
+              </a>
+            </dd>
+          </div>
+          <div>
+            <dt className="stamp text-foreground/50">Cooperativa</dt>
+            <dd className="mt-1">
+              <a href={`mailto:${venue.emails.cooperativa}`} className="break-all text-sm underline underline-offset-4">
+                {venue.emails.cooperativa}
+              </a>
+            </dd>
           </div>
           <div>
             <dt className="stamp text-foreground/50">Instagram</dt>

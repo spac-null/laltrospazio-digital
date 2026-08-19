@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { SiteFrame } from "@/components/site/SiteFrame";
 import { NoticeBanner } from "@/components/site/NoticeBanner";
 import { ArchiveFigure } from "@/components/site/ArchiveFigure";
-import { nazarioNotice, venue } from "@/lib/content";
+import { formatItalianDate, nazarioNotice, venue } from "@/lib/content";
 import constructionDoorways from "@/assets/real-material/5-construction-doorways.jpg";
 import planCutoutsA from "@/assets/real-material/1-plan-cutouts-a.jpg";
 import elevationSketch from "@/assets/real-material/7-elevation-sketch.jpg";
@@ -154,8 +154,8 @@ const Home = () => {
           <p className="mt-5 max-w-xl text-signal-current-foreground/85">
             Al Parco 11 Settembre, la cooperativa porta avanti attività culturali estive insieme ad
             Associazione Farm e al Comune di Bologna, nell&apos;ambito di un patto di collaborazione
-            triennale firmato nel maggio 2025. La stagione estiva 2026 è attiva; la data di chiusura
-            della stagione non è ancora verificata.
+            triennale firmato nel maggio 2025. La stagione 2026 è attiva ora e va avanti fino al{" "}
+            {formatItalianDate(venue.parco_season.season_end)}.
           </p>
           <p className="mt-5 max-w-xl text-sm text-signal-current-foreground/70">
             Non abbiamo ancora fotografie aggiornate dell&apos;attività al Parco da pubblicare qui —

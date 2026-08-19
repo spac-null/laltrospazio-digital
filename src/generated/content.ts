@@ -4,12 +4,18 @@ export const venue = {
   "name": "L'Altro Spazio",
   "address": "Via Nazario Sauro 24/F, 40121 Bologna, Italy",
   "phone": "+39 351 704 8064",
+  "phone_channel": "whatsapp_business",
+  "lis_video_phone": "+39 347 327 6768",
+  "emails": {
+    "nazario": "nazariosauro@altrospazio.org",
+    "parco": "parco@altrospazio.org",
+    "cooperativa": "cooperativa@altrospazio.org"
+  },
   "website": "https://www.altrospazio.org/",
   "coordinates": {
     "latitude": 44.4977164,
     "longitude": 11.3394358
   },
-  "menu_url": "https://www.altrospazio.org/menu-gruppo-nazario.pdf",
   "social_profiles": {
     "instagram": "https://www.instagram.com/laltrospazio/",
     "facebook": "https://www.facebook.com/laltrospazio.bologna/",
@@ -17,6 +23,12 @@ export const venue = {
   },
   "map_profile": {
     "url": "https://maps.app.goo.gl/xDqtoatfha1PdTtT7"
+  },
+  "parco_season": {
+    "name": "Parco 11 Settembre",
+    "active": true,
+    "season_end": "2026-10-05",
+    "map_url": null
   }
 } as const;
 export const events = [] as const;

@@ -1,7 +1,7 @@
 import { SiteFrame } from "@/components/site/SiteFrame";
 import { NoticeBanner } from "@/components/site/NoticeBanner";
 import { Fact } from "@/components/site/Fact";
-import { nazarioNotice, venue } from "@/lib/content";
+import { formatItalianDate, nazarioNotice, venue, whatsappUrl } from "@/lib/content";
 
 const formatReopen = (value: string) =>
   new Intl.DateTimeFormat("it-IT", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Rome" }).format(
@@ -47,8 +47,10 @@ const Visit = () => {
               Non ancora verificati in modo affidabile. Non pubblichiamo orari finché non li
               confermiamo direttamente.
             </Fact>
-            <Fact label="Menu" status="verified">
-              <a href={venue.menu_url} className="underline underline-offset-4">Consulta il menu (PDF)</a>
+            <Fact label="Menu" status="not-yet-verified">
+              Non pubblicato al momento. L&apos;ultimo listino che avevamo risale a marzo 2025:
+              non lo teniamo online come informazione corrente. Scrivici per sapere cosa offriamo
+              adesso.
             </Fact>
             <Fact label="Come raggiungerci" status="verified">
               <a href={venue.map_profile.url} className="underline underline-offset-4">Apri la mappa</a>
@@ -78,8 +80,17 @@ const Visit = () => {
               Condizioni del bagno non ancora verificate su questo sito.
             </Fact>
             <Fact label="Comunicazione" status="verified">
-              Puoi scriverci in italiano, inglese o LIS via video su WhatsApp; rispondiamo per
-              testo se preferisci non parlare al telefono.
+              Puoi scriverci in italiano o in inglese su WhatsApp, al {venue.phone}. Rispondiamo
+              anche solo per testo, se preferisci non parlare a voce.
+            </Fact>
+            <Fact label="Videochiamata LIS" status="verified">
+              Per la LIS c&apos;è un contatto dedicato, diverso dal numero qui sopra:{" "}
+              <span className="whitespace-nowrap">{venue.lis_video_phone}</span>. Funziona in
+              videochiamata con FaceTime o con WhatsApp.{" "}
+              <a href={whatsappUrl(venue.lis_video_phone)} className="underline underline-offset-4">
+                Apri la chat WhatsApp per la LIS
+              </a>{" "}
+              e da lì puoi avviare la videochiamata.
             </Fact>
           </div>
 
@@ -96,11 +107,18 @@ const Visit = () => {
           <h2 id="visit-parco" className="text-2xl">Parco 11 Settembre</h2>
           <div className="mt-6">
             <Fact label="Stagione" status="verified">
-              Attiva per l&apos;estate 2026, con programmazione insieme ad Associazione Farm e al
-              Comune di Bologna.
+              Attiva ora, fino al {formatItalianDate(venue.parco_season.season_end)}, con
+              programmazione insieme ad Associazione Farm e al Comune di Bologna.
             </Fact>
-            <Fact label="Orari e fine stagione" status="not-yet-verified">
+            <Fact label="Orari" status="not-yet-verified">
               Non ancora verificati. La programmazione specifica si segue sui canali social.
+            </Fact>
+            <Fact label="Contatto" status="verified">
+              Per il Parco scrivi a{" "}
+              <a href={`mailto:${venue.emails.parco}`} className="break-all underline underline-offset-4">
+                {venue.emails.parco}
+              </a>
+              .
             </Fact>
             <Fact label="Accesso" status="not-yet-verified">
               Le condizioni di accesso del parco non sono verificate qui e non vanno assunte
@@ -115,14 +133,22 @@ const Visit = () => {
         <div className="mx-auto max-w-3xl px-6 py-14 md:px-10 md:py-16">
           <h2 id="visit-contact" className="text-2xl">Contattaci</h2>
           <p className="mt-4 text-foreground/75">
-            Il modo più diretto è WhatsApp. Non promettiamo un tempo di risposta preciso.
+            Il modo più diretto è WhatsApp: puoi scriverci o chiamarci lì. Non promettiamo un tempo
+            di risposta preciso.
           </p>
           <a
-            href="https://wa.me/393517048064"
+            href={whatsappUrl(venue.phone)}
             className="mt-6 inline-flex min-h-11 items-center border border-foreground px-6 text-sm font-medium hover:bg-foreground hover:text-background"
           >
-            Scrivici su WhatsApp — {venue.phone}
+            Scrivici o chiamaci su WhatsApp — {venue.phone}
           </a>
+          <p className="mt-4 text-sm text-foreground/70">
+            Per Via Nazario Sauro puoi anche scrivere a{" "}
+            <a href={`mailto:${venue.emails.nazario}`} className="break-all underline underline-offset-4">
+              {venue.emails.nazario}
+            </a>
+            .
+          </p>
         </div>
       </section>
     </SiteFrame>

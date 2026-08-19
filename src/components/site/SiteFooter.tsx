@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { venue } from "@/lib/content";
+import { venue, whatsappUrl } from "@/lib/content";
 
 const secondaryLinks = [
   { to: "/organizzazione", label: "L'organizzazione" },
@@ -35,7 +35,7 @@ export const SiteFooter = () => (
           <address className="mt-3 space-y-2 text-sm not-italic text-field-dense-foreground/85">
             <p>{venue.address}</p>
             <p>
-              <a href="https://wa.me/393517048064" className="underline-offset-4 hover:underline">
+              <a href={whatsappUrl(venue.phone)} className="underline-offset-4 hover:underline">
                 WhatsApp {venue.phone}
               </a>
             </p>

@@ -53,6 +53,25 @@ export function validateVenue(venue, file = "content/venue.json") {
   const value = (name) => venue.fields[name]?.value;
   for (const name of ["name", "address", "phone"]) if (typeof value(name) !== "string" || value(name).trim() === "") errors.push(issue(`fields.${name}.value is required`, file));
   for (const name of ["website", "menu_url"]) if (!isUrl(value(name))) errors.push(issue(`fields.${name}.value must be an HTTP(S) URL`, file));
+  // The general number is a WhatsApp Business line, never a landline. Recording the channel
+  // explicitly keeps the frontend from ever rendering it as a tel: link or calling it "Telefono".
+  if (value("phone_channel") !== "whatsapp_business") errors.push(issue("fields.phone_channel.value must be 'whatsapp_business'", file));
+  // Separate LIS/video contact. Must stay distinct from phone, or the two collapse into one
+  // "call us" affordance and the LIS route silently disappears.
+  if (typeof value("lis_video_phone") !== "string" || value("lis_video_phone").trim() === "") errors.push(issue("fields.lis_video_phone.value is required", file));
+  if (value("lis_video_phone") === value("phone")) errors.push(issue("fields.lis_video_phone.value must differ from fields.phone.value", file));
+  for (const [name, address] of Object.entries(value("emails") ?? {})) {
+    if (typeof address !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) errors.push(issue(`emails.${name} must be an email address`, file));
+  }
+  const parco = value("parco_season");
+  if (parco) {
+    if (typeof parco.name !== "string" || parco.name.trim() === "") errors.push(issue("parco_season.name is required", file));
+    if (typeof parco.active !== "boolean") errors.push(issue("parco_season.active must be a boolean", file));
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(parco.season_end ?? "")) errors.push(issue("parco_season.season_end must be a calendar date", file));
+    // No verified Parco map URL exists yet. Null is correct; Nazario's URL must never be reused.
+    if (parco.map_url !== null && !isUrl(parco.map_url)) errors.push(issue("parco_season.map_url must be null or an HTTP(S) URL", file));
+    if (parco.map_url !== null && parco.map_url === value("map_profile")?.url) errors.push(issue("parco_season.map_url must not reuse the Via Nazario Sauro map URL", file));
+  }
   if (!value("coordinates") || typeof value("coordinates").latitude !== "number" || typeof value("coordinates").longitude !== "number") errors.push(issue("fields.coordinates.value must contain latitude and longitude numbers", file));
   for (const [name, url] of Object.entries(value("social_profiles") ?? {})) {
     if (!isUrl(url)) errors.push(issue(`social_profiles.${name} must be an HTTP(S) URL`, file));

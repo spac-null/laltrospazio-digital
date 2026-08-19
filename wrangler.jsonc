@@ -8,10 +8,13 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   },
-  // Real production D1 database (region EEUR), created 2026-08-13. No
-  // migration has been applied to it yet with --remote, and it is not yet
-  // referenced by any deployed Worker version. See
-  // docs/project/meta-integration-plan.md for the exact next-phase steps.
+  // Real production D1 database (region EEUR), created 2026-08-13.
+  // Verified read-only on 2026-08-19 with `wrangler d1 migrations list
+  // laltrospazio-meta --remote`: "No migrations to apply" — the remote schema is
+  // current, so 0001_create_meta_source_records.sql has been applied. Both
+  // required secrets are installed (confirmed via `wrangler secret list`, names
+  // only). The scheduled handler below therefore has the schema and credentials
+  // it needs. See docs/project/meta-integration-plan.md for the wider plan.
   "d1_databases": [
     {
       "binding": "META_DB",

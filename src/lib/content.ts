@@ -2,6 +2,22 @@ import { events, notices, venue } from "@/generated/content";
 
 export { events, notices, venue };
 
+/**
+ * WhatsApp conversation entry point for a stored number. Derived from the number itself so the two
+ * distinct contacts — the general WhatsApp Business line and the dedicated LIS/video contact —
+ * can never drift out of sync with the links that point at them.
+ *
+ * Deliberately wa.me and never `tel:`: neither number is a landline, and no reliable web deep-link
+ * exists to start a video call, so the site only ever opens a chat.
+ */
+export const whatsappUrl = (phone: string) => `https://wa.me/${phone.replace(/\D/g, "")}`;
+
+/** "5 ottobre 2026" — used wherever a confirmed calendar date is shown in prose. */
+export const formatItalianDate = (value: string) =>
+  new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Rome" }).format(
+    new Date(`${value}T12:00:00`),
+  );
+
 export const upcomingEvents = events.filter(
   (event) => event.event_status !== "cancelled" && Date.parse(event.start) >= Date.now(),
 );

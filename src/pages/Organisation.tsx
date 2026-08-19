@@ -1,4 +1,5 @@
 import { SiteFrame } from "@/components/site/SiteFrame";
+import { venue } from "@/lib/content";
 
 const Organisation = () => (
   <SiteFrame>
@@ -54,7 +55,14 @@ const Organisation = () => (
             </p>
           </div>
         </div>
-        <p className="mt-10 max-w-2xl text-sm text-foreground/55">
+        <p className="mt-10 max-w-2xl text-sm text-foreground/70">
+          Per contatti istituzionali e amministrativi:{" "}
+          <a href={`mailto:${venue.emails.cooperativa}`} className="break-all underline underline-offset-4">
+            {venue.emails.cooperativa}
+          </a>
+          .
+        </p>
+        <p className="mt-6 max-w-2xl text-sm text-foreground/55">
           Da novembre 2025 la cooperativa ha anche richiesto l&apos;ammissione al mercato
           elettronico della pubblica amministrazione (MePA) in sei categorie di servizio — un
           segnale di direzione istituzionale, non una prova di volumi di attività già svolti in

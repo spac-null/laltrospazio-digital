@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { SiteFrame } from "@/components/site/SiteFrame";
-import { upcomingEvents } from "@/lib/content";
+import { upcomingEvents, venue, whatsappUrl } from "@/lib/content";
 
 const formatDate = (value: string) => new Intl.DateTimeFormat("it-IT", {
   dateStyle: "full",
@@ -25,7 +25,7 @@ const Events = () => (
           <p className="mt-4 text-foreground/70">
             Non appena una data è confermata, la trovi qui. Nel frattempo, le attività al Parco 11
             Settembre e a Via Nazario Sauro si seguono sui canali social, oppure{" "}
-            <a href="https://wa.me/393517048064" className="underline underline-offset-4">
+            <a href={whatsappUrl(venue.phone)} className="underline underline-offset-4">
               scrivici su WhatsApp
             </a>{" "}
             per sapere cosa c&apos;è in programma.

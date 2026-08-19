@@ -1,5 +1,5 @@
 import { SiteFrame } from "@/components/site/SiteFrame";
-import { venue } from "@/lib/content";
+import { venue, whatsappUrl } from "@/lib/content";
 
 const WorkWithUs = () => (
   <SiteFrame>
@@ -87,11 +87,18 @@ const WorkWithUs = () => (
           Scrivici direttamente, dicendo cosa hai in mente. Non c&apos;è un modulo da compilare.
         </p>
         <a
-          href="https://wa.me/393517048064"
+          href={whatsappUrl(venue.phone)}
           className="mt-6 inline-flex min-h-11 items-center border border-foreground px-6 text-sm font-medium hover:bg-foreground hover:text-background"
         >
-          Scrivici su WhatsApp — {venue.phone}
+          Scrivici o chiamaci su WhatsApp — {venue.phone}
         </a>
+        <p className="mt-4 text-sm text-foreground/70">
+          Per proposte istituzionali o amministrative puoi scrivere a{" "}
+          <a href={`mailto:${venue.emails.cooperativa}`} className="break-all underline underline-offset-4">
+            {venue.emails.cooperativa}
+          </a>
+          .
+        </p>
       </div>
     </section>
   </SiteFrame>

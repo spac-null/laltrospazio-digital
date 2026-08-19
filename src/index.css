@@ -1,5 +1,7 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+/* Self-hosted Fraunces / Inter / IBM Plex Mono. Same families, styles and weights
+   as before — see src/styles/fonts.css. No runtime third-party font request. */
+@import "./styles/fonts.css";
 
 @tailwind base;
 @tailwind components;
