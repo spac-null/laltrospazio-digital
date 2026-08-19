@@ -1,5 +1,8 @@
 import { SiteFrame } from "@/components/site/SiteFrame";
+import { ArchiveFigure } from "@/components/site/ArchiveFigure";
 import { venue, whatsappUrl } from "@/lib/content";
+import counterBuild from "@/assets/real-material/15-counter-under-construction-2018.jpg";
+import chalkboardProgramme from "@/assets/real-material/16-chalkboard-programme-2015.jpg";
 
 const WorkWithUs = () => (
   <SiteFrame>
@@ -76,6 +79,35 @@ const WorkWithUs = () => (
               2026 (budget €18.000) — presentazione confermata, esito non ancora.
             </p>
           </div>
+        </div>
+      </div>
+    </section>
+
+    {/* The counter half-built, then the same kind of surface carrying a night's programme and a price
+        list in the same handwriting. Its own wide section: inside the narrow text column both images
+        were too small for the handwriting to be legible, which is the whole point of the pair. */}
+    <section aria-labelledby="work-made" className="border-b border-border section-quiet">
+      <div className="mx-auto max-w-6xl px-6 py-14 md:px-10 md:py-20">
+        <h2 id="work-made" className="sr-only">Come è stato costruito e come viene usato</h2>
+        <div className="grid gap-10 md:grid-cols-12 md:items-start md:gap-12">
+          <ArchiveFigure
+            src={counterBuild}
+            alt="Bancone in costruzione con mensola dei liquori già illuminata, scatole e detriti sul pavimento, sotto un soffitto a travi dipinte a cassettoni"
+            caption="Bancone ancora in costruzione, sotto il soffitto a cassettoni esistente"
+            date="dicembre 2018"
+            aspect="portrait"
+            tone="quiet"
+            className="md:col-span-5"
+          />
+          <ArchiveFigure
+            src={chalkboardProgramme}
+            alt="Struttura autocostruita in legno chiaro sopra un bancone, con lavagne scritte a mano che elencano insieme i prezzi delle bevande e un concerto, un finissage e un dj set"
+            caption="Prezzi e programma della serata sulla stessa superficie, scritti a mano. I prezzi sono quelli di allora."
+            date="novembre 2015"
+            aspect="wide"
+            tone="quiet"
+            className="md:col-span-7 md:mt-12"
+          />
         </div>
       </div>
     </section>

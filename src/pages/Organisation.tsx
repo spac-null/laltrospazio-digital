@@ -1,5 +1,7 @@
 import { SiteFrame } from "@/components/site/SiteFrame";
+import { ArchiveFigure } from "@/components/site/ArchiveFigure";
 import { venue } from "@/lib/content";
+import earlyPromo from "@/assets/real-material/17-early-promo-graphic.jpg";
 
 const Organisation = () => (
   <SiteFrame>
@@ -55,6 +57,16 @@ const Organisation = () => (
             </p>
           </div>
         </div>
+        <ArchiveFigure
+          src={earlyPromo}
+          alt="Grafica promozionale di un periodo precedente: un televisore a tubo catodico fra le piante, con le parole bar culturale, ristorante e art gallery e l'indirizzo"
+          caption="Come lo spazio si presentava in un periodo precedente"
+          date="periodo container"
+          aspect="portrait"
+          tone="quiet"
+          className="mt-12 md:w-72"
+        />
+
         <p className="mt-10 max-w-2xl text-sm text-foreground/70">
           Per contatti istituzionali e amministrativi:{" "}
           <a href={`mailto:${venue.emails.cooperativa}`} className="break-all underline underline-offset-4">

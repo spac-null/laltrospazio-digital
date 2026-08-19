@@ -2,6 +2,9 @@ import { ArchiveFigure } from "@/components/site/ArchiveFigure";
 import { SiteFrame } from "@/components/site/SiteFrame";
 import planCutoutsA from "@/assets/real-material/1-plan-cutouts-a.jpg";
 import planCutoutsB from "@/assets/real-material/2-plan-cutouts-b.jpg";
+import emptyRoomBefore from "@/assets/real-material/21-empty-room-before-2015.jpg";
+import brickVault from "@/assets/real-material/18-brick-vault-discovered-2018.jpg";
+import mannequinInPalms from "@/assets/real-material/19-mannequin-in-palms-2023.jpg";
 
 type Current = { date: string; title: string; body: string };
 type Closed = { date: string; title: string; body: string; width: "sm" | "md" | "lg"; indent?: boolean };
@@ -103,8 +106,22 @@ const History = () => (
           Quello che si è concluso
         </h2>
 
+        {/* Where it started from: a room with nothing decided in it yet. Wide and low-contrast, so
+            the dated fragments below read as things that happened to this space. */}
+        <figure className="mt-8">
+          <img
+            src={emptyRoomBefore}
+            alt="Stanza grande completamente vuota, soffitto alto, pavimento in legno e due porte chiuse sulla parete di fondo"
+            loading="lazy"
+            className="aspect-[16/9] w-full object-cover"
+          />
+          <figcaption className="mt-2 text-xs text-foreground/55">
+            Uno degli ambienti prima di qualsiasi intervento — aprile 2015
+          </figcaption>
+        </figure>
+
         <div className="mt-8 flex flex-col gap-12 md:mt-12 md:gap-16">
-          <div className="flex flex-col gap-10 md:flex-row md:items-start md:gap-16">
+          <div className="flex flex-col gap-10 md:flex-row md:flex-wrap md:items-start md:gap-x-12 md:gap-y-10">
             <div className={widthClass[closed[0].width]}>
               <p className="stamp text-foreground/45">{closed[0].date}</p>
               <h3 className="mt-2 text-xl">{closed[0].title}</h3>
@@ -125,9 +142,19 @@ const History = () => (
               <h3 className="mt-2 text-xl">{closed[1].title}</h3>
               <p className="mt-2 text-sm text-foreground/70">{closed[1].body}</p>
             </div>
+
+            <ArchiveFigure
+              src={brickVault}
+              alt="Arco in muratura di mattoni scoperto durante i lavori, dipinto di bianco, con volta a mattoni scuri sopra e pannelli con il marchio L'Altro Spazio visibili oltre l'apertura"
+              caption="Un arco in mattoni riemerso durante i lavori"
+              date="luglio 2018"
+              aspect="portrait"
+              tone="quiet"
+              className="md:mt-6 md:w-40 md:shrink-0 lg:w-56"
+            />
           </div>
 
-          <div className="flex flex-col gap-10 md:flex-row md:items-start md:gap-16 md:pl-16">
+          <div className="flex flex-col gap-10 md:flex-row md:flex-wrap md:items-start md:gap-x-12 md:gap-y-10 md:pl-16">
             <div className={widthClass[closed[2].width]}>
               <p className="stamp text-foreground/45">{closed[2].date}</p>
               <h3 className="mt-2 text-xl">{closed[2].title}</h3>
@@ -139,6 +166,16 @@ const History = () => (
               <h3 className="mt-2 text-xl">{closed[3].title}</h3>
               <p className="mt-2 text-sm text-foreground/70">{closed[3].body}</p>
             </div>
+
+            <ArchiveFigure
+              src={mannequinInPalms}
+              alt="Volto di un manichino appoggiato fra le foglie di una palma da interno, illuminato di lato"
+              caption="Fra gli oggetti che restano nello spazio"
+              date="ottobre 2023"
+              aspect="square"
+              tone="quiet"
+              className="md:mt-16 md:w-36 md:shrink-0 lg:ml-auto lg:w-48"
+            />
           </div>
         </div>
       </div>

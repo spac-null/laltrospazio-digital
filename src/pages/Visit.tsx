@@ -1,7 +1,11 @@
 import { SiteFrame } from "@/components/site/SiteFrame";
 import { NoticeBanner } from "@/components/site/NoticeBanner";
 import { Fact } from "@/components/site/Fact";
+import { ArchiveFigure } from "@/components/site/ArchiveFigure";
 import { formatItalianDate, nazarioNotice, venue, whatsappUrl } from "@/lib/content";
+import quietInterior from "@/assets/real-material/09-quiet-interior-piano-2023.jpg";
+import mezzanineFresco from "@/assets/real-material/10-mezzanine-fresco-2023.jpg";
+import parcoTents from "@/assets/real-material/11-parco-tents-2023.jpg";
 
 const formatReopen = (value: string) =>
   new Intl.DateTimeFormat("it-IT", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Rome" }).format(
@@ -27,12 +31,14 @@ const Visit = () => {
         </div>
       </header>
 
-      {/* Via Nazario Sauro — quiet, functional. */}
+      {/* Via Nazario Sauro — quiet, functional. The facts sit beside the room as it actually is
+          between events, so the practical detail and the physical place are read together. */}
       <section aria-labelledby="visit-nazario" className="border-b border-border">
-        <div className="mx-auto max-w-3xl px-6 py-14 md:px-10 md:py-16">
+        <div className="mx-auto max-w-6xl px-6 py-14 md:px-10 md:py-16">
           <h2 id="visit-nazario" className="text-2xl">Via Nazario Sauro 24/F</h2>
 
-          <div className="mt-6">
+          <div className="mt-6 grid gap-10 md:grid-cols-12 md:gap-12">
+          <div className="md:col-span-7">
             <Fact label="Stato attuale" status={notice ? "verified" : "not-yet-verified"}>
               {notice ? (
                 <>Temporaneamente chiuso. Riapertura prevista: {formatReopen(notice.reopening_date)}.</>
@@ -56,6 +62,29 @@ const Visit = () => {
               <a href={venue.map_profile.url} className="underline underline-offset-4">Apri la mappa</a>
             </Fact>
           </div>
+
+            <figure className="md:col-span-5">
+              <img
+                src={quietInterior}
+                alt="Interno vicino all'ingresso: un pianoforte verticale con piante sopra, tavolini rotondi in legno con sgabelli, un murale sul muro e la strada visibile dalla vetrata alta"
+                loading="lazy"
+                className="aspect-[3/4] w-full object-cover"
+              />
+              <figcaption className="mt-2 text-xs text-foreground/55">
+                Via Nazario Sauro, tra un evento e l&apos;altro — settembre 2023
+              </figcaption>
+            </figure>
+          </div>
+
+          <ArchiveFigure
+            src={mezzanineFresco}
+            alt="Soffitto del soppalco con affresco a motivi circensi e un medaglione, illuminato di viola, con piante appese alla struttura metallica"
+            caption="Soffitto affrescato del soppalco, Via Nazario Sauro"
+            date="settembre 2023"
+            aspect="wide"
+            tone="quiet"
+            className="mt-12 md:mt-16"
+          />
         </div>
       </section>
 
@@ -101,8 +130,20 @@ const Visit = () => {
         </div>
       </section>
 
-      {/* Parco — separate place, separate facts, no inherited status from Nazario. */}
+      {/* Parco — separate place, separate facts, no inherited status from Nazario. The wide band
+          gives the second place a physical presence instead of leaving it an abstract name. */}
       <section aria-labelledby="visit-parco" className="border-b border-border">
+        <figure>
+          <img
+            src={parcoTents}
+            alt="Quattro tende ad arco chiare montate sull'erba del Parco 11 Settembre al crepuscolo, luci a filo tra gli alberi e un muro di pietra antico dietro"
+            loading="lazy"
+            className="h-[38vw] max-h-[420px] min-h-[200px] w-full object-cover"
+          />
+          <figcaption className="mx-auto max-w-6xl px-6 pb-2 pt-2 text-xs text-foreground/55 md:px-10">
+            Allestimento al Parco 11 Settembre — aprile 2023. Non è un&apos;immagine della stagione in corso.
+          </figcaption>
+        </figure>
         <div className="mx-auto max-w-3xl px-6 py-14 md:px-10 md:py-16">
           <h2 id="visit-parco" className="text-2xl">Parco 11 Settembre</h2>
           <div className="mt-6">

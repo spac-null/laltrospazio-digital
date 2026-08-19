@@ -1,5 +1,6 @@
 import { SiteFrame } from "@/components/site/SiteFrame";
 import { venue, whatsappUrl } from "@/lib/content";
+import entranceRamp from "@/assets/real-material/08-entrance-ramp-2023.jpg";
 
 const Contact = () => (
   <SiteFrame>
@@ -89,6 +90,19 @@ const Contact = () => (
         </dl>
       </div>
     </section>
+
+    {/* Orientation, deliberately after the functional details: this is the door you are looking for. */}
+    <figure className="border-t border-border">
+      <img
+        src={entranceRamp}
+        alt="Ingresso di Via Nazario Sauro 24/F visto dalla strada, con le vetrine, la porta a vetri e la pedana davanti"
+        loading="lazy"
+        className="h-[34vw] max-h-[360px] min-h-[180px] w-full object-cover object-[center_72%]"
+      />
+      <figcaption className="mx-auto max-w-3xl px-6 py-3 text-xs text-foreground/55 md:px-10">
+        L&apos;ingresso su Via Nazario Sauro — settembre 2023
+      </figcaption>
+    </figure>
   </SiteFrame>
 );
 

@@ -7,6 +7,7 @@ import constructionDoorways from "@/assets/real-material/5-construction-doorways
 import planCutoutsA from "@/assets/real-material/1-plan-cutouts-a.jpg";
 import elevationSketch from "@/assets/real-material/7-elevation-sketch.jpg";
 import floorTape from "@/assets/real-material/6-floor-tape-empty-room.jpg";
+import entranceRamp from "@/assets/real-material/08-entrance-ramp-2023.jpg";
 
 const formatReopen = (value: string) =>
   new Intl.DateTimeFormat("it-IT", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Rome" }).format(
@@ -64,6 +65,21 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Arrival. Every other image on this page is historical process material; this is the one
+          that shows the place exists today, on a real street. Full-bleed and immediately after the
+          hero so the proof arrives before any further prose. */}
+      <figure className="border-b border-border">
+        <img
+          src={entranceRamp}
+          alt="Ingresso di Via Nazario Sauro 24/F visto dalla strada: due vetrine con la scritta L'Altro Spazio, porta a vetri centrale, pedana e ringhiera davanti all'ingresso"
+          loading="lazy"
+          className="h-[58vw] max-h-[620px] min-h-[240px] w-full object-cover object-[center_70%]"
+        />
+        <figcaption className="mx-auto max-w-6xl px-6 pb-4 pt-2 text-xs text-foreground/55 md:px-10">
+          Via Nazario Sauro 24/F, dalla strada — settembre 2023
+        </figcaption>
+      </figure>
 
       {/* "Not just a bar" — 30-second bridge. Quiet, still, but denser text. */}
       <section aria-labelledby="home-not-a-bar" className="border-b border-border section-quiet">
@@ -158,8 +174,9 @@ const Home = () => {
             {formatItalianDate(venue.parco_season.season_end)}.
           </p>
           <p className="mt-5 max-w-xl text-sm text-signal-current-foreground/70">
-            Non abbiamo ancora fotografie aggiornate dell&apos;attività al Parco da pubblicare qui —
-            arriveranno con la prossima raccolta di materiale.
+            Le fotografie che abbiamo del Parco sono di stagioni precedenti: quella su{" "}
+            <Link to="/visita" className="underline underline-offset-4">Visita</Link> è dell&apos;aprile
+            2023. Di questa stagione non abbiamo ancora materiale da pubblicare.
           </p>
         </div>
       </section>
