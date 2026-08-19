@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://www.altrospazio.org/</loc></url>
+  <url><loc>https://www.altrospazio.org/visita</loc></url>
   <url><loc>https://www.altrospazio.org/eventi</loc></url>
+  <url><loc>https://www.altrospazio.org/approccio</loc></url>
+  <url><loc>https://www.altrospazio.org/lavora-con-noi</loc></url>
+  <url><loc>https://www.altrospazio.org/organizzazione</loc></url>
+  <url><loc>https://www.altrospazio.org/storia</loc></url>
+  <url><loc>https://www.altrospazio.org/ricerca</loc></url>
+  <url><loc>https://www.altrospazio.org/contatti</loc></url>
 </urlset>

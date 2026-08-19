@@ -6,14 +6,17 @@
     <title>L'Altro Spazio</title>
     <meta name="description" content="L'Altro Spazio a Bologna." />
     <meta name="author" content="L'Altro Spazio" />
-    <link rel="canonical" href="https://www.altrospazio.org/" />
+    <!-- Canonical is set per route by src/components/site/RouteMeta.tsx. Do not add a static one
+         here: in this shared shell it would mark every route as a duplicate of "/". -->
     <meta name="robots" content="index,follow" />
     <meta property="og:title" content="L'Altro Spazio" />
     <meta property="og:description" content="L'Altro Spazio a Bologna." />
     <meta property="og:url" content="https://www.altrospazio.org/" />
     <meta property="og:site_name" content="L'Altro Spazio" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/og-image.png" />
+    <!-- No social preview image is declared: the previous one was unrelated third-party content
+         and was removed. Omitted rather than pointed at an unverified asset, so platforms fall
+         back to a text-only card. Add one only once a verified image exists. -->
   </head>
 
   <body>

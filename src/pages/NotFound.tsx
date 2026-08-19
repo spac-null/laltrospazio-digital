@@ -1,27 +1,24 @@
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { Link } from "react-router-dom";
+import { SiteFrame } from "@/components/site/SiteFrame";
 
-const NotFound = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
-  }, [location.pathname]);
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
-      </div>
+/**
+ * Renders inside SiteFrame so a mistyped URL keeps the normal navigation, footer, skip link and
+ * <main> landmark — matching the not-found branch of EventDetail rather than introducing a
+ * separate bare page.
+ */
+const NotFound = () => (
+  <SiteFrame>
+    <div className="mx-auto max-w-3xl px-6 py-20 md:px-10">
+      <p className="stamp text-signal-current">Errore 404</p>
+      <h1 className="mt-3 text-3xl">Pagina non trovata</h1>
+      <p className="mt-4 text-foreground/75">
+        L&apos;indirizzo che hai aperto non esiste o è stato spostato.
+      </p>
+      <Link className="mt-6 inline-block text-sm underline underline-offset-4" to="/">
+        Torna alla home
+      </Link>
     </div>
-  );
-};
+  </SiteFrame>
+);
 
 export default NotFound;
