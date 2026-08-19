@@ -168,9 +168,9 @@ const Home = () => {
             Un luogo diverso, una programmazione attiva ora
           </h2>
           <p className="mt-5 max-w-xl text-signal-current-foreground/85">
-            Al Parco 11 Settembre, la cooperativa porta avanti attività culturali estive insieme ad
-            Associazione Farm e al Comune di Bologna, nell&apos;ambito di un patto di collaborazione
-            triennale firmato nel maggio 2025. La stagione 2026 è attiva ora e va avanti fino al{" "}
+            Al Parco 11 Settembre, la cooperativa porta avanti attività culturali estive,
+            nell&apos;ambito di un patto di collaborazione triennale firmato con il Comune di Bologna
+            nel maggio 2025. La stagione 2026 è attiva ora e va avanti fino al{" "}
             {formatItalianDate(venue.parco_season.season_end)}.
           </p>
           <p className="mt-5 max-w-xl text-sm text-signal-current-foreground/70">

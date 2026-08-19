@@ -148,8 +148,7 @@ const Visit = () => {
           <h2 id="visit-parco" className="text-2xl">Parco 11 Settembre</h2>
           <div className="mt-6">
             <Fact label="Stagione" status="verified">
-              Attiva ora, fino al {formatItalianDate(venue.parco_season.season_end)}, con
-              programmazione insieme ad Associazione Farm e al Comune di Bologna.
+              Attiva ora, fino al {formatItalianDate(venue.parco_season.season_end)}.
             </Fact>
             <Fact label="Orari" status="not-yet-verified">
               Non ancora verificati. La programmazione specifica si segue sui canali social.

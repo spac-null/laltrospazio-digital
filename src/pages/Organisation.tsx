@@ -27,8 +27,8 @@ const Organisation = () => (
         <p className="mt-3 font-display text-5xl leading-none md:text-8xl">27 giugno 2022</p>
         <p className="mt-6 max-w-lg text-field-dense-foreground/70">
           Non dal 2010, né dal 2014, né dal 2015. La cooperativa attuale è la quarta organizzazione
-          nella storia di questo nome — un&apos;associazione, due società, e infine questa
-          cooperativa — oltre alla presenza separata e parallela di Associazione Farm al Parco.
+          nella storia di questo nome: un&apos;associazione, due società, e infine questa
+          cooperativa.
         </p>
       </div>
     </section>
@@ -51,9 +51,8 @@ const Organisation = () => (
           <div>
             <p className="stamp text-signal-current">Parco 11 Settembre</p>
             <p className="mt-3 text-foreground/75">
-              La cooperativa partecipa alla programmazione del Parco insieme ad Associazione Farm,
-              nell&apos;ambito del patto di collaborazione triennale firmato con il Comune di
-              Bologna nel maggio 2025.
+              La cooperativa partecipa alla programmazione del Parco nell&apos;ambito del patto di
+              collaborazione triennale firmato con il Comune di Bologna nel maggio 2025.
             </p>
           </div>
         </div>
