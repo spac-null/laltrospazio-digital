@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { RouteMeta } from "@/components/site/RouteMeta";
+import { isUnderConstruction } from "@/lib/siteMode";
+import UnderConstruction from "./pages/UnderConstruction";
 import Home from "./pages/Home";
 import Visit from "./pages/Visit";
 import NotFound from "./pages/NotFound";
@@ -25,6 +27,14 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <RouteMeta />
+        {/* While under construction every path resolves to the holding page, including deep links and
+            typos, so nobody lands on a half-finished route. The full route table below is untouched
+            and returns by flipping SITE_MODE in src/lib/siteMode.ts. */}
+        {isUnderConstruction ? (
+          <Routes>
+            <Route path="*" element={<UnderConstruction />} />
+          </Routes>
+        ) : (
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/visita" element={<Visit />} />
@@ -39,6 +49,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        )}
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

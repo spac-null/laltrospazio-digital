@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { findEvent, venue } from "@/lib/content";
+import { isUnderConstruction } from "@/lib/siteMode";
 
 const SITE_NAME = "L'Altro Spazio";
 
@@ -31,6 +32,9 @@ const routeLabels: Record<string, string> = {
 const eventSlugOf = (pathname: string) => pathname.match(/^\/eventi\/([^/]+)$/)?.[1];
 
 const titleFor = (pathname: string) => {
+  // Every path serves the same holding page, so it gets one title rather than a route-specific one.
+  if (isUnderConstruction) return `Sito in costruzione — ${SITE_NAME}`;
+
   const label = routeLabels[pathname];
   if (label) return label === SITE_NAME ? SITE_NAME : `${label} — ${SITE_NAME}`;
 
@@ -48,6 +52,10 @@ const titleFor = (pathname: string) => {
  * returns null so no canonical is published for a page that is really a 404.
  */
 const canonicalFor = (pathname: string) => {
+  // One page of content behind every path: canonicalise all of them to the homepage so crawlers
+  // consolidate instead of seeing a set of duplicates.
+  if (isUnderConstruction) return `${ORIGIN}/`;
+
   if (routeLabels[pathname]) return `${ORIGIN}${pathname}`;
 
   const slug = eventSlugOf(pathname);

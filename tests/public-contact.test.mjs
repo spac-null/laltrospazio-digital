@@ -99,3 +99,18 @@ test("no unverified opening hours or accessibility claims leak into public conte
   assert.equal(content.venue.special_hours, undefined);
   assert.equal(content.venue.accessibility, undefined);
 });
+
+test("the published sitemap matches the declared site mode", () => {
+  // scripts/content-build.mjs reads SITE_MODE from src/lib/siteMode.ts. This guards that coupling:
+  // while the holding page is served every path returns the same content, so advertising the full
+  // route list would offer crawlers a set of duplicates.
+  const mode = /SITE_MODE:[^=]*=\s*"([a-z_]+)"/.exec(fs.readFileSync(path.join(root, "src", "lib", "siteMode.ts"), "utf8"))?.[1];
+  assert.ok(mode === "under_construction" || mode === "full", `unexpected SITE_MODE: ${mode}`);
+
+  const locs = (fs.readFileSync(path.join(root, "public", "sitemap.xml"), "utf8").match(/<loc>/g) ?? []).length;
+  if (mode === "under_construction") {
+    assert.equal(locs, 1, "under construction: only the homepage may be advertised");
+  } else {
+    assert.equal(locs, 9, "full site: all nine indexable static routes must be advertised");
+  }
+});
