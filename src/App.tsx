@@ -17,6 +17,7 @@ import Organisation from "./pages/Organisation";
 import History from "./pages/History";
 import ResearchEvidence from "./pages/ResearchEvidence";
 import Contact from "./pages/Contact";
+import Menu from "./pages/Menu";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,8 @@ const App = () => (
             and returns by flipping SITE_MODE in src/lib/siteMode.ts. */}
         {isUnderConstruction ? (
           <Routes>
+            {/* /menu is always reachable regardless of site mode */}
+            <Route path="/menu" element={<Menu />} />
             <Route path="*" element={<UnderConstruction />} />
           </Routes>
         ) : (
@@ -46,6 +49,7 @@ const App = () => (
           <Route path="/storia" element={<History />} />
           <Route path="/ricerca" element={<ResearchEvidence />} />
           <Route path="/contatti" element={<Contact />} />
+          <Route path="/menu" element={<Menu />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
