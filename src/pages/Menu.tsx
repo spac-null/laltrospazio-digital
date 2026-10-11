@@ -81,13 +81,13 @@ export default function Menu() {
     document.title = "Menu — L'Altro Spazio · Via Nazario Sauro";
   }, []);
 
-  const [fontSize, setFontSize] = useState<0 | 1 | 2>(0);
+  const [fontSize, setFontSize] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [contrast, setContrast] = useState(false);
 
   useEffect(() => {
     try {
-      const fs = localStorage.getItem("las-menu-fs");
-      if (fs === "1" || fs === "2") setFontSize(Number(fs) as 1 | 2);
+      const fs = Number(localStorage.getItem("las-menu-fs") ?? "0");
+      if (fs >= 1 && fs <= 4) setFontSize(fs as 1 | 2 | 3 | 4);
       if (localStorage.getItem("las-menu-hc") === "1") setContrast(true);
     } catch {}
   }, []);
@@ -116,14 +116,15 @@ export default function Menu() {
         <div role="toolbar" aria-label="Accessibilità testo" className="a11y-bar">
           <button
             className="a11y-btn"
-            onClick={() => setFontSize(f => Math.max(0, f - 1) as 0 | 1 | 2)}
+            onClick={() => setFontSize(f => Math.max(0, f - 1) as 0 | 1 | 2 | 3 | 4)}
             aria-label="Testo più piccolo"
             disabled={fontSize === 0}
           >A−</button>
           <button
             className="a11y-btn"
-            onClick={() => setFontSize(f => Math.min(2, f + 1) as 0 | 1 | 2)}
+            onClick={() => setFontSize(f => Math.min(4, f + 1) as 0 | 1 | 2 | 3 | 4)}
             aria-label="Testo più grande"
+            disabled={fontSize === 4}
           >A+</button>
           <button
             className={`a11y-btn${contrast ? " a11y-btn--on" : ""}`}
@@ -157,7 +158,7 @@ export default function Menu() {
             <li><a href="#soft">Soft Drink</a></li>
             <li><a href="#amari">Amari</a></li>
             <li><a href="#caraffe">Caraffe</a></li>
-            <li><a href="#cibo">Da Mangiare</a></li>
+            {/* <li><a href="#cibo">Da Mangiare</a></li> */}
             <li><a href="#caffe">Caffè</a></li>
           </ol>
         </nav>
@@ -316,8 +317,8 @@ export default function Menu() {
               </section>
             </div>
 
-            {/* ═══ FULL-WIDTH: DA MANGIARE ═══ */}
-            <div className="full-row food-section">
+            {/* ═══ FULL-WIDTH: DA MANGIARE — hidden until kitchen is ready ═══ */}
+            <div className="full-row food-section" hidden>
               <h2 id="cibo" className="cat cat--food">Da Mangiare</h2>
 
               <div className="food-grid">
@@ -518,38 +519,69 @@ export default function Menu() {
           border-radius: 1px;
         }
 
-        /* High contrast mode */
-        .menu-page[data-contrast="high"] { color: #000; }
-        .menu-page[data-contrast="high"] .venue-sub,
+        /* ── High contrast = true dark mode ── */
+        .menu-page[data-contrast="high"] {
+          background: #000;
+          color: #fff;
+        }
         .menu-page[data-contrast="high"] .header-right,
         .menu-page[data-contrast="high"] .item-desc,
         .menu-page[data-contrast="high"] .subcat,
         .menu-page[data-contrast="high"] .size-h,
         .menu-page[data-contrast="high"] .note,
-        .menu-page[data-contrast="high"] .menu-footer { color: #000; }
-        .menu-page[data-contrast="high"] .menu-footer a { color: #000; text-decoration-color: #000; }
+        .menu-page[data-contrast="high"] .nav-label,
+        .menu-page[data-contrast="high"] .menu-footer { color: #fff; }
+        .menu-page[data-contrast="high"] .price,
+        .menu-page[data-contrast="high"] .dual-price { color: #ffd700; }
+        .menu-page[data-contrast="high"] .sig { color: #ffd700; }
+        .menu-page[data-contrast="high"] .menu-footer a,
+        .menu-page[data-contrast="high"] .menu-nav a { color: #fff; text-decoration-color: #555; }
         .menu-page[data-contrast="high"] .cat,
         .menu-page[data-contrast="high"] .subcat,
         .menu-page[data-contrast="high"] .strip,
         .menu-page[data-contrast="high"] .strip:first-of-type,
         .menu-page[data-contrast="high"] .food-section,
         .menu-page[data-contrast="high"] .menu-header,
-        .menu-page[data-contrast="high"] .menu-footer { border-color: #000; }
-        .menu-page[data-contrast="high"] .a11y-bar { border-color: #000; }
-        .menu-page[data-contrast="high"] .a11y-btn { color: #000; border-color: #000; }
-        .menu-page[data-contrast="high"] .a11y-btn--on { background: #000; color: #fff; }
+        .menu-page[data-contrast="high"] .menu-nav,
+        .menu-page[data-contrast="high"] .menu-footer { border-color: #444; }
+        .menu-page[data-contrast="high"] .venue-logo { filter: invert(1); mix-blend-mode: normal; }
+        .menu-page[data-contrast="high"] .a11y-bar { background: #111; border-color: #555; box-shadow: none; }
+        .menu-page[data-contrast="high"] .a11y-btn { color: #fff; border-left-color: #555; }
+        .menu-page[data-contrast="high"] .a11y-btn:hover:not(:disabled) { background: rgba(255,255,255,0.1); }
+        .menu-page[data-contrast="high"] .a11y-btn--on { background: #fff; color: #000; }
 
-        /* Font size bumps */
+        /* ── Font size steps (5 levels) ── */
         .menu-page[data-font-size="1"] { font-size: 14px; }
-        .menu-page[data-font-size="1"] .item-desc { font-size: 14px; }
-        .menu-page[data-font-size="1"] .cat { font-size: 12px; }
-        .menu-page[data-font-size="1"] .subcat { font-size: 11px; }
+        .menu-page[data-font-size="1"] .item-desc,
         .menu-page[data-font-size="1"] .strip-body { font-size: 14px; }
+        .menu-page[data-font-size="1"] .cat { font-size: 12px; }
+        .menu-page[data-font-size="1"] .subcat,
+        .menu-page[data-font-size="1"] .size-h,
+        .menu-page[data-font-size="1"] .menu-nav { font-size: 12px; }
+
         .menu-page[data-font-size="2"] { font-size: 16px; }
-        .menu-page[data-font-size="2"] .item-desc { font-size: 16px; }
-        .menu-page[data-font-size="2"] .cat { font-size: 13px; }
-        .menu-page[data-font-size="2"] .subcat { font-size: 12px; }
+        .menu-page[data-font-size="2"] .item-desc,
         .menu-page[data-font-size="2"] .strip-body { font-size: 16px; }
+        .menu-page[data-font-size="2"] .cat { font-size: 13px; }
+        .menu-page[data-font-size="2"] .subcat,
+        .menu-page[data-font-size="2"] .size-h,
+        .menu-page[data-font-size="2"] .menu-nav { font-size: 13px; }
+
+        .menu-page[data-font-size="3"] { font-size: 18px; }
+        .menu-page[data-font-size="3"] .item-desc,
+        .menu-page[data-font-size="3"] .strip-body { font-size: 18px; }
+        .menu-page[data-font-size="3"] .cat { font-size: 14px; }
+        .menu-page[data-font-size="3"] .subcat,
+        .menu-page[data-font-size="3"] .size-h,
+        .menu-page[data-font-size="3"] .menu-nav { font-size: 14px; }
+
+        .menu-page[data-font-size="4"] { font-size: 20px; }
+        .menu-page[data-font-size="4"] .item-desc,
+        .menu-page[data-font-size="4"] .strip-body { font-size: 20px; }
+        .menu-page[data-font-size="4"] .cat { font-size: 15px; }
+        .menu-page[data-font-size="4"] .subcat,
+        .menu-page[data-font-size="4"] .size-h,
+        .menu-page[data-font-size="4"] .menu-nav { font-size: 15px; }
 
         /* Header */
         .menu-header {
@@ -815,7 +847,7 @@ export default function Menu() {
         /* Responsive */
         @media (max-width: 580px) {
           .menu-header { padding: 16px 18px 14px; }
-          .header-right { text-align: left; }
+          .header-right { text-align: left; font-size: 10px; }
           .venue-logo { height: 110px; }
           .section-tops { display: none; }
 
