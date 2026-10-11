@@ -608,7 +608,7 @@ export default function Menu() {
         }
         .header-right {
           text-align: right;
-          font-size: 11px;
+          font-size: 10px;
           color: #595959;
           letter-spacing: 0.04em;
           line-height: 1.7;
@@ -846,7 +846,7 @@ export default function Menu() {
 
         /* Responsive */
         @media (max-width: 580px) {
-          .menu-header { padding: 16px 18px 14px; }
+          .menu-header { padding: 16px 18px 14px; flex-direction: column; align-items: flex-start; gap: 4px; }
           .header-right { text-align: left; font-size: 10px; }
           .venue-logo { height: 110px; }
           .section-tops { display: none; }
