@@ -10,10 +10,10 @@ function Price({ value, label }: { value: string; label?: string }) {
   return <span className="price" aria-label={aria}>{value}</span>;
 }
 
-/* ─── Dual price (25cl / 50cl) ─── */
+/* ─── Dual price (piccola / media) ─── */
 function DualPrice({ small, large }: { small: string; large: string }) {
   return (
-    <span className="dual-price" aria-label={`25 centilitri ${small} euro, 50 centilitri ${large} euro`}>
+    <span className="dual-price" aria-label={`piccola ${small} euro, media ${large} euro`}>
       <span className="sz">{small}</span>
       <span className="sz">{large}</span>
     </span>
@@ -104,6 +104,7 @@ export default function Menu() {
 
         {/* ── In-page navigation for screen readers / keyboard users ── */}
         <nav aria-label="Sezioni del menu" className="menu-nav">
+          <span className="nav-label" aria-hidden="true">Salta a:</span>
           <ol>
             <li><a href="#spritz">Spritz</a></li>
             <li><a href="#birra">Birra</a></li>
@@ -151,8 +152,8 @@ export default function Menu() {
               <section aria-labelledby="birra">
                 <Cat id="birra">Birra Alla Spina</Cat>
                 <div className="size-h" aria-hidden="true">
-                  <span className="sz">25cl</span>
-                  <span className="sz">50cl</span>
+                  <span className="sz">Pic.</span>
+                  <span className="sz">Med.</span>
                 </div>
                 <div role="list">
                   <Item name="Bionda"><DualPrice small="3,00" large="5,50" /></Item>
@@ -261,6 +262,8 @@ export default function Menu() {
                 <div className="strip" role="listitem">
                   <h3 id="caraffe" className="strip-label">Caraffe 1,5L</h3>
                   <p className="strip-body">
+                    Birra <strong aria-label="15 euro">15,00</strong>
+                    {" · "}
                     Spritz <strong aria-label="25 euro">25,00</strong>
                     {" · "}
                     Americano <strong aria-label="35 euro">35,00</strong>
@@ -687,18 +690,80 @@ export default function Menu() {
           border-radius: 2px;
         }
 
+        /* nav-label: hidden on desktop, visible on mobile */
+        .nav-label { display: none; }
+
+        /* strip font size: uniform 12px */
+        .strip-label { font-size: 12px; }
+
         /* Responsive */
         @media (max-width: 580px) {
           .menu-header { padding: 24px 18px 18px; }
           .header-right { text-align: left; }
-          .section-tops { padding: 24px 18px 0; }
+          .section-tops { display: none; }
+
+          /* Nav: always visible + horizontal scroll */
+          .menu-nav,
+          .menu-nav:focus-within {
+            max-height: none;
+            overflow-y: hidden;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 8px 18px 10px;
+            border-bottom: 1px solid rgba(17,17,17,0.12);
+            transition: none;
+            scrollbar-width: none;
+          }
+          .menu-nav::-webkit-scrollbar { display: none; }
+          .menu-nav ol { flex-wrap: nowrap; }
+          .menu-nav a {
+            display: inline-block;
+            padding: 10px 6px;
+            min-height: 44px;
+            line-height: 24px;
+            box-sizing: border-box;
+          }
+          .nav-label {
+            display: block;
+            font-size: 10px;
+            color: #595959;
+            letter-spacing: 0.06em;
+            margin-bottom: 4px;
+          }
+
           .main-grid { grid-template-columns: 1fr; padding: 16px 18px 44px; }
           .full-row { grid-column: 1; }
           .food-grid { grid-template-columns: 1fr; }
           .caffe-grid { grid-template-columns: 1fr 1fr; }
+
+          /* Strip rows: stack on mobile to avoid price wrapping */
+          .strip { flex-direction: column; align-items: flex-start; gap: 2px; }
+          .strip-label { min-width: auto; }
+          .strip-body { flex: none; }
+
           .menu-footer { padding: 14px 18px 28px; }
-          .menu-nav:focus-within { padding: 12px 18px; }
+
+          /* Footer links: column layout + 44px tap targets */
+          .footer-links { flex-direction: column; gap: 0; }
+          .footer-links span[aria-hidden="true"] { display: none; }
+          .footer-links span[role="listitem"]:not([aria-hidden]) {
+            display: flex;
+            align-items: center;
+            min-height: 44px;
+          }
+          .footer-links a {
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
+            padding: 0 4px;
+            box-sizing: border-box;
+          }
+
           .sec-h { font-size: 15px; }
+        }
+
+        @media (max-width: 400px) {
+          .caffe-grid { grid-template-columns: 1fr; }
         }
 
         @media print {
