@@ -569,11 +569,10 @@ export default function Menu() {
           line-height: 0;
         }
         .venue-logo {
-          height: 96px;
+          height: 150px;
           width: auto;
           display: block;
           mix-blend-mode: multiply;
-          margin: -26px 0 -22px -24px;
         }
         .header-right {
           text-align: right;
@@ -817,7 +816,7 @@ export default function Menu() {
         @media (max-width: 580px) {
           .menu-header { padding: 16px 18px 14px; }
           .header-right { text-align: left; }
-          .venue-logo { height: 80px; margin: -20px 0 -18px -18px; }
+          .venue-logo { height: 110px; }
           .section-tops { display: none; }
 
           /* Nav: always visible + horizontal scroll */
