@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import logo from "../assets/logo.jpg";
 
 /* ─── Price helper: aria-label spells out "X euro e Y centesimi" for screen readers ─── */
@@ -72,7 +72,6 @@ function SubCat({ children }: { children: React.ReactNode }) {
 }
 
 export default function Menu() {
-  // Set lang synchronously so screen readers see it on first parse
   if (typeof document !== "undefined") {
     document.documentElement.lang = "it";
     document.title = "Menu — L'Altro Spazio · Via Nazario Sauro";
@@ -82,6 +81,25 @@ export default function Menu() {
     document.title = "Menu — L'Altro Spazio · Via Nazario Sauro";
   }, []);
 
+  const [fontSize, setFontSize] = useState<0 | 1 | 2>(0);
+  const [contrast, setContrast] = useState(false);
+
+  useEffect(() => {
+    try {
+      const fs = localStorage.getItem("las-menu-fs");
+      if (fs === "1" || fs === "2") setFontSize(Number(fs) as 1 | 2);
+      if (localStorage.getItem("las-menu-hc") === "1") setContrast(true);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem("las-menu-fs", String(fontSize)); } catch {}
+  }, [fontSize]);
+
+  useEffect(() => {
+    try { localStorage.setItem("las-menu-hc", contrast ? "1" : "0"); } catch {}
+  }, [contrast]);
+
   return (
     <>
       {/* ── Skip link: first focusable element, visible on focus ── */}
@@ -89,16 +107,37 @@ export default function Menu() {
         Vai al contenuto del menu
       </a>
 
-      <div className="menu-page">
+      <div
+        className="menu-page"
+        data-font-size={fontSize > 0 ? String(fontSize) : undefined}
+        data-contrast={contrast ? "high" : undefined}
+      >
+        {/* ── Accessibility toolbar ── */}
+        <div role="toolbar" aria-label="Accessibilità testo" className="a11y-bar">
+          <button
+            className="a11y-btn"
+            onClick={() => setFontSize(f => Math.max(0, f - 1) as 0 | 1 | 2)}
+            aria-label="Testo più piccolo"
+            disabled={fontSize === 0}
+          >A−</button>
+          <button
+            className="a11y-btn"
+            onClick={() => setFontSize(f => Math.min(2, f + 1) as 0 | 1 | 2)}
+            aria-label="Testo più grande"
+          >A+</button>
+          <button
+            className={`a11y-btn${contrast ? " a11y-btn--on" : ""}`}
+            onClick={() => setContrast(c => !c)}
+            aria-label={contrast ? "Disattiva alto contrasto" : "Attiva alto contrasto"}
+            aria-pressed={contrast}
+          >◑</button>
+        </div>
 
-        {/* ── Minimal header ── */}
+        {/* ── Header: logo + orari ── */}
         <header className="menu-header">
-          <div className="header-left">
-            <h1 className="venue-name">
-              <img src={logo} alt="L'Altro Spazio" className="venue-logo" />
-            </h1>
-            <p className="venue-sub">Via Nazario Sauro 24/F · Bologna</p>
-          </div>
+          <h1 className="venue-name">
+            <img src={logo} alt="L'Altro Spazio" className="venue-logo" />
+          </h1>
           <div className="header-right" aria-label="Orari di apertura">
             <p>Lun–Ven dalle 17:00</p>
             <p>Sab–Dom dalle 12:00</p>
@@ -441,40 +480,100 @@ export default function Menu() {
           min-height: 100vh;
         }
 
+        /* Accessibility toolbar */
+        .a11y-bar {
+          position: fixed;
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+          right: 12px;
+          display: flex;
+          background: #fff;
+          border: 1px solid rgba(17,17,17,0.22);
+          border-radius: 2px;
+          z-index: 1000;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .a11y-btn {
+          background: none;
+          border: none;
+          border-left: 1px solid rgba(17,17,17,0.15);
+          padding: 0 9px;
+          height: 28px;
+          font-family: 'IBM Plex Mono', monospace;
+          font-size: 11px;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: #111;
+          cursor: pointer;
+          min-width: 28px;
+          line-height: 1;
+        }
+        .a11y-btn:first-child { border-left: none; }
+        .a11y-btn:hover:not(:disabled) { background: rgba(17,17,17,0.05); }
+        .a11y-btn:disabled { opacity: 0.3; cursor: default; }
+        .a11y-btn--on { background: #111; color: #fff; }
+        .a11y-btn--on:hover { background: #333; }
+        .a11y-btn:focus-visible {
+          outline: 3px solid #B83A2A;
+          outline-offset: -1px;
+          border-radius: 1px;
+        }
+
+        /* High contrast mode */
+        .menu-page[data-contrast="high"] { color: #000; }
+        .menu-page[data-contrast="high"] .venue-sub,
+        .menu-page[data-contrast="high"] .header-right,
+        .menu-page[data-contrast="high"] .item-desc,
+        .menu-page[data-contrast="high"] .subcat,
+        .menu-page[data-contrast="high"] .size-h,
+        .menu-page[data-contrast="high"] .note,
+        .menu-page[data-contrast="high"] .menu-footer { color: #000; }
+        .menu-page[data-contrast="high"] .menu-footer a { color: #000; text-decoration-color: #000; }
+        .menu-page[data-contrast="high"] .cat,
+        .menu-page[data-contrast="high"] .subcat,
+        .menu-page[data-contrast="high"] .strip,
+        .menu-page[data-contrast="high"] .strip:first-of-type,
+        .menu-page[data-contrast="high"] .food-section,
+        .menu-page[data-contrast="high"] .menu-header,
+        .menu-page[data-contrast="high"] .menu-footer { border-color: #000; }
+        .menu-page[data-contrast="high"] .a11y-bar { border-color: #000; }
+        .menu-page[data-contrast="high"] .a11y-btn { color: #000; border-color: #000; }
+        .menu-page[data-contrast="high"] .a11y-btn--on { background: #000; color: #fff; }
+
+        /* Font size bumps */
+        .menu-page[data-font-size="1"] { font-size: 14px; }
+        .menu-page[data-font-size="1"] .item-desc { font-size: 14px; }
+        .menu-page[data-font-size="1"] .cat { font-size: 12px; }
+        .menu-page[data-font-size="1"] .subcat { font-size: 11px; }
+        .menu-page[data-font-size="1"] .strip-body { font-size: 14px; }
+        .menu-page[data-font-size="2"] { font-size: 16px; }
+        .menu-page[data-font-size="2"] .item-desc { font-size: 16px; }
+        .menu-page[data-font-size="2"] .cat { font-size: 13px; }
+        .menu-page[data-font-size="2"] .subcat { font-size: 12px; }
+        .menu-page[data-font-size="2"] .strip-body { font-size: 16px; }
+
         /* Header */
         .menu-header {
           display: flex;
           justify-content: space-between;
-          align-items: flex-end;
+          align-items: center;
           max-width: 740px;
           margin: 0 auto;
-          padding: 36px 44px 24px;
+          padding: 28px 44px 20px;
           border-bottom: 1px solid rgba(17,17,17,0.12);
           flex-wrap: wrap;
           gap: 12px;
         }
         .venue-name {
-          font-size: 16px;
-          font-weight: 700;
-          letter-spacing: -0.01em;
-          line-height: 1.1;
           margin: 0;
           padding: 0;
           line-height: 0;
         }
         .venue-logo {
-          height: 72px;
+          height: 96px;
           width: auto;
           display: block;
           mix-blend-mode: multiply;
-          margin: -10px 0 -6px -10px;
-        }
-        .venue-sub {
-          font-size: 11px;
-          color: #595959;
-          margin: 3px 0 0;
-          letter-spacing: 0.04em;
-          text-transform: none;
+          margin: -26px 0 -22px -24px;
         }
         .header-right {
           text-align: right;
@@ -716,8 +815,9 @@ export default function Menu() {
 
         /* Responsive */
         @media (max-width: 580px) {
-          .menu-header { padding: 24px 18px 18px; }
+          .menu-header { padding: 16px 18px 14px; }
           .header-right { text-align: left; }
+          .venue-logo { height: 80px; margin: -20px 0 -18px -18px; }
           .section-tops { display: none; }
 
           /* Nav: always visible + horizontal scroll */
@@ -768,23 +868,11 @@ export default function Menu() {
           .strip-label { min-width: auto; }
           .strip-body { flex: none; }
 
-          .menu-footer { padding: 14px 18px 28px; }
+          .menu-footer { padding: 14px 18px 56px; }
 
-          /* Footer links: column layout + 44px tap targets */
-          .footer-links { flex-direction: column; gap: 0; }
-          .footer-links span[aria-hidden="true"] { display: none; }
-          .footer-links span[role="listitem"]:not([aria-hidden]) {
-            display: flex;
-            align-items: center;
-            min-height: 44px;
-          }
-          .footer-links a {
-            display: inline-flex;
-            align-items: center;
-            min-height: 44px;
-            padding: 0 4px;
-            box-sizing: border-box;
-          }
+          /* Footer links: compact inline — dots restored, links get padding for tap area */
+          .footer-links { gap: 2px 10px; flex-wrap: wrap; }
+          .footer-links a { display: inline-block; padding: 6px 2px; }
 
           .sec-h { font-size: 15px; }
         }
