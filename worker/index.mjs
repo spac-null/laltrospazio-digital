@@ -5,6 +5,10 @@ export default {
   // Asset Worker. This handler has no route, query, or binding that exposes
   // META_DB or any Meta credential to the public website.
   async fetch(request, env) {
+    const url = new URL(request.url);
+    if (url.hostname === "menu.altrospazio.org" && url.pathname === "/") {
+      return Response.redirect(url.origin + "/menu", 301);
+    }
     return env.ASSETS.fetch(request);
   },
 
