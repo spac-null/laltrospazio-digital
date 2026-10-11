@@ -71,9 +71,14 @@ function SubCat({ children }: { children: React.ReactNode }) {
 }
 
 export default function Menu() {
-  useEffect(() => {
-    document.title = "Menu — L'Altro Spazio · Via Nazario Sauro";
+  // Set lang synchronously so screen readers see it on first parse
+  if (typeof document !== "undefined") {
     document.documentElement.lang = "it";
+    document.title = "Menu — L'Altro Spazio · Via Nazario Sauro";
+  }
+  useEffect(() => {
+    document.documentElement.lang = "it";
+    document.title = "Menu — L'Altro Spazio · Via Nazario Sauro";
   }, []);
 
   return (
@@ -421,9 +426,9 @@ export default function Menu() {
 
         .menu-page {
           background: #fff;
-          color: #111;
+          color: #111111;
           font-family: 'IBM Plex Mono', 'Courier New', Courier, monospace;
-          font-size: 10.5px;
+          font-size: 12px;
           line-height: 1.72;
           text-transform: uppercase;
           letter-spacing: 0.03em;
@@ -450,17 +455,19 @@ export default function Menu() {
           margin: 0;
         }
         .venue-sub {
-          font-size: 9px;
-          color: rgba(17,17,17,0.5);
+          font-size: 11px;
+          color: #595959;
           margin: 3px 0 0;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.04em;
+          text-transform: none;
         }
         .header-right {
           text-align: right;
-          font-size: 9px;
-          color: rgba(17,17,17,0.5);
-          letter-spacing: 0.05em;
+          font-size: 11px;
+          color: #595959;
+          letter-spacing: 0.04em;
           line-height: 1.7;
+          text-transform: none;
         }
         .header-right p { margin: 0; }
 
@@ -486,7 +493,7 @@ export default function Menu() {
           list-style: none;
         }
         .menu-nav a {
-          font-size: 9px;
+          font-size: 11px;
           color: #111;
           text-decoration: underline;
           letter-spacing: 0.05em;
@@ -538,11 +545,11 @@ export default function Menu() {
           font-weight: 700;
           font-size: 10px;
           letter-spacing: 0.07em;
-          color: rgba(17,17,17,0.5);
+          color: #595959;
           margin-top: 18px;
           margin-bottom: 6px;
           padding-bottom: 4px;
-          border-bottom: 1px solid rgba(17,17,17,0.11);
+          border-bottom: 1px solid rgba(17,17,17,0.15);
         }
 
         /* Item rows */
@@ -558,9 +565,11 @@ export default function Menu() {
         .item-name { display: block; }
         .item-desc {
           display: block;
-          font-size: 9px;
-          color: rgba(17,17,17,0.5);
-          margin-top: -1px;
+          font-size: 12px;
+          color: #595959;
+          margin-top: 1px;
+          text-transform: none;
+          letter-spacing: 0.01em;
         }
         .price { white-space: nowrap; flex-shrink: 0; }
         .sig { color: #B83A2A; }
@@ -570,8 +579,8 @@ export default function Menu() {
           display: flex;
           justify-content: flex-end;
           gap: 0;
-          font-size: 8.5px;
-          color: rgba(17,17,17,0.5);
+          font-size: 11px;
+          color: #595959;
           margin-bottom: 2px;
           letter-spacing: 0.05em;
         }
@@ -626,10 +635,12 @@ export default function Menu() {
           gap: 0 40px;
         }
         .note {
-          font-size: 9px;
-          color: rgba(17,17,17,0.5);
+          font-size: 11px;
+          color: #595959;
           margin-top: 5px;
           line-height: 1.7;
+          text-transform: none;
+          letter-spacing: 0.01em;
         }
 
         /* Footer */
@@ -637,15 +648,16 @@ export default function Menu() {
           max-width: 740px;
           margin: 0 auto;
           padding: 14px 44px 32px;
-          border-top: 1px solid rgba(17,17,17,0.11);
-          font-size: 9px;
-          color: rgba(17,17,17,0.5);
-          letter-spacing: 0.05em;
+          border-top: 1px solid rgba(17,17,17,0.15);
+          font-size: 11px;
+          color: #595959;
+          letter-spacing: 0.04em;
+          text-transform: none;
         }
         .menu-footer p { margin: 3px 0; }
         .menu-footer a {
           color: #111;
-          text-decoration-color: rgba(17,17,17,0.3);
+          text-decoration-color: rgba(17,17,17,0.4);
         }
         .menu-footer a:focus {
           outline: 3px solid #B83A2A;
