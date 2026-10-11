@@ -841,6 +841,7 @@ export default function Menu() {
             min-height: 44px;
             line-height: 24px;
             box-sizing: border-box;
+            white-space: nowrap;
           }
           .nav-label {
             display: block;
