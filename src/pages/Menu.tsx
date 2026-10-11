@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import logo from "../assets/logo.jpg";
 
 /* ─── Price helper: aria-label spells out "X euro e Y centesimi" for screen readers ─── */
 function Price({ value, label }: { value: string; label?: string }) {
@@ -93,7 +94,9 @@ export default function Menu() {
         {/* ── Minimal header ── */}
         <header className="menu-header">
           <div className="header-left">
-            <h1 className="venue-name">L'Altro Spazio</h1>
+            <h1 className="venue-name">
+              <img src={logo} alt="L'Altro Spazio" className="venue-logo" />
+            </h1>
             <p className="venue-sub">Via Nazario Sauro 24/F · Bologna</p>
           </div>
           <div className="header-right" aria-label="Orari di apertura">
@@ -456,6 +459,15 @@ export default function Menu() {
           letter-spacing: -0.01em;
           line-height: 1.1;
           margin: 0;
+          padding: 0;
+          line-height: 0;
+        }
+        .venue-logo {
+          height: 72px;
+          width: auto;
+          display: block;
+          mix-blend-mode: multiply;
+          margin: -10px 0 -6px -10px;
         }
         .venue-sub {
           font-size: 11px;
@@ -581,7 +593,7 @@ export default function Menu() {
         .size-h {
           display: flex;
           justify-content: flex-end;
-          gap: 0;
+          gap: 10px;
           font-size: 11px;
           color: #595959;
           margin-bottom: 2px;
@@ -591,7 +603,7 @@ export default function Menu() {
         .sz-w { width: 44px; text-align: right; }
         .dual-price {
           display: flex;
-          gap: 0;
+          gap: 10px;
           font-variant-numeric: tabular-nums;
           flex-shrink: 0;
         }
@@ -616,7 +628,16 @@ export default function Menu() {
           font-size: 11px;
           margin: 0;
         }
-        .strip-body { flex: 1; }
+        .strip-body {
+          flex: 1;
+          margin: 0;
+          font-size: 12px;
+          font-family: 'IBM Plex Mono', 'Courier New', Courier, monospace;
+          font-weight: 400;
+          letter-spacing: 0.03em;
+          text-transform: uppercase;
+        }
+        .strip-body strong { font-weight: 400; }
 
         /* Food section */
         .food-section {
@@ -693,9 +714,6 @@ export default function Menu() {
         /* nav-label: hidden on desktop, visible on mobile */
         .nav-label { display: none; }
 
-        /* strip font size: uniform 12px */
-        .strip-label { font-size: 12px; }
-
         /* Responsive */
         @media (max-width: 580px) {
           .menu-header { padding: 24px 18px 18px; }
@@ -713,6 +731,8 @@ export default function Menu() {
             border-bottom: 1px solid rgba(17,17,17,0.12);
             transition: none;
             scrollbar-width: none;
+            -webkit-mask-image: linear-gradient(to right, black 0%, black 78%, transparent 100%);
+            mask-image: linear-gradient(to right, black 0%, black 78%, transparent 100%);
           }
           .menu-nav::-webkit-scrollbar { display: none; }
           .menu-nav ol { flex-wrap: nowrap; }
@@ -730,6 +750,13 @@ export default function Menu() {
             letter-spacing: 0.06em;
             margin-bottom: 4px;
           }
+          .nav-label::after {
+            content: ' ›';
+            opacity: 0.5;
+          }
+
+          /* Cocktail Classici: restore top margin when stacked below Vino */
+          .col + .col > section:first-child .cat { margin-top: 26px; }
 
           .main-grid { grid-template-columns: 1fr; padding: 16px 18px 44px; }
           .full-row { grid-column: 1; }
